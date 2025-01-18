@@ -1,0 +1,21 @@
+Execute the following in your command line within the project directory:
+
+
+pip install PyQt6==6.8.0
+pip install PyQt6-Qt6==6.8.1
+pip install PyQt6-sip==13.9.1
+pip install brainflow==5.16.0
+pip install numpy==2.2.1
+pip install pip==23.2.1
+pip install pyqtgraph==0.13.7
+pip install setuptools==75.8.0
+
+
+
+- this repo is using Python 13, so please use the same python or similar versions, or else there might be issues in downloading the packages and/or changes to some code snippets, that can cause errors
+
+- run all of these in the command line in your project directory, these are the relevant packages to download to work with the neuropawn device
+
+- finally, using ctrl f (the FIND function), find all instances of "COM5", you need to mark this for later, as when you run the board on your computer, you will connect it to one of your own ports, and to they have their own names, to figure out what yours is, search device manager on your computer (assuming windows, idk what it is for mac), and then go to Ports, in Ports, the port that is connected to the neuropawn kit will show, and its name (like similar to COM5), is where you need to replace it within the code to run it.
+
+
