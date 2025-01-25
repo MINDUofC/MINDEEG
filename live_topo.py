@@ -9,28 +9,43 @@ from pyqtgraph.Qt import QtWidgets, QtCore
 import mne
 import matplotlib.pyplot as plt
 
+
 class LiveTopomap:
     def __init__(self, board_shim):
         self.board_shim = board_shim
         self.board_id = board_shim.get_board_id()
         self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
-        self.update_speed_ms = 100  # Update interval in milliseconds
+        self.update_speed_ms = 500  # Update interval in milliseconds
 
-        # Custom Montage Setup
-        channels_to_keep = ['Fc3.', 'C3..', 'C1..', 'Fcz.', 'Cz..', 'C2..', 'C4..', 'Fc4.']
-        self.channel_positions = {
-            "Fc3.": (-0.5, 0.3, 0.0), "C3..": (-0.5, 0.0, 0.0), "C1..": (-0.25, 0.0, 0.0),
-            "Fcz.": (0.0, 0.3, 0.0), "Cz..": (0.0, 0.0, 0.0), "C2..": (0.25, 0.0, 0.0),
-            "C4..": (0.5, 0.0, 0.0), "Fc4.": (0.5, 0.3, 0.0)
+        # Define the 10-10 system montage
+        eeg_positions_10_10 = {
+        "Fp1.": (-0.5, 1.0), "Fp2.": (0.5, 1.0), "Fpz.": (0.0, 1.0),
+        "Af7.": (-0.75, 0.75), "Af3.": (-0.25, 0.75), "Afz.": (0.0, 0.75), "Af4.": (0.25, 0.75), "Af8.": (0.75, 0.75),
+        "F7..": (-1.0, 0.5), "F5..": (-0.75, 0.5), "F3..": (-0.5, 0.5), "F1..": (-0.25, 0.5),
+        "Fz..": (0.0, 0.5), "F2..": (0.25, 0.5), "F4..": (0.5, 0.5), "F6..": (0.75, 0.5), "F8..": (1.0, 0.5), 
+        "Ft7.": (-1.0, 0.3), "Fc5.": (-0.75, 0.3), "Fc3.": (-0.5, 0.3), "Fc1.": (-0.25, 0.3),
+        "Fcz.": (0.0, 0.3), "Fc2.": (0.25, 0.3), "Fc4.": (0.5, 0.3), "Fc6.": (0.75, 0.3), "Ft8.": (1.0, 0.3),
+        "T9..": (-1.2, 0.0), "T7..": (-1.0, 0.0), "C5..": (-0.75, 0.0), "C3..": (-0.5, 0.0), "C1..": (-0.25, 0.0),
+        "Cz..": (0.0, 0.0), "C2..": (0.25, 0.0), "C4..": (0.5, 0.0), "C6..": (0.75, 0.0), "T8..": (1.0, 0.0), "T10.": (1.2, 0.0),
+        "Tp7.": (-1.0, -0.3), "Cp5.": (-0.75, -0.3), "Cp3.": (-0.5, -0.3), "Cp1.": (-0.25, -0.3),
+        "Cpz.": (0.0, -0.3), "Cp2.": (0.25, -0.3), "Cp4.": (0.5, -0.3), "Cp6.": (0.75, -0.3), "Tp8.": (1.0, -0.3),
+        "P7..": (-1.0, -0.5), "P5..": (-0.75, -0.5), "P3..": (-0.5, -0.5), "P1..": (-0.25, -0.5),
+        "Pz..": (0.0, -0.5), "P2..": (0.25, -0.5), "P4..": (0.5, -0.5), "P6..": (0.75, -0.5), "P8..": (1.0, -0.5),
+        "Po7.": (-0.75, -0.75), "Po3.": (-0.25, -0.75), "Poz.": (0.0, -0.75), "Po4.": (0.25, -0.75), "Po8.": (0.75, -0.75),
+        "O1..": (-0.5, -1.0), "Oz..": (0.0, -1.0), "O2..": (0.5, -1.0), "Iz..": (0.0, -1.2)
         }
-        self.custom_montage = mne.channels.make_dig_montage(ch_pos=self.channel_positions, coord_frame='head')
+        self.ch_pos = {ch: (x, y, 0.0) for ch, (x, y) in eeg_positions_10_10.items()}
+        self.custom_montage = mne.channels.make_dig_montage(ch_pos=self.ch_pos, coord_frame='head')
 
-        # MNE info object for the selected channels
+        # Define channel names for the active channels
+        self.active_channel_names = ["Fc3.", "C3..", "C1..", "Fcz.", "Cz..", "C2..", "C4..", "Fc4."]
+
+        # MNE info object for all 10-10 channels
         self.raw_info = mne.create_info(
-            ch_names=channels_to_keep,
+            ch_names=list(eeg_positions_10_10.keys()),
             sfreq=self.sampling_rate,
-            ch_types=["eeg"] * len(channels_to_keep)
+            ch_types=["eeg"] * len(eeg_positions_10_10)
         )
         self.raw_info.set_montage(self.custom_montage)
 
@@ -47,7 +62,9 @@ class LiveTopomap:
         # Initialize live topographical map
         self.fig, self.ax = plt.subplots()
         self.cbar = None
-        self.current_data = np.zeros(len(channels_to_keep))
+
+        # Initialize data with zeros
+        self.current_data = np.zeros(len(eeg_positions_10_10))
 
         # Start the timer for updates
         self.timer = QtCore.QTimer()
@@ -57,72 +74,38 @@ class LiveTopomap:
         # Start the application
         self.app.exec_()
 
-    # def update(self):
-
-    #     # Get live data
-    #     data = self.board_shim.get_current_board_data(256)  # Buffer size of 256 samples
-    #     #self.current_data = np.mean(data[self.exg_channels], axis=1)  # Average over samples
-    #     for count, channel in enumerate(self.exg_channels):
-    #         # plot timeseries
-    #         DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
-    #         DataFilter.perform_bandpass(data[channel], self.sampling_rate, 8, 13, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
-    #         DataFilter.perform_bandstop(data[channel], self.sampling_rate, 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
-    #         self.curves[count].setData(data[channel].tolist())
-
-    #     self.app.processEvents()
-
-    #     # Clear and redraw topomap
-    #     self.ax.clear()
-    #     im, cm = mne.viz.plot_topomap(
-    #         self.current_data, self.raw_info, axes=self.ax, show=False, cmap="rainbow", sensors=True, sphere=(0, 0, 0, 1.2),  # Adjust sphere radius
-    #     )
-
-    #     if self.cbar is None:
-    #         self.cbar = self.fig.colorbar(im, ax=self.ax)
-    #     else:
-    #         self.cbar.update_normal(im)
-    #     plt.pause(0.001)  # Pause to allow matplotlib to update
     def update(self):
         # Get live data from the board
-        data = self.board_shim.get_current_board_data(256)  # Buffer size of 256 samples
+        data = self.board_shim.get_current_board_data(62)
 
-        # Initialize an empty list to store filtered signals for topomap
+        # Extract and process live data for the active channels
         filtered_signals = []
-
         for channel in self.eeg_channels:
-            # Extract raw data for the current channel
             channel_data = data[channel]
-
-            # Detrend the signal to remove DC offset
             DataFilter.detrend(channel_data, DetrendOperations.CONSTANT.value)
-
-            # Apply a bandpass filter (e.g., for alpha band: 8-13 Hz)
-            DataFilter.perform_bandpass(
-                channel_data,
-                self.sampling_rate,
-                8.0,   # Lower cutoff frequency (Hz)
-                13.0,  # Upper cutoff frequency (Hz)
-                4,     # Filter order
-                FilterTypes.BUTTERWORTH_ZERO_PHASE.value,
-                0
-            )
-
-            # Apply a notch filter to remove powerline noise (e.g., 60 Hz)
             DataFilter.perform_bandstop(
                 channel_data,
                 self.sampling_rate,
-                58.0,  # Notch center frequency (Hz)
-                62.0,  # Notch bandwidth (Hz)
-                4,     # Filter order
+                58.0, 62.0, 4,
                 FilterTypes.BUTTERWORTH_ZERO_PHASE.value,
                 0
             )
-
-            # Compute the average of the filtered signal for this channel
+            DataFilter.perform_bandpass(
+                channel_data,
+                self.sampling_rate,
+                8.0, 13.0, 4,
+                FilterTypes.BUTTERWORTH_ZERO_PHASE.value,
+                0
+            )
             filtered_signals.append(np.mean(channel_data))
 
-        # Update the topomap with the filtered signals
-        self.current_data = np.array(filtered_signals)
+        # Update the corresponding positions in the full montage
+        for i, ch_name in enumerate(self.raw_info["ch_names"]):
+            if ch_name in self.active_channel_names:
+                # Map live data to the appropriate channel in the montage
+                self.current_data[i] = filtered_signals[self.active_channel_names.index(ch_name)]
+            else:
+                self.current_data[i] = 0.0  # Set inactive channels to zero
 
         # Clear and redraw the topomap
         self.ax.clear()
@@ -136,8 +119,9 @@ class LiveTopomap:
         else:
             self.cbar.update_normal(im)
 
-        # Refresh the matplotlib figure
-        plt.pause(0.001)  # Pause briefly to allow updates
+        plt.pause(0.1)  # Pause briefly to allow updates
+
+
 
 
 def main():
