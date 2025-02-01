@@ -5,7 +5,7 @@ import numpy as np
 import pyqtgraph as pg
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
-from pyqtgraph.Qt import QtGui, QtCore, QtWidgets 
+from pyqtgraph.Qt import QtGui, QtCore, QtWidgets
 
 
 class Graph:
@@ -27,7 +27,7 @@ class Graph:
             self.update_speed_ms = 8
 
             # Define the time window (in seconds) to display on the plot (Shows data from the last X seconds)
-            self.window_size = 6
+            self.window_size = 3
 
             # Calculate the total number of data points to display in the time window
             self.num_points = self.window_size * self.sampling_rate
@@ -87,29 +87,50 @@ class Graph:
             self.plots = list()
             self.curves = list()
 
-            # Loop through each EEG channel to create a separate plot
+            #LEFT SIDE PLOT
 
-            for i, channel in enumerate(self.eeg_channels):
-                p = self.win.addPlot(row=i, col=0)  # Add a new plot in a separate row (row is a channel)
+            plt_left_side = self.win.addPlot(row=0, col=0)  # Add a new plot in a separate row (row is a channel)
 
-                p.showAxis('left', True)  # Enable the left axis
-                p.getAxis('left').setLabel(f"Channel {i + 1}", color='white', size='10pt')
-                p.setMenuEnabled("left",False)
+            plt_left_side.showAxis('left', True)  # Enable the left axis
+            plt_left_side.getAxis('left').setLabel(f"Channel {"Left"}", color='white', size='10pt')
+            plt_left_side.setMenuEnabled("left",False)
 
-                # p.setMouseEnabled(x=True, y=False)
+            # plt_left_side.setMouseEnabled(x=True, y=False)
 
-                p.setYRange(-500, +500)  # Lock the Y-axis range
+            plt_left_side.setYRange(-1000, +1000)  # Lock the Y-axis range
 
-                p.showAxis('bottom', False)         # Hide the bottom axis to simplify the display
-                p.setMenuEnabled('bottom', False)   # Disable the bottom axis context menu
-                if i == 0:
-                    p.setTitle('TimeSeries Plot')   # Set the title for the first plot only
+            plt_left_side.showAxis('bottom', False)         # Hide the bottom axis to simplify the display
+            plt_left_side.setMenuEnabled('bottom', False)   # Disable the bottom axis context menu
+
+            plt_left_side.setTitle('TimeSeries Plot')       # Set the title for the first plot only
+
+            self.plots.append(plt_left_side)  # Store the plot object in the list
+            curve1 = plt_left_side.plot()  # Create a curve object for plotting data
+            self.curves.append(curve1)  # Store the curve object in the list
+            #left hand plot is now at index 0 of these lists
 
 
-                self.plots.append(p)                # Store the plot object in the list
-                curve = p.plot()                    # Create a curve object for plotting data
-                self.curves.append(curve)           # Store the curve object in the list
+            #RIGHT SIDE PLOT
 
+            plt_right_side = self.win.addPlot(row=2, col=0)  # Add a new plot in a separate row (row is a channel)
+
+            plt_right_side.showAxis('left', True)  # Enable the left axis
+            plt_right_side.getAxis('left').setLabel(f"Channel {"Right"}", color='white', size='10pt')
+            plt_right_side.setMenuEnabled("left", False)
+
+            # plt_right_side.setMouseEnabled(x=True, y=False)
+
+            plt_right_side.setYRange(-1000, +1000)  # Lock the Y-axis range
+
+            plt_right_side.showAxis('bottom', False)  # Hide the bottom axis to simplify the display
+            plt_right_side.setMenuEnabled('bottom', False)  # Disable the bottom axis context menu
+
+
+
+            self.plots.append(plt_right_side)                # Store the plot object in the list
+            curve2 = plt_right_side.plot()                    # Create a curve object for plotting data
+            self.curves.append(curve2)                       # Store the curve object in the list
+            # right hand plot is now at index 1 of these lists
 
 
         def update(self):
@@ -123,10 +144,12 @@ class Graph:
             # This ensures we always have a sliding window of the latest data
             data = self.board_shim.get_current_board_data(self.num_points)
 
+
+
             # Loop through each EEG channel to update its corresponding plot
             for count, channel in enumerate(self.eeg_channels):
                 # Detrend the data to remove constant offsets (DC components)
-                DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
+                DataFilter.detrend(data[channel], DetrendOperations.CONSTANT.value)
 
                 # Apply a bandpass filter to isolate brainwave activity in the alpha band (8-13 Hz)
                 DataFilter.perform_bandpass(
@@ -139,8 +162,20 @@ class Graph:
 
                 )
 
-                self.curves[count].setData(data[channel].tolist())
+            # Assuming left hand is C5,C3,C1 are channels 1,2,3 respectively
+            right_hand_data = data[1] + data[2] + data[3]
+            # right_hand_data = np.sum(data[0:3], axis=0)
 
+
+            # Assuming right hand is C2,C4,C6 are channels 4,5,6 respectively
+            left_hand_data = data[4] + data[5] + data[6]
+            # left_hand_data = np.sum(data[3:6], axis=0)
+
+
+            self.curves[0].setData( left_hand_data.tolist())
+
+
+            self.curves[1].setData( right_hand_data.tolist())
 
 
 
@@ -234,10 +269,6 @@ def main():
         if board.is_prepared():
             logging.info('Releasing session')
             board.release_session()
-
-
-
-
 
 
 if __name__ == '__main__':
