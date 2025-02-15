@@ -89,7 +89,7 @@ class Graph:
 
             # Loop through each EEG channel to create a separate plot
 
-            for i, channel in enumerate(self.eeg_channels):
+            for i in range(0,6): # enumerate(self.eeg_channels):
                 p = self.win.addPlot(row=i, col=0)  # Add a new plot in a separate row (row is a channel)
 
                 p.showAxis('left', True)  # Enable the left axis
@@ -98,7 +98,7 @@ class Graph:
 
                 # p.setMouseEnabled(x=True, y=False)
 
-                p.setYRange(-500, +500)  # Lock the Y-axis range
+                p.setYRange(-7, +7)  # Lock the Y-axis range
 
                 p.showAxis('bottom', False)         # Hide the bottom axis to simplify the display
                 p.setMenuEnabled('bottom', False)   # Disable the bottom axis context menu
