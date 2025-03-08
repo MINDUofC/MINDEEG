@@ -24,7 +24,7 @@ class Graph:
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
 
             # Define how often the plot updates (in milliseconds) (The update function is triggered every 8 ms)
-            self.update_speed_ms = 8
+            self.update_speed_ms = 1
 
             # Define the time window (in seconds) to display on the plot (Shows data from the last X seconds)
             self.window_size = 6
@@ -98,7 +98,7 @@ class Graph:
 
                 # p.setMouseEnabled(x=True, y=False)
 
-                p.setYRange(-500, +500)  # Lock the Y-axis range
+                p.setYRange(-7, +7)  # Lock the Y-axis range
 
                 p.showAxis('bottom', False)         # Hide the bottom axis to simplify the display
                 p.setMenuEnabled('bottom', False)   # Disable the bottom axis context menu
@@ -118,6 +118,8 @@ class Graph:
             if self.is_paused:
                 return
 
+            # while (condition):
+            #      body
 
             # Retrieve the most recent `num_points` data samples from the board's buffer
             # This ensures we always have a sliding window of the latest data
@@ -138,6 +140,11 @@ class Graph:
                     data[channel], self.sampling_rate, 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0
 
                 )
+
+                # Apply Common Average Referencing (CAR), this should help in removing movement and electrode shift artifacts
+
+                # common_avg = np.mean(data, axis=0)
+                # data -= common_avg
 
                 self.curves[count].setData(data[channel].tolist())
 
@@ -189,10 +196,10 @@ def main():
     params.master_board = args.master_board
 
     all_commands = [
-    "chon_1_12",  # Enable channel 1 with gain 12
-    "rldadd_1",   # Toggle right leg drive for channel 1  (THIS IS THE EARLOBE REFERENCE FOR CHANNEL 1)
-    "chon_2_12",  # Enable channel 2 with gain 12
-    "rldadd_2",   # Toggle right leg drive for channel 2  (THIS IS THE EARLOBE REFERENCE FOR CHANNEL 2)
+    # "chon_1_12",  # Enable channel 1 with gain 12
+    # "rldadd_1",   # Toggle right leg drive for channel 1  (THIS IS THE EARLOBE REFERENCE FOR CHANNEL 1)
+    # "chon_2_12",  # Enable channel 2 with gain 12
+    # "rldadd_2",   # Toggle right leg drive for channel 2  (THIS IS THE EARLOBE REFERENCE FOR CHANNEL 2)
     "chon_3_12",  # ...
     "rldadd_3",
     "chon_4_12",
