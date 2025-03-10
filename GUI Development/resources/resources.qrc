@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>MIND LOGO Transparent.png</file>
+    </qresource>
+</RCC>
