@@ -25,17 +25,38 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item alignment="Qt::AlignTop">
      <widget class="QLabel" name="label_15">
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+
+</string>
+      </property>
       <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QTabWidget" name="Visualizer">
+      <property name="styleSheet">
+       <string notr="true">QWidget {
+    border: 1px solid black; /* Black outline */
+    border-radius: 1px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
       <widget class="QWidget" name="muVPlot">
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
        <attribute name="title">
         <string>Live Plot</string>
        </attribute>
@@ -61,6 +82,14 @@
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QGroupBox" name="groupBox_4">
+      <property name="styleSheet">
+       <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+      </property>
       <property name="title">
        <string/>
       </property>
@@ -73,8 +102,18 @@
          <height>61</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+
+</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Preprocessing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Options&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Preprocessing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Options&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QCheckBox" name="BandPassOnOff">
@@ -83,8 +122,57 @@
          <x>30</x>
          <y>130</y>
          <width>161</width>
-         <height>20</height>
+         <height>21</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Band Pass Filter</string>
@@ -98,6 +186,55 @@
          <width>161</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Band Stop Filter</string>
@@ -158,6 +295,55 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+       </property>
        <property name="text">
         <string>FastICA</string>
        </property>
@@ -170,6 +356,55 @@
          <width>161</width>
          <height>21</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Detrend</string>
@@ -184,6 +419,55 @@
          <height>41</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+       </property>
        <property name="text">
         <string>Baseline Correction</string>
        </property>
@@ -196,6 +480,55 @@
          <width>161</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Average Filter</string>
@@ -210,21 +543,38 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat SemiBold */
+    font-size: 11px; /* Set to 11px */
+    font-color: #d7d7d7; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#535353;&quot;&gt;Data Cleaning&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; color:#7e7e7e;&quot;&gt;Data Cleaning&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_13">
        <property name="geometry">
         <rect>
-         <x>20</x>
+         <x>30</x>
          <y>340</y>
          <width>131</width>
          <height>31</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat SemiBold */
+    font-size: 11px; /* Set to 11px */
+    color: #535353; /* Text color */
+    text-decoration: underline; /* Underline text */
+}</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#535353;&quot;&gt;Data Smoothing&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; color:#535353;&quot;&gt;Data Smoothing&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QCheckBox" name="MedianOnOff">
@@ -235,6 +585,55 @@
          <width>161</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Median Filter</string>
@@ -300,6 +699,14 @@
         <height>170</height>
        </size>
       </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+      </property>
       <property name="title">
        <string/>
       </property>
@@ -311,6 +718,55 @@
          <width>141</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Power/PSD Analysis</string>
@@ -325,6 +781,55 @@
          <height>20</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+       </property>
        <property name="text">
         <string>Frequency Analysis (FFT)</string>
        </property>
@@ -337,6 +842,55 @@
          <width>151</width>
          <height>20</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Raw Data (muV/Time)</string>
@@ -351,8 +905,17 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </widget>
@@ -371,6 +934,14 @@
         <height>213</height>
        </size>
       </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+      </property>
       <property name="title">
        <string/>
       </property>
@@ -383,8 +954,17 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Board Config&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Board Config&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QDial" name="ChannelDial">
@@ -396,15 +976,87 @@
          <height>81</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget {
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 2px; /* Padding inside the widget */
+    font-family: &quot;Montserrat&quot;, sans-serif; /* Use Montserrat Regular */
+    color: black; /* Text color */
+}
+</string>
+       </property>
+       <property name="maximum">
+        <number>9</number>
+       </property>
+       <property name="tracking">
+        <bool>true</bool>
+       </property>
+       <property name="wrapping">
+        <bool>true</bool>
+       </property>
+       <property name="notchesVisible">
+        <bool>true</bool>
+       </property>
       </widget>
       <widget class="QCheckBox" name="CommonReferenceOnOff">
        <property name="geometry">
         <rect>
-         <x>30</x>
+         <x>20</x>
          <y>170</y>
          <width>191</width>
          <height>41</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
        </property>
        <property name="text">
         <string>Common Reference On/Off</string>
@@ -419,19 +1071,35 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+       </property>
        <property name="text">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Channels On/Off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
      </widget>
     </item>
-    <item row="4" column="0">
+    <item row="2" column="0">
      <widget class="QGroupBox" name="groupBox_3">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
       </property>
       <property name="title">
        <string/>
@@ -445,8 +1113,17 @@
          <height>31</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+       </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; text-decoration: underline;&quot;&gt;Epoch/Timing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Epoch/Timing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
       </widget>
       <widget class="QSpinBox" name="BeforeOnset">
@@ -478,6 +1155,14 @@
          <height>16</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+       </property>
        <property name="text">
         <string>Time After Onset</string>
        </property>
@@ -490,6 +1175,14 @@
          <width>111</width>
          <height>16</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
        </property>
        <property name="text">
         <string>Time Before Onset</string>
@@ -504,6 +1197,9 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true"/>
+       </property>
       </widget>
       <widget class="QLabel" name="label_7">
        <property name="geometry">
@@ -513,6 +1209,14 @@
          <width>121</width>
          <height>16</height>
         </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
        </property>
        <property name="text">
         <string>Time Between Trials</string>
@@ -537,6 +1241,14 @@
          <height>16</height>
         </rect>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+       </property>
        <property name="text">
         <string># of Trials</string>
        </property>
@@ -556,7 +1268,20 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QWidget" name="TimelineVisualizer" native="true"/>
+     <widget class="QWidget" name="TimelineVisualizer" native="true">
+      <property name="styleSheet">
+       <string notr="true">QWidget{
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 0px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -565,13 +1290,37 @@
     <rect>
      <x>60</x>
      <y>10</y>
-     <width>141</width>
-     <height>141</height>
+     <width>131</width>
+     <height>131</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QLabel" name="label_16">
+      <property name="minimumSize">
+       <size>
+        <width>129</width>
+        <height>129</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>129</width>
+        <height>129</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel{
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+      </property>
       <property name="text">
        <string notr="true"/>
       </property>
@@ -588,14 +1337,51 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>570</x>
+     <x>260</x>
      <y>600</y>
      <width>111</width>
      <height>31</height>
     </rect>
    </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton {
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+   </property>
    <property name="text">
     <string>RECORD</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="StatusBar">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>600</y>
+     <width>601</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QLabel {
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+   </property>
+   <property name="text">
+    <string>Status</string>
    </property>
   </widget>
  </widget>
