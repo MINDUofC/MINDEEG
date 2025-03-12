@@ -4,7 +4,8 @@ from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5 import uic
 
-import backend  # Import backend functions
+import backend_design as bed # Import backend functions
+import backend_eeg as beeg
 import resources_rc  # Ensure this is generated from .qrc file
 
 
@@ -27,7 +28,7 @@ class MainApp(QDialog):
         self.logo_label = self.findChild(QLabel, "logo")
         if self.logo_label:
             self.logo_label.setCursor(Qt.PointingHandCursor)
-            self.logo_label.mousePressEvent = backend.open_link  # Use function from backend.py
+            self.logo_label.mousePressEvent = bed.open_link  # Use function from backend.py
 
         # === ️ Taskbar Buttons ===
         self.minimize_button = self.findChild(QPushButton, "minimize_button")
@@ -38,21 +39,21 @@ class MainApp(QDialog):
         self.was_fullscreen = False  # Track if window was fullscreen
 
         if self.minimize_button:
-            self.minimize_button.clicked.connect(lambda: backend.minimize_window(self))
+            self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
 
         if self.close_button:
-            self.close_button.clicked.connect(lambda: backend.close_window(self))
+            self.close_button.clicked.connect(lambda: bed.close_window(self))
 
         if self.fullscreen_button:
-            self.fullscreen_button.clicked.connect(lambda: backend.toggle_fullscreen(self))
+            self.fullscreen_button.clicked.connect(lambda: bed.toggle_fullscreen(self))
 
-        # === 📌 Initialize Dropdown Menu ===
+        # === Initialize Dropdown Menu ===
         self.menu_options = self.findChild(QComboBox, "MenuOptions")
 
-        # === 🎯 Enable Window Dragging (ONLY ON TASKBAR) ===
+        # === Enable Window Dragging (ONLY ON TASKBAR) ===
         if self.taskbar:
-            self.taskbar.mousePressEvent = lambda event: backend.start_drag(self, event)
-            self.taskbar.mouseMoveEvent = lambda event: backend.move_window(self, event)
+            self.taskbar.mousePressEvent = lambda event: bed.start_drag(self, event)
+            self.taskbar.mouseMoveEvent = lambda event: bed.move_window(self, event)
         else:
             print("Warning: Taskbar widget not found in UI file.")
 
@@ -62,11 +63,11 @@ class MainApp(QDialog):
     def showEvent(self, event):
         """Restore the window state when shown again."""
         super().showEvent(event)  # Ensure PyQt handles the event properly
-        backend.restore_window(self)  # Restore previous state (fullscreen or normal)
+        bed.restore_window(self)  # Restore previous state (fullscreen or normal)
 
     # === 🎨 Use Backend Paint Event ===
     def paintEvent(self, event):
-        backend.paintEvent(self, event)  # Call the paintEvent from backend.py
+        bed.paintEvent(self, event)  # Call the paintEvent from backend.py
 
 
 if __name__ == "__main__":
