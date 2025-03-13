@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1271</width>
+    <width>1269</width>
     <height>959</height>
    </rect>
   </property>
@@ -39,7 +39,7 @@ QDialog {
                                 stop:1 #FFFFFF);
 
 	   border-radius: 15px; /* Slightly rounded corners */
-    border: 2px solid rgba(0, 0, 0, 0.1); /* Light modern border */
+    	border: 2px solid rgba(0, 0, 0, 0.1); /* Light modern border */
 }
 
 /* === Adding a Soft Shadow Effect === */
@@ -824,7 +824,7 @@ QCheckBox::indicator:disabled:checked {
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>40</y>
+         <y>50</y>
          <width>111</width>
          <height>31</height>
         </rect>
@@ -846,7 +846,7 @@ QCheckBox::indicator:disabled:checked {
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>380</y>
+         <y>390</y>
          <width>131</width>
          <height>31</height>
         </rect>
@@ -934,7 +934,7 @@ QCheckBox::indicator:disabled:checked {
         <string>Median Filter</string>
        </property>
       </widget>
-      <widget class="QSpinBox" name="NumBandPass_2">
+      <widget class="QSpinBox" name="Window">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -1014,77 +1014,839 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
         <string>  Window:</string>
        </property>
       </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="gridWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>820</x>
-     <y>710</y>
-     <width>261</width>
-     <height>651</height>
-    </rect>
-   </property>
-   <layout class="QGridLayout" name="gridLayout">
-    <property name="sizeConstraint">
-     <enum>QLayout::SetMinimumSize</enum>
-    </property>
-   </layout>
-  </widget>
-  <widget class="QWidget" name="horizontalWidget" native="true">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>720</y>
-     <width>1241</width>
-     <height>221</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QWidget" name="TimelineVisualizer" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QWidget#TimelineVisualizer{
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 0px; /* Padding inside the label */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-}
-</string>
-      </property>
-      <widget class="QLabel" name="label_16">
+      <widget class="QWidget" name="BandPassSettings" native="true">
        <property name="geometry">
         <rect>
-         <x>550</x>
-         <y>10</y>
-         <width>111</width>
-         <height>31</height>
+         <x>20</x>
+         <y>130</y>
+         <width>171</width>
+         <height>61</height>
         </rect>
        </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="styleSheet">
-        <string notr="true">QLabel {
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
+        <string notr="true">QGroupBox {
 
+    background-color: transparent; /* No background */
+   
+}</string>
+       </property>
+       <widget class="QLabel" name="label_32">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>30</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
 }
 </string>
+        </property>
+        <property name="text">
+         <string> Hz</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP2End">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>31</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP1End">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>11</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP1St">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>10</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_31">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>30</y>
+          <width>51</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz   to</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP2St">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>30</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_29">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>10</y>
+          <width>51</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz   to</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_33">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>16</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string>1.</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_30">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>10</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_34">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>16</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string>2.</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="BandStopSettings" native="true">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>240</y>
+         <width>171</width>
+         <height>61</height>
+        </rect>
        </property>
-       <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Timer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
+       <property name="styleSheet">
+        <string notr="true">QGroupBox {
+
+    background-color: transparent; /* No background */
+   
+}</string>
+       </property>
+       <widget class="QLabel" name="label_59">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>30</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP2End_6">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>31</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP1End_6">
+        <property name="geometry">
+         <rect>
+          <x>110</x>
+          <y>11</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP1St_6">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>10</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_60">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>30</y>
+          <width>51</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz   to</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="BP2St_6">
+        <property name="geometry">
+         <rect>
+          <x>30</x>
+          <y>30</y>
+          <width>31</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+        </property>
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_61">
+        <property name="geometry">
+         <rect>
+          <x>60</x>
+          <y>10</y>
+          <width>51</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz   to</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_62">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>16</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string>1.</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_63">
+        <property name="geometry">
+         <rect>
+          <x>140</x>
+          <y>10</y>
+          <width>21</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Hz</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_64">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>30</y>
+          <width>16</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string>2.</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -2724,9 +3486,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
    <widget class="QLabel" name="label_28">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>90</y>
-      <width>81</width>
+      <width>91</width>
       <height>20</height>
      </rect>
     </property>
@@ -2739,9 +3501,66 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Board ID #&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Board ID&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>710</y>
+     <width>1231</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <item>
+     <widget class="QWidget" name="TimelineVisualizer" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QWidget#TimelineVisualizer{
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 0px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+      </property>
+      <widget class="QLabel" name="label_16">
+       <property name="geometry">
+        <rect>
+         <x>550</x>
+         <y>10</y>
+         <width>111</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+
+}
+</string>
+       </property>
+       <property name="text">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Timer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <tabstops>
@@ -2758,7 +3577,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
   <tabstop>FastICAOnOff</tabstop>
   <tabstop>AverageOnOff</tabstop>
   <tabstop>MedianOnOff</tabstop>
-  <tabstop>NumBandPass_2</tabstop>
+  <tabstop>Window</tabstop>
   <tabstop>Visualizer</tabstop>
   <tabstop>recordButton</tabstop>
   <tabstop>RawData</tabstop>

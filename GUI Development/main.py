@@ -1,10 +1,10 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5 import uic
 
-import backend_design as bed # Import backend functions
+import backend_design as bed  # Import backend functions
 import backend_eeg as beeg
 import resources_rc  # Ensure this is generated from .qrc file
 
@@ -13,52 +13,71 @@ class MainApp(QDialog):
     def __init__(self):
         super().__init__()
 
-        # Load UI file
+        # Load UI File & Configure Window
         uic.loadUi("GUI Design.ui", self)
-
-        # REMOVE Default Window Border & Title Bar
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-
-        # Set Window Title & Taskbar Icon
         self.setWindowTitle("MIND EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/TaskbarIcon.png"))  # Ensure this is in your .qrc file
 
-        # Find QLabel using the correct object name "logo"
-        self.logo_label = self.findChild(QLabel, "logo")
-        if self.logo_label:
-            self.logo_label.setCursor(Qt.PointingHandCursor)
-            self.logo_label.mousePressEvent = bed.open_link  # Use function from backend.py
+        # UI Elements (Widgets, Buttons, etc) as Variables ⌄
 
-        # === ️ Taskbar Buttons ===
+        # Taskbar & Window Controls
+        self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar (for dragging)
         self.minimize_button = self.findChild(QPushButton, "minimize_button")
         self.close_button = self.findChild(QPushButton, "close_button")
         self.fullscreen_button = self.findChild(QPushButton, "fullscreen_button")
-        self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar for dragging
 
-        self.was_fullscreen = False  # Track if window was fullscreen
+        # Other UI Elements
+        self.logo_label = self.findChild(QLabel, "logo")  # Logo for clickable link
+        self.menu_options = self.findChild(QComboBox, "MenuOptions")  # Dropdown Menu
 
+        # Settings Widgets & Spinboxes for BandPass Filters
+        self.BandPassSettings = self.findChild(QWidget, "BandPassSettings")
+        self.BandStopSettings = self.findChild(QWidget, "BandStopSettings")
+        self.NumBandPass = self.findChild(QSpinBox, "NumBandPass")
+        self.NumBandStop = self.findChild(QSpinBox, "NumBandStop")
+
+        # Initial UI Setup ⌄
+
+        self.was_fullscreen = False  # Track if window was fullscreen before minimizing, starts as not fullscreen
+
+        # Hide & Disable Settings by Default for BandPass/Stop
+        self.BandPassSettings.setVisible(False)
+        self.BandPassSettings.setEnabled(False)
+        self.BandStopSettings.setVisible(False)
+        self.BandStopSettings.setEnabled(False)
+
+        # Connect UI Elements to Functions ⌄
+
+        #  Click Events
+        if self.logo_label:
+            self.logo_label.setCursor(Qt.PointingHandCursor)
+            self.logo_label.mousePressEvent = bed.open_link  # Logo opens MIND Website
+
+        # Taskbar & Window Controls (Close, Minimize, Fullscreen)
         if self.minimize_button:
             self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
-
         if self.close_button:
             self.close_button.clicked.connect(lambda: bed.close_window(self))
-
         if self.fullscreen_button:
             self.fullscreen_button.clicked.connect(lambda: bed.toggle_fullscreen(self))
 
-        # === Initialize Dropdown Menu ===
-        self.menu_options = self.findChild(QComboBox, "MenuOptions")
-
-        # === Enable Window Dragging (ONLY ON TASKBAR) ===
+        # Enable Window Dragging (ONLY ON TASKBAR)
         if self.taskbar:
             self.taskbar.mousePressEvent = lambda event: bed.start_drag(self, event)
             self.taskbar.mouseMoveEvent = lambda event: bed.move_window(self, event)
         else:
             print("Warning: Taskbar widget not found in UI file.")
 
+        # Toggle Visibility Based on BandPass and BandStop Spinbox Values
+        self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
+        self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
+
         # Restrict dragging to only the taskbar (Disable dragging from anywhere else)
         self.setMouseTracking(False)
+
+
 
     def showEvent(self, event):
         """Restore the window state when shown again."""

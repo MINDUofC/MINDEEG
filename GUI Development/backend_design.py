@@ -73,3 +73,26 @@ def paintEvent(self, event):
 
     painter.setPen(border_pen)
     painter.drawRoundedRect(self.rect().adjusted(1, 1, -1, -1), 15, 15)
+
+def toggle_settings_visibility(self):
+    """Toggles visibility of BandPassSettings & BandStopSettings based on spinbox values."""
+
+    # Get values from spinboxes
+    bandpass_value = self.NumBandPass.value()
+    bandstop_value = self.NumBandStop.value()
+
+    # BandPassSettings visibility toggle
+    if bandpass_value > 0:
+        self.BandPassSettings.setVisible(True)
+        self.BandPassSettings.setEnabled(True)
+    else:
+        self.BandPassSettings.setVisible(False)
+        self.BandPassSettings.setEnabled(False)
+
+    # BandStopSettings visibility toggle
+    if bandstop_value > 0:
+        self.BandStopSettings.setVisible(True)
+        self.BandStopSettings.setEnabled(True)
+    else:
+        self.BandStopSettings.setVisible(False)
+        self.BandStopSettings.setEnabled(False)
