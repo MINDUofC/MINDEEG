@@ -72,10 +72,8 @@ class Graph(QMainWindow):
 
         for count, channel in enumerate(self.eeg_channels):
             DataFilter.detrend(data[channel], DetrendOperations.LINEAR.value)
-            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 8, 13, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE,
-                                        0)
-            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 58.0, 62.0, 4,
-                                        FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            DataFilter.perform_bandpass(data[channel], self.sampling_rate, 8, 13, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE,0)
+            DataFilter.perform_bandstop(data[channel], self.sampling_rate, 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
 
             interpolated_signal = self.interpolate_signal(data[channel])
             self.curves[count].setData(interpolated_signal.tolist())
