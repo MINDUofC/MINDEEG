@@ -1,4 +1,9 @@
 import serial.tools.list_ports as device_ports
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QLineEdit, QComboBox, QDial, QCheckBox, QLabel
+import logging
+import time
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 
 
 # GET PORTS FROM COMBOBOX
@@ -19,11 +24,6 @@ def refresh_ports_on_click(combo_box):
         combo_box.addItem("No ports found")
 
 
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QLineEdit, QComboBox, QDial, QCheckBox, QLabel
-import logging
-import time
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 
 # This will take in board_config data, validate it, and then
 def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial,
@@ -38,13 +38,13 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
     :param status_bar: QLabel to display status updates
     """
 
-    # **Retrieve values from GUI**
+    # Retrieve values from GUI
     board_id = board_id_input.text().strip()
     port = port_input.currentText().strip()
     num_channels = channel_dial.value()
     common_ref = common_ref_checkbox.isChecked()
 
-    # **Validate Inputs**
+    # Validate Inputs
     if not board_id or not board_id.isdigit():
         set_status(status_bar, "Error: Invalid Board ID", error=True)
         return
@@ -57,16 +57,16 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
 
     board_id = int(board_id)
 
-    # **Set up BrainFlow Parameters**
+    # Set up BrainFlow Parameters**
     params = BrainFlowInputParams()
     params.serial_port = port
     params.timeout = 15  # Default timeout
 
-    # **Enable board logging**
+    # Enable board logging**
     BoardShim.enable_dev_board_logger()
     logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
-    # **Display starting message**
+    # Display starting message
     set_status(status_bar, "Turning on...", error=False)
 
     try:
