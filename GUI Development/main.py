@@ -1,5 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox
+
+from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
+    QCheckBox, QDial, QTabWidget
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QIcon
 from PyQt5 import uic
@@ -13,14 +15,14 @@ class MainApp(QDialog):
     def __init__(self):
         super().__init__()
 
-        # Load UI File & Configure Window
+ # Load UI File & Configure Window
         uic.loadUi("GUI Design.ui", self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MIND EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/TaskbarIcon.png"))  # Ensure this is in your .qrc file
 
-        # UI Elements (Widgets, Buttons, etc) as Variables ⌄
+# UI Elements (Widgets, Buttons, etc) as Variables ⌄
 
         # Taskbar & Window Controls
         self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar (for dragging)
@@ -32,13 +34,70 @@ class MainApp(QDialog):
         self.logo_label = self.findChild(QLabel, "logo")  # Logo for clickable link
         self.menu_options = self.findChild(QComboBox, "MenuOptions")  # Dropdown Menu
 
-        # Settings Widgets & Spinboxes for BandPass Filters
+#PREPROCESSING SECTION
+        # Initializing everything for BandPas/Stops Filters
+        self.BandPassOnOff = self.findChild(QCheckBox, "BandPassOnOff")
+        self.BandStopOnOff = self.findChild(QCheckBox, "BandStopOnOff")
+
         self.BandPassSettings = self.findChild(QWidget, "BandPassSettings")
         self.BandStopSettings = self.findChild(QWidget, "BandStopSettings")
         self.NumBandPass = self.findChild(QSpinBox, "NumBandPass")
         self.NumBandStop = self.findChild(QSpinBox, "NumBandStop")
 
-        # Initial UI Setup ⌄
+        self.BP1Start = self.findChild(QLineEdit,"BP1St")
+        self.BP1End = self.findChild(QLineEdit,"BP1End")
+        self.BP2Start = self.findChild(QLineEdit,"BP2St")
+        self.BP2End = self.findChild(QLineEdit,"BP2End")
+
+        self.BStop1Start = self.findChild(QLineEdit,"BStop1Start")
+        self.BStop1End = self.findChild(QLineEdit,"BStop1End")
+        self.BStop2Start = self.findChild(QLineEdit,"BStop2Start")
+        self.BStop2End = self.findChild(QLineEdit,"BStop2End")
+
+        # Initializing Detrend, Baseline and FastICA
+        self.DetrendOnOff = self.findChild(QCheckBox, "DetrendOnOff")
+        self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
+        self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
+
+        #Initializing Data Smoothing and Aggregation Filters
+        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
+        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
+        self.Window = self.findChild(QSpinBox, "Window")
+
+#DATA FILE SELECTION
+
+        self.RawData = self.findChild(QCheckBox, "RawData")
+        self.FFTData = self.findChild(QCheckBox, "FFTData")
+        self.PSDData = self.findChild(QCheckBox, "PSDData")
+
+
+#BOARD CONFIGURATION
+
+        self.BoardID = self.findChild(QLineEdit, "BoardID")
+        self.ChannelDial = self.findChild(QDial, "ChannelDial")
+        self.CommonReferenceOnOff = self.findChild(QCheckBox, "CommonReferenceOnOff")
+        self.Port = self.findChild(QComboBox, "Port")
+
+#EPOCH/TIMING
+
+        self.BeforeOnset = self.findChild(QSpinBox, "BeforeOnset")
+        self.AfterOnset = self.findChild(QSpinBox, "AfterOnset")
+        self.TimeBetweenTrials = self.findChild(QSpinBox, "TimeBetweenTrials")
+        self.NumOfTrials = self.findChild(QLineEdit, "NumOfTrials")
+
+
+#TIMER, VISUALIZER, RECORD AND STATUS
+
+        self.TimelineVisualizer = self.findChild(QWidget, "TimelineVisualizer")
+
+        self.Visualizer = self.findChild(QTabWidget, "Visualizer")
+        self.muVPlot = self.findChild(QWidget, "muVPlot")
+        self.PSDPlot = self.findChild(QWidget, "PSDPlot")
+
+        self.recordButton = self.findChild(QPushButton, "recordButton")
+        self.StatusBar = self.findChild(QLabel, "StatusBar")
+
+# UI Setup ⌄
 
         self.was_fullscreen = False  # Track if window was fullscreen before minimizing, starts as not fullscreen
 
@@ -84,7 +143,7 @@ class MainApp(QDialog):
         super().showEvent(event)  # Ensure PyQt handles the event properly
         bed.restore_window(self)  # Restore previous state (fullscreen or normal)
 
-    # === 🎨 Use Backend Paint Event ===
+    # Use Backend Paint Event
     def paintEvent(self, event):
         bed.paintEvent(self, event)  # Call the paintEvent from backend.py
 
