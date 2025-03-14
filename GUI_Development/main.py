@@ -185,7 +185,6 @@ class MainApp(QDialog):
     def eventFilter(self, obj, event):
         """Refresh port list only when QComboBox is clicked."""
         if obj == self.Port and event.type() == event.MouseButtonPress:
-            import backend.backend_design as bed
             beeg.refresh_ports_on_click(self.Port)
         return super().eventFilter(obj, event)
 
