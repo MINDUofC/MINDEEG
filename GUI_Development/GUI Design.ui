@@ -3420,7 +3420,7 @@ QComboBox QAbstractItemView::item:selected {
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>110</y>
+      <y>150</y>
       <width>51</width>
       <height>31</height>
      </rect>
@@ -3487,7 +3487,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>90</y>
+      <y>130</y>
       <width>91</width>
       <height>20</height>
      </rect>
@@ -3502,6 +3502,119 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Board ID&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="BoardOnOff">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>50</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 25px;
+    height: 25px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:20px;
+	width:20px;
+	padding-left: 2px;
+	padding-right: 2px;
+	
+    }
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_35">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>80</y>
+      <width>91</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Board&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_36">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>90</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;On/Off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
   </widget>

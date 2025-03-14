@@ -2,27 +2,26 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
     QCheckBox, QDial, QTabWidget
-from PyQt5.QtCore import Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices, QIcon
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from PyQt5 import uic
 
-import backend_design as bed  # Import backend functions
-import backend_eeg as beeg
-import resources_rc  # Ensure this is generated from .qrc file
-
+import backend.backend_design as bed  # Import backend functions
+import backend.backend_logic.backend_eeg as beeg
+import resources_rc
 
 class MainApp(QDialog):
     def __init__(self):
         super().__init__()
 
- # Load UI File & Configure Window
+# Load UI File & Configure Window
         uic.loadUi("GUI Design.ui", self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MIND EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/TaskbarIcon.png"))  # Ensure this is in your .qrc file
 
-# UI Elements (Widgets, Buttons, etc) as Variables ⌄
+# TASKBAR ELEMENTS (Widgets, Buttons, etc) as Variables ⌄
 
         # Taskbar & Window Controls
         self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar (for dragging)
@@ -30,7 +29,7 @@ class MainApp(QDialog):
         self.close_button = self.findChild(QPushButton, "close_button")
         self.fullscreen_button = self.findChild(QPushButton, "fullscreen_button")
 
-        # Other UI Elements
+# OTHER UI ELEMENTS
         self.logo_label = self.findChild(QLabel, "logo")  # Logo for clickable link
         self.menu_options = self.findChild(QComboBox, "MenuOptions")  # Dropdown Menu
 
@@ -72,7 +71,9 @@ class MainApp(QDialog):
 
 
 #BOARD CONFIGURATION
-
+        # Store the active board instance
+        self.board_shim = None
+        self.BoardOnOff = self.findChild(QCheckBox,"BoardOnOff")
         self.BoardID = self.findChild(QLineEdit, "BoardID")
         self.ChannelDial = self.findChild(QDial, "ChannelDial")
         self.CommonReferenceOnOff = self.findChild(QCheckBox, "CommonReferenceOnOff")
@@ -136,6 +137,57 @@ class MainApp(QDialog):
         # Restrict dragging to only the taskbar (Disable dragging from anywhere else)
         self.setMouseTracking(False)
 
+        # Auto-refresh port list when ComboBox is clicked**
+        self.Port.installEventFilter(self)
+
+        # Allowing Integers only for various LineBoxes, to avoid letters in an area only for numbers/integers
+        bed.set_integer_only(self.BoardID,0,57)
+        bed.set_integer_only(self.NumOfTrials)
+
+        bed.set_integer_only(self.BP1Start,0,100)
+        bed.set_integer_only(self.BP1End, 0, 100)
+        bed.set_integer_only(self.BP2Start, 0, 100)
+        bed.set_integer_only(self.BP2End, 0, 100)
+        bed.set_integer_only(self.BStop1Start, 0, 100)
+        bed.set_integer_only(self.BStop1End, 0, 100)
+        bed.set_integer_only(self.BStop2Start, 0, 100)
+        bed.set_integer_only(self.BStop2End, 0, 100)
+
+        # Board Turn On/Off Functionality
+
+        # Connect BoardOnOff state change to toggle function**
+        self.BoardOnOff.stateChanged.connect(self.toggle_board)
+
+    def toggle_board(self):
+        """
+        Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
+        """
+        if self.BoardOnOff.isChecked():  # **Turn ON the board**
+            self.board_shim = beeg.turn_on_board(
+                self.BoardID,
+                self.Port,
+                self.ChannelDial,
+                self.CommonReferenceOnOff,
+                self.StatusBar
+            )
+            if not self.board_shim:  # If board failed to start, uncheck the box
+                self.BoardOnOff.setChecked(False)
+        else:  # **Turn OFF the board**
+            beeg.turn_off_board(
+                self.board_shim,
+                self.BoardID,
+                self.Port,
+                self.ChannelDial,
+                self.CommonReferenceOnOff,
+                self.StatusBar
+            )
+
+    def eventFilter(self, obj, event):
+        """Refresh port list only when QComboBox is clicked."""
+        if obj == self.Port and event.type() == event.MouseButtonPress:
+            import backend.backend_design as bed
+            beeg.refresh_ports_on_click(self.Port)
+        return super().eventFilter(obj, event)
 
 
     def showEvent(self, event):

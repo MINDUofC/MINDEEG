@@ -1,5 +1,6 @@
 # backend.py
-
+from PyQt5.QtGui import QIntValidator
+from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtCore import Qt, QUrl
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
 
@@ -96,3 +97,25 @@ def toggle_settings_visibility(self):
     else:
         self.BandStopSettings.setVisible(False)
         self.BandStopSettings.setEnabled(False)
+
+
+
+
+def set_integer_only(line_edit: QLineEdit, min_value: int = None, max_value: int = None):
+    """
+    Restricts a QLineEdit to accept only integer values.
+
+    :param line_edit: The QLineEdit object to modify.
+    :param min_value: (Optional) Minimum value allowed.
+    :param max_value: (Optional) Maximum value allowed.
+    """
+    if min_value is not None and max_value is not None:
+        validator = QIntValidator(min_value, max_value)
+    elif min_value is not None:
+        validator = QIntValidator(min_value, 2147483647)  # Max value for a 32-bit integer
+    elif max_value is not None:
+        validator = QIntValidator(-2147483648, max_value)  # Min value for a 32-bit integer
+    else:
+        validator = QIntValidator()
+
+    line_edit.setValidator(validator)
