@@ -6,9 +6,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5 import uic
 
-import backend.backend_design as bed  # Import backend functions
-import backend.backend_logic.backend_eeg as beeg
-import resources_rc
+import backend_design.backend_design as bed  # Import backend functions
+import GUI_Development.backend_logic.backend_eeg as beeg
+
 
 class MainApp(QDialog):
     def __init__(self):
