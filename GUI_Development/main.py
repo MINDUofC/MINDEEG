@@ -21,9 +21,9 @@ class MainApp(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MIND EEG Extraction Interface")
-        self.setWindowIcon(QIcon(":/images/TaskbarIcon.png"))  # Ensure this is in your .qrc file
+        self.setWindowIcon(QIcon(":/images/Icon.png"))  # Ensure this is in your .qrc file
 
-        # TASKBAR ELEMENTS (Widgets, Buttons, etc) as Variables ⌄
+        # TASKBAR ELEMENTS (Widgets, Buttons, etc.) as Variables ⌄
         self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar (for dragging)
         self.minimize_button = self.findChild(QPushButton, "minimize_button")
         self.close_button = self.findChild(QPushButton, "close_button")
