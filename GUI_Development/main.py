@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBo
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5 import uic
-
+import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import GUI_Development.backend_logic.backend_eeg as beeg
 
