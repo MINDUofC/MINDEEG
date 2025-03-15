@@ -1,4 +1,3 @@
-# backend.py
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtCore import Qt, QUrl

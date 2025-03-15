@@ -1,13 +1,15 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
-    QCheckBox, QDial, QTabWidget
+    QCheckBox, QDial, QTabWidget, QVBoxLayout
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5 import uic
 import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
+from backend_logic.live_plot_muV import MuVGraph
+
 
 class MainApp(QDialog):
     def __init__(self):
@@ -52,6 +54,25 @@ class MainApp(QDialog):
         self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
 
+        # Dictionary to store all importance controls
+        self.preprocessing_controls = {
+
+            "BandPassOnOff": self.BandPassOnOff,
+            "BandStopOnOff": self.BandStopOnOff,
+            "DetrendOnOff": self.DetrendOnOff,
+            "BP1Start": self.BP1Start,
+            "BP1End": self.BP1End,
+            "BP2Start": self.BP2Start,
+            "BP2End": self.BP2End,
+            "BStop1Start": self.BStop1Start,
+            "BStop1End": self.BStop1End,
+            "BStop2Start": self.BStop2Start,
+            "BStop2End": self.BStop2End,
+            "FastICA": self.FastICAOnOff,
+            "BaselineCorrection": self.BaselineCorrOnOff,
+        }
+
+
         # Initializing Data Smoothing and Aggregation Filters
         self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
         self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
@@ -65,6 +86,7 @@ class MainApp(QDialog):
         # BOARD CONFIGURATION
         self.board_shim = None
         self.BoardOnOff = self.findChild(QCheckBox, "BoardOnOff")
+        self.BoardOn = False
         self.BoardID = self.findChild(QLineEdit, "BoardID")
         self.ChannelDial = self.findChild(QDial, "ChannelDial")
         self.CommonReferenceOnOff = self.findChild(QCheckBox, "CommonReferenceOnOff")
@@ -114,8 +136,16 @@ class MainApp(QDialog):
         self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
         self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
 
+        # Connect the port to the device serial and allows connection
         self.Port.installEventFilter(self)
+
+        # Embed the live plot into`muVPlot`
+        self.muVGraph = None
+        self.setup_muV_live_plot()
+
+        # Connect UI Elements
         self.BoardOnOff.stateChanged.connect(self.toggle_board)
+        self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)  # Detect tab change
 
         bed.set_integer_only(self.BoardID, 0, 57)
         bed.set_integer_only(self.NumOfTrials)
@@ -128,6 +158,20 @@ class MainApp(QDialog):
         bed.set_integer_only(self.BStop2Start, 0, 100)
         bed.set_integer_only(self.BStop2End, 0, 100)
 
+    def setup_muV_live_plot(self):
+        """ Sets up the live EEG plot inside the muVPlot tab. """
+        layout = QVBoxLayout(self.muVPlot)
+        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        layout.addWidget(self.muVGraph)
+
+    def handle_tab_change_on_Visualizer(self, index):
+        """ Turns the live plot on/off when switching tabs. """
+        if self.Visualizer.currentWidget() == self.muVPlot:
+            self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
+        else:
+            self.muVGraph.timer.stop()
+
+
     def toggle_board(self):
         """
         Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
@@ -138,7 +182,8 @@ class MainApp(QDialog):
                 self.Port,
                 self.ChannelDial,
                 self.CommonReferenceOnOff,
-                self.StatusBar
+                self.StatusBar,
+                self.BoardOn
             )
             if not self.board_shim:  # If board failed to start, uncheck the box
                 self.BoardOnOff.setChecked(False)
@@ -149,7 +194,8 @@ class MainApp(QDialog):
                 self.Port,
                 self.ChannelDial,
                 self.CommonReferenceOnOff,
-                self.StatusBar
+                self.StatusBar,
+                self.BoardOn
             )
 
     def eventFilter(self, obj, event):
