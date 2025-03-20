@@ -174,7 +174,7 @@ class MainApp(QDialog):
         # Get the layout of TimelineVisualizer and clear it first
         layout = QVBoxLayout(self.TimelineVisualizer)
         self.timeline_widget = TimelineWidget(self.recordButton, self.stopButton, self.BeforeOnset, self.AfterOnset,
-                                              self.TimeBetweenTrials, self.NumOfTrials)
+                                              self.TimeBetweenTrials, self.NumOfTrials, self.StatusBar)
         layout.addWidget(self.timeline_widget)  # Ensures centering without breaking layout
 
 

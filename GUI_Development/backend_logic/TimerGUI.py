@@ -4,23 +4,23 @@ from PyQt5.QtWidgets import  QWidget, QVBoxLayout, QLabel, QGraphicsView, \
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QColor, QBrush, QPen, QFont
 from PyQt5.QtCore import QElapsedTimer
-
+from GUI_Development.backend_logic import backend_eeg as beeg
 class TimelineWidget(QWidget):
 # INIT
 
-    def __init__(self, recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials):
+    def __init__(self, recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials, status_bar):
         super().__init__()
         # **Make the whole widget transparent**
         self.setAttribute(Qt.WA_TranslucentBackground)  # Ensures full transparency
         self.setStyleSheet("background: transparent; border: none;")  # Remove borders
 
-        self.initUI(recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials)
+        self.initUI(recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials, status_bar)
 
 
 # INITIALIZATION AND GRAPHICAL THINGS
 
 
-    def initUI(self, recordButton,stopButton, beforeOnset, afterOnset, buffer, numTrials):
+    def initUI(self, recordButton,stopButton, beforeOnset, afterOnset, buffer, numTrials, status_bar):
         layout = QVBoxLayout()
 
         # Total Elapsed Time Box
@@ -50,11 +50,11 @@ class TimelineWidget(QWidget):
         layout.addWidget(self.label)
 
         self.start_button = recordButton
-        self.start_button.clicked.connect(self.start_animation)
+        self.start_button.clicked.connect(lambda: self.start_animation(status_bar))
         # WILL NEED TO ALSO ADD IN START COLLECTING DATA AS WELL HERE LATER
 
         self.stop_button = stopButton  # Store stop button
-        self.stop_button.clicked.connect(self.sudden_stop)
+        self.stop_button.clicked.connect(lambda: self.sudden_stop(status_bar))
         self.in_trial = False
         self.trial_count = numTrials
         self.trial_count.setText("5")
@@ -213,13 +213,14 @@ class TimelineWidget(QWidget):
     # PROGRESS BAR ANIMATION
 
 
-    def start_animation(self):
+    def start_animation(self, status_bar):
         """Starts the overall global timer and begins the first trial."""
+
         if self.in_trial:  # Prevent re-clicking record mid-trial
-            return
+            beeg.set_status(status_bar, message="Already Running!", error=True)  # Show error message
+            return  # Do nothing further
 
         self.in_trial = True  # Mark trial as running
-        self.start_button.setEnabled(False)  # Disable record button
 
         self.global_timer.start()  # Start the global timer
         self.total_duration = self.time_before.value() + self.time_after.value()
@@ -229,7 +230,6 @@ class TimelineWidget(QWidget):
         self.elapsed_time = 0
         self.progress = 0.0
         self.timer.start(10)  # Update every 10ms for smooth animation
-
 
     def update_progress(self):
         """Updates progress, trial timer, and global elapsed time."""
@@ -265,14 +265,19 @@ class TimelineWidget(QWidget):
             self.fill_rect.setRect(self.timeline_x, self.timeline_y, self.progress, self.timeline_height)
 
 
-    def sudden_stop(self):
+    def sudden_stop(self, status_bar):
         """Stops everything and resets progress to empty, but does nothing if already stopped."""
+
         if not self.in_trial:  # If no trial is running, do nothing
+            beeg.set_status(status_bar, message="Nothing to stop!", error=True)
             return
 
         self.timer.stop()  # Stop animation timer
-        if hasattr(self, 'buffer_timer') and self.buffer_timer.isActive():
-            self.buffer_timer.stop()  # Ensure buffer animation stops
+
+        # Check if buffer_timer exists and is active before stopping it
+        if hasattr(self, 'buffer_timer') and self.buffer_timer is not None:
+            if self.buffer_timer.isActive():
+                self.buffer_timer.stop()
 
         # Prevent auto-starting of next trial if buffer was active
         self.buffer_timer = None  # Remove buffer timer reference to break callbacks
@@ -351,8 +356,7 @@ class TimelineWidget(QWidget):
         filled_height = (elapsed / buffer_time) * self.buffer_height
         self.buffer_fill.setRect(
             self.buffer_x, self.buffer_y + self.buffer_height - filled_height,
-            self.buffer_width, filled_height
-        )
+            self.buffer_width, filled_height)
 
 
     def start_trial(self):
