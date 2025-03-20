@@ -8,19 +8,19 @@ from PyQt5.QtCore import QElapsedTimer
 class TimelineWidget(QWidget):
 # INIT
 
-    def __init__(self, recordButton, beforeOnset, afterOnset, buffer, numTrials):
+    def __init__(self, recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials):
         super().__init__()
         # **Make the whole widget transparent**
         self.setAttribute(Qt.WA_TranslucentBackground)  # Ensures full transparency
         self.setStyleSheet("background: transparent; border: none;")  # Remove borders
 
-        self.initUI(recordButton, beforeOnset, afterOnset, buffer, numTrials)
+        self.initUI(recordButton, stopButton, beforeOnset, afterOnset, buffer, numTrials)
 
 
 # INITIALIZATION AND GRAPHICAL THINGS
 
 
-    def initUI(self, recordButton, beforeOnset, afterOnset, buffer, numTrials):
+    def initUI(self, recordButton,stopButton, beforeOnset, afterOnset, buffer, numTrials):
         layout = QVBoxLayout()
 
         # Total Elapsed Time Box
@@ -53,6 +53,9 @@ class TimelineWidget(QWidget):
         self.start_button.clicked.connect(self.start_animation)
         # WILL NEED TO ALSO ADD IN START COLLECTING DATA AS WELL HERE LATER
 
+        self.stop_button = stopButton  # Store stop button
+        self.stop_button.clicked.connect(self.sudden_stop)
+
         self.trial_count = numTrials
         self.trial_count.setText("5")
 
@@ -83,7 +86,7 @@ class TimelineWidget(QWidget):
 
         # Setup timeline dimensions
         self.timeline_width = 1300  # Increased width from 900 to 1200
-        self.timeline_height = 60  # Keep the same height
+        self.timeline_height = 80  # Keep the same height
         self.timeline_x = 50
         self.timeline_y = 200  # Keep Y position consistent
 
@@ -243,6 +246,7 @@ class TimelineWidget(QWidget):
             if self.trial_number >= self.total_trials:
                 self.timer.stop()
                 self.label.setText("Trials Completed")
+                QTimer.singleShot(1500, self.reset_progress)  # Reset progress bar after 1.5s
                 return
 
             self.label.setText(f"Buffering... {self.buffer}s")
@@ -252,8 +256,31 @@ class TimelineWidget(QWidget):
             self.fill_rect.setRect(self.timeline_x, self.timeline_y, self.progress, self.timeline_height)
 
 
+    def sudden_stop(self):
+        """Stops everything and resets progress to empty"""
+        self.timer.stop()  # Stop animation timer
+        self.buffer_timer.stop() if hasattr(self, 'buffer_timer') else None  # Stop buffer timer if running
 
-# BUFFER MANAGEMENT AND ANIMATION
+        # Reset all labels
+        self.global_time_label.setText("Total Time: 0s (Buffer)")
+        self.trial_time_label.setText("Trial 1 Time: 0s")
+        self.label.setText("Movement Onset at 0s")
+        self.buffer_label_display.setText("")
+
+        # Reset progress bar
+        self.elapsed_time = 0
+        self.progress = 0.0
+        self.trial_number = 0
+        self.fill_rect.setRect(self.timeline_x, self.timeline_y, 0, self.timeline_height)  # Empty progress bar
+        self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Empty buffer
+
+
+    def reset_progress(self):
+        """Resets progress bar to empty after trials complete."""
+        self.fill_rect.setRect(self.timeline_x, self.timeline_y, 0, self.timeline_height)  # Clear progress bar
+        self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Clear buffer
+
+    # BUFFER MANAGEMENT AND ANIMATION
 
 
     def animate_buffer(self):
