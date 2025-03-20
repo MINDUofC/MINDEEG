@@ -78,7 +78,7 @@ class TimelineWidget(QWidget):
 
 
         self.timer = QTimer()
-        self.timer.timeout.connect(self.update_progress)
+        self.timer.timeout.connect(lambda: self.update_progress(status_bar))
 
         self.elapsed_time = 0
         self.trial_number = 0
@@ -210,7 +210,7 @@ class TimelineWidget(QWidget):
                 self.scene.addItem(onset_label)
                 self.markers.append(onset_label)
 
-    # PROGRESS BAR ANIMATION
+# PROGRESS BAR ANIMATION
 
 
     def start_animation(self, status_bar):
@@ -219,6 +219,8 @@ class TimelineWidget(QWidget):
         if self.in_trial:  # Prevent re-clicking record mid-trial
             beeg.set_status(status_bar, message="Already Running!", error=True)  # Show error message
             return  # Do nothing further
+        else:
+            beeg.set_status(status_bar, message="Run Started!", error=False)
 
         self.in_trial = True  # Mark trial as running
 
@@ -231,7 +233,7 @@ class TimelineWidget(QWidget):
         self.progress = 0.0
         self.timer.start(10)  # Update every 10ms for smooth animation
 
-    def update_progress(self):
+    def update_progress(self, status_bar):
         """Updates progress, trial timer, and global elapsed time."""
         self.elapsed_time += 0.01
         total_time = self.total_duration
@@ -253,6 +255,7 @@ class TimelineWidget(QWidget):
             if self.trial_number >= self.total_trials:
                 self.timer.stop()
                 self.label.setText("Trials Completed")
+                beeg.set_status(status_bar, message="All Trials Completed!", error=False)
                 self.in_trial = False  # Mark trial as completed
                 self.start_button.setEnabled(True)  # Re-enable record button
                 QTimer.singleShot(1500, self.reset_progress)  # Reset progress bar after 1.5s
@@ -271,6 +274,8 @@ class TimelineWidget(QWidget):
         if not self.in_trial:  # If no trial is running, do nothing
             beeg.set_status(status_bar, message="Nothing to stop!", error=True)
             return
+        else:
+            beeg.set_status(status_bar, message="Stopped!", error=False)
 
         self.timer.stop()  # Stop animation timer
 
@@ -308,7 +313,7 @@ class TimelineWidget(QWidget):
         self.fill_rect.setRect(self.timeline_x, self.timeline_y, 0, self.timeline_height)  # Clear progress bar
         self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Clear buffer
 
-        # BUFFER MANAGEMENT AND ANIMATION
+# BUFFER MANAGEMENT AND ANIMATION
 
 
     def animate_buffer(self):

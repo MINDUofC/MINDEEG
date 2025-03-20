@@ -171,6 +171,8 @@ def set_status(status_bar: QLabel, message: str, error: bool = False):
             padding: 5px; /* Padding inside the label */
             font-family: "Montserrat ExtraBold", sans-serif; /* Use Montserrat ExtraBold */
             font-size: 14px; /* Adjust size as needed */
+            qproperty-alignment: 'AlignCenter';
+            
         
     """
     status_bar.setStyleSheet(existing_style + " color: "+str(text_color)+";}")
