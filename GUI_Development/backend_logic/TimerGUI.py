@@ -55,7 +55,7 @@ class TimelineWidget(QWidget):
 
         self.stop_button = stopButton  # Store stop button
         self.stop_button.clicked.connect(self.sudden_stop)
-
+        self.in_trial = False
         self.trial_count = numTrials
         self.trial_count.setText("5")
 
@@ -215,6 +215,12 @@ class TimelineWidget(QWidget):
 
     def start_animation(self):
         """Starts the overall global timer and begins the first trial."""
+        if self.in_trial:  # Prevent re-clicking record mid-trial
+            return
+
+        self.in_trial = True  # Mark trial as running
+        self.start_button.setEnabled(False)  # Disable record button
+
         self.global_timer.start()  # Start the global timer
         self.total_duration = self.time_before.value() + self.time_after.value()
         self.trial_number = 0
@@ -223,6 +229,7 @@ class TimelineWidget(QWidget):
         self.elapsed_time = 0
         self.progress = 0.0
         self.timer.start(10)  # Update every 10ms for smooth animation
+
 
     def update_progress(self):
         """Updates progress, trial timer, and global elapsed time."""
@@ -246,6 +253,8 @@ class TimelineWidget(QWidget):
             if self.trial_number >= self.total_trials:
                 self.timer.stop()
                 self.label.setText("Trials Completed")
+                self.in_trial = False  # Mark trial as completed
+                self.start_button.setEnabled(True)  # Re-enable record button
                 QTimer.singleShot(1500, self.reset_progress)  # Reset progress bar after 1.5s
                 return
 
@@ -257,15 +266,25 @@ class TimelineWidget(QWidget):
 
 
     def sudden_stop(self):
-        """Stops everything and resets progress to empty"""
+        """Stops everything and resets progress to empty, but does nothing if already stopped."""
+        if not self.in_trial:  # If no trial is running, do nothing
+            return
+
         self.timer.stop()  # Stop animation timer
-        self.buffer_timer.stop() if hasattr(self, 'buffer_timer') else None  # Stop buffer timer if running
+        if hasattr(self, 'buffer_timer') and self.buffer_timer.isActive():
+            self.buffer_timer.stop()  # Ensure buffer animation stops
+
+        # Prevent auto-starting of next trial if buffer was active
+        self.buffer_timer = None  # Remove buffer timer reference to break callbacks
+        self.blockSignals(True)  # Prevent queued signals from executing
+        QTimer.singleShot(50, lambda: self.blockSignals(False))  # Unblock after a short delay
 
         # Reset all labels
         self.global_time_label.setText("Total Time: 0s (Buffer)")
         self.trial_time_label.setText("Trial 1 Time: 0s")
         self.label.setText("Movement Onset at 0s")
         self.buffer_label_display.setText("")
+        self.buffer_label_display.hide()  # Hide buffer text properly
 
         # Reset progress bar
         self.elapsed_time = 0
@@ -274,17 +293,24 @@ class TimelineWidget(QWidget):
         self.fill_rect.setRect(self.timeline_x, self.timeline_y, 0, self.timeline_height)  # Empty progress bar
         self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Empty buffer
 
+        # Reset trial-related state
+        self.in_trial = False  # Allow starting a new trial again
+        self.start_button.setEnabled(True)  # Re-enable record button
+
 
     def reset_progress(self):
         """Resets progress bar to empty after trials complete."""
         self.fill_rect.setRect(self.timeline_x, self.timeline_y, 0, self.timeline_height)  # Clear progress bar
         self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Clear buffer
 
-    # BUFFER MANAGEMENT AND ANIMATION
+        # BUFFER MANAGEMENT AND ANIMATION
 
 
     def animate_buffer(self):
         """ Smoothly fills the buffer bar within the exact buffer time. """
+        if self.in_trial is False:  # Prevent buffer from running if stopped
+            return
+
         buffer_time = self.buffer_time.value()  # Get buffer duration
         self.buffer_progress = 0
         self.buffer_start_time = self.global_timer.elapsed()  # Capture precise start time
@@ -308,9 +334,9 @@ class TimelineWidget(QWidget):
                               lambda i=i: self.buffer_label_display.setText(f"Next Trial In: {i}s"))
 
         # Instead of hiding it, set it to an empty string when countdown completes
-        QTimer.singleShot(buffer_time * 1000, lambda: self.buffer_label_display.setText(""))
-        QTimer.singleShot(buffer_time * 1000, lambda: self.start_trial())
-        QTimer.singleShot(buffer_time * 1000, lambda: self.keep_buffer_full())
+        QTimer.singleShot(buffer_time * 1000, lambda: self.buffer_label_display.setText("") if self.in_trial else None)
+        QTimer.singleShot(buffer_time * 1000, lambda: self.start_trial() if self.in_trial else None)
+        QTimer.singleShot(buffer_time * 1000, lambda: self.keep_buffer_full() if self.in_trial else None)
 
 
     def update_buffer_fill(self, buffer_time):
@@ -328,8 +354,12 @@ class TimelineWidget(QWidget):
             self.buffer_width, filled_height
         )
 
+
     def start_trial(self):
         """ Start the trial-specific timer and update display. """
+        if not self.in_trial:  # Ensure that trial only starts if it wasn’t stopped
+            return
+
         self.trial_timer.start()  # Start trial-specific timer
 
         # Store the global timer classification
@@ -345,6 +375,7 @@ class TimelineWidget(QWidget):
         self.label.setText("Movement Onset at 0s")
         self.timer.start(10)  # Start blue progress bar immediately
 
+
     def keep_buffer_full(self):
         """ Keeps the buffer full for 250ms before resetting it. """
         self.buffer_fill.setRect(self.buffer_x, self.buffer_y, self.buffer_width,
@@ -353,7 +384,5 @@ class TimelineWidget(QWidget):
 
     def clear_buffer(self):
         """ Clears the buffer, ready for the next trial, without affecting the timeline. """
-        self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width,
-                                 0)  # Empty buffer
-
+        self.buffer_fill.setRect(self.buffer_x, self.buffer_y + self.buffer_height, self.buffer_width, 0)  # Empty buffer
 
