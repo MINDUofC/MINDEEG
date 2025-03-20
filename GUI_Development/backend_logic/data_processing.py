@@ -32,7 +32,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
         if preprocessing["FastICA"].isChecked():
             pass # DO ICA when we know how to
 
-        if preprocessing["Baseline"].isChecked():
+        if preprocessing["BaselineCorrection"].isChecked():
             pass # DO Baseline Correct when we know how to
 
         processed_data[channel] = interpolate_signal(signal)  # Always interpolate

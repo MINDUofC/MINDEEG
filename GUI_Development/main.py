@@ -149,7 +149,7 @@ class MainApp(QDialog):
         self.setup_muV_live_plot()
 
         # Connecting the BoardConfig area to actually control the settings with the board internally
-        self.BoardOnOff.stateChanged.connect(self.toggle_board)
+        self.BoardOnOff.clicked.connect(self.toggle_board)
 
         # When the tab is not showing the livePlot, don't update live plot, for better optimization
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)  # Detect tab change
@@ -191,7 +191,6 @@ class MainApp(QDialog):
         else:
             self.muVGraph.timer.stop()
 
-
     def toggle_board(self):
         """
         Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
@@ -205,8 +204,12 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            if not self.board_shim:  # If board failed to start, uncheck the box
-                self.BoardOnOff.setChecked(False)
+            if self.board_shim:  # If board successfully turns on
+                self.muVGraph.board_shim = self.board_shim  # 🔹 Update MuVGraph's reference dynamically
+                self.muVGraph.timer.start(self.muVGraph.update_speed_ms)  # 🔹 Ensure timer starts
+            else:
+                self.BoardOnOff.setChecked(False)  # If board failed, uncheck
+
         else:  # **Turn OFF the board**
             beeg.turn_off_board(
                 self.board_shim,
@@ -217,6 +220,8 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
+            self.muVGraph.board_shim = None  # 🔹 Clear the board reference in MuVGraph
+            self.muVGraph.timer.stop()  # 🔹 Stop live plot updates
 
     def eventFilter(self, obj, event):
         """Refresh port list only when QComboBox is clicked."""

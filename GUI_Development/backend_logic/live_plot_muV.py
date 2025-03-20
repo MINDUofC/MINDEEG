@@ -52,6 +52,7 @@ class MuVGraph(QWidget):
     def init_timer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_plot)
+        self.timer.start(self.update_speed_ms)  # Start the timer here
 
     def toggle_pause(self):
         self.timer.stop() if self.timer.isActive() else self.timer.start(self.update_speed_ms)
@@ -59,9 +60,10 @@ class MuVGraph(QWidget):
     def update_plot(self):
         """ Fetches EEG data and updates plots only when board is ON. """
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
+            # print("EEG board is OFF or not initialized. Skipping update.") DUBUGGING MESSAGE
             return
 
-        # Lazy Initialization: Fetch Board Attributes Only When Needed**
+        # Lazy Initialization: Fetch Board Attributes Only When Needed
         if self.eeg_channels is None or self.sampling_rate is None or self.num_points is None:
             self.eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_shim.get_board_id())
@@ -69,7 +71,10 @@ class MuVGraph(QWidget):
             print(f"Board Attributes Initialized: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
         # Fetch and filter EEG data
-        filtered_data = get_filtered_data(self.board_shim, self.num_points, self.eeg_channels, self.preprocessing_controls)
+        filtered_data = get_filtered_data(self.board_shim, self.num_points, self.eeg_channels,
+                                          self.preprocessing_controls)
 
         for count, channel in enumerate(self.eeg_channels):
             self.curves[count].setData(filtered_data[channel].tolist())
+
+        # print("Live plot updated.")  # Debug message
