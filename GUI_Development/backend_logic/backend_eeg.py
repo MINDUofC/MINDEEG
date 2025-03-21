@@ -27,10 +27,11 @@ def refresh_ports_on_click(combo_box):
 
 # This will take in board_config data, validate it, and then
 def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial,
-                     common_ref_checkbox: QCheckBox, status_bar: QLabel):
+                     common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
     """
     Initializes the EEG board based on GUI inputs.
 
+    :param isBoardOn: bool Is the board currently on?
     :param board_id_input: QLineEdit for Board ID
     :param port_input: QComboBox for available ports
     :param channel_dial: QDial for number of channels (0 = off, 1-8 = active)
@@ -47,12 +48,15 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
     # Validate Inputs
     if not board_id or not board_id.isdigit():
         set_status(status_bar, "Error: Invalid Board ID", error=True)
+        isBoardOn = False
         return
     if not port or port == "No ports found":
         set_status(status_bar, "Error: No valid port selected", error=True)
+        isBoardOn = False
         return
     if num_channels == 0:
         set_status(status_bar, "Error: Channel Dial must be greater than 0", error=True)
+        isBoardOn = False
         return
 
     board_id = int(board_id)
@@ -99,19 +103,21 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
 
         # **Display success message**
         set_status(status_bar, "Successful On", error=False)
-
+        isBoardOn = True
         return board_shim  # Return board object for future control (turn off function)
 
     except Exception as e:
         logging.error("Exception occurred", exc_info=True)
+        isBoardOn = False
         set_status(status_bar, f"Error: {str(e)}", error=True)
 
 
 
-def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial, common_ref_checkbox: QCheckBox, status_bar: QLabel):
+def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial, common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
     """
     Turns off the EEG board, stops streaming, and re-enables GUI elements.
 
+    :param isBoardOn: Is the board currently on?
     :param board_shim: The active BoardShim instance.
     :param board_id_input: QLineEdit for Board ID.
     :param port_input: QComboBox for available ports.
@@ -121,6 +127,7 @@ def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox,
     """
     if not board_shim:
         set_status(status_bar, "Error: No active board to turn off", error=True)
+        isBoardOn = False
         return
 
     try:
@@ -136,9 +143,11 @@ def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox,
 
         # **Update status bar**
         set_status(status_bar, "Board Off", error=False)
+        isBoardOn = False
 
     except Exception as e:
         logging.error("Exception while turning off the board", exc_info=True)
+        isBoardOn = isBoardOn #Remains at its current state
         set_status(status_bar, f"Error: {str(e)}", error=True)
 
 
@@ -162,6 +171,8 @@ def set_status(status_bar: QLabel, message: str, error: bool = False):
             padding: 5px; /* Padding inside the label */
             font-family: "Montserrat ExtraBold", sans-serif; /* Use Montserrat ExtraBold */
             font-size: 14px; /* Adjust size as needed */
+            qproperty-alignment: 'AlignCenter';
+            
         
     """
     status_bar.setStyleSheet(existing_style + " color: "+str(text_color)+";}")

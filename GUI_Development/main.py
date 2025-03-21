@@ -1,13 +1,17 @@
-import sys
 import os
+import sys
+
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
-    QCheckBox, QDial, QTabWidget
+    QCheckBox, QDial, QTabWidget, QVBoxLayout, QSizePolicy
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import uic
 import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
+from backend_logic.live_plot_muV import MuVGraph
+from backend_logic.TimerGUI import TimelineWidget
+
 
 class MainApp(QDialog):
     def __init__(self):
@@ -19,9 +23,10 @@ class MainApp(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MIND EEG Extraction Interface")
-        self.setWindowIcon(QIcon(":/images/TaskbarIcon.png"))  # Ensure this is in your .qrc file
+        self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
 
-        # TASKBAR ELEMENTS (Widgets, Buttons, etc) as Variables ⌄
+
+        # TASKBAR ELEMENTS (Widgets, Buttons, etc.) as Variables ⌄
         self.taskbar = self.findChild(QWidget, "taskbar")  # Taskbar (for dragging)
         self.minimize_button = self.findChild(QPushButton, "minimize_button")
         self.close_button = self.findChild(QPushButton, "close_button")
@@ -52,6 +57,25 @@ class MainApp(QDialog):
         self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
 
+        # Dictionary to store all importance controls
+        self.preprocessing_controls = {
+
+            "BandPassOnOff": self.BandPassOnOff,
+            "BandStopOnOff": self.BandStopOnOff,
+            "DetrendOnOff": self.DetrendOnOff,
+            "BP1Start": self.BP1Start,
+            "BP1End": self.BP1End,
+            "BP2Start": self.BP2Start,
+            "BP2End": self.BP2End,
+            "BStop1Start": self.BStop1Start,
+            "BStop1End": self.BStop1End,
+            "BStop2Start": self.BStop2Start,
+            "BStop2End": self.BStop2End,
+            "FastICA": self.FastICAOnOff,
+            "BaselineCorrection": self.BaselineCorrOnOff,
+        }
+
+
         # Initializing Data Smoothing and Aggregation Filters
         self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
         self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
@@ -65,6 +89,7 @@ class MainApp(QDialog):
         # BOARD CONFIGURATION
         self.board_shim = None
         self.BoardOnOff = self.findChild(QCheckBox, "BoardOnOff")
+        self.BoardOn = False
         self.BoardID = self.findChild(QLineEdit, "BoardID")
         self.ChannelDial = self.findChild(QDial, "ChannelDial")
         self.CommonReferenceOnOff = self.findChild(QCheckBox, "CommonReferenceOnOff")
@@ -82,6 +107,7 @@ class MainApp(QDialog):
         self.muVPlot = self.findChild(QWidget, "muVPlot")
         self.PSDPlot = self.findChild(QWidget, "PSDPlot")
         self.recordButton = self.findChild(QPushButton, "recordButton")
+        self.stopButton = self.findChild(QPushButton,"stopButton")
         self.StatusBar = self.findChild(QLabel, "StatusBar")
 
         # UI Setup ⌄
@@ -93,7 +119,7 @@ class MainApp(QDialog):
         self.BandStopSettings.setVisible(False)
         self.BandStopSettings.setEnabled(False)
 
-        # Connect UI Elements to Functions ⌄
+        # Connect Fundamental UI components to Functions, taskbar, logo, close, etc
         if self.logo_label:
             self.logo_label.setCursor(Qt.PointingHandCursor)
             self.logo_label.mousePressEvent = bed.open_link  # Logo opens MIND Website
@@ -111,12 +137,25 @@ class MainApp(QDialog):
         else:
             print("Warning: Taskbar widget not found in UI file.")
 
+        # Checks if bandPass and bandStop amounts are >0, if so, we show the settings, if not, we hide it
         self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
         self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
 
+        # Connect the port to the device serial and allows connection, dynamically updating
         self.Port.installEventFilter(self)
-        self.BoardOnOff.stateChanged.connect(self.toggle_board)
 
+        # Embed the live muV plot into`muVPlot` widget
+        self.muVGraph = None
+        self.setup_muV_live_plot()
+
+        # Connecting the BoardConfig area to actually control the settings with the board internally
+        self.BoardOnOff.clicked.connect(self.toggle_board)
+
+        # When the tab is not showing the livePlot, don't update live plot, for better optimization
+        self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)  # Detect tab change
+
+
+        # Setting safety inputs so no invalid inputs are given, only integers
         bed.set_integer_only(self.BoardID, 0, 57)
         bed.set_integer_only(self.NumOfTrials)
         bed.set_integer_only(self.BP1Start, 0, 100)
@@ -127,6 +166,30 @@ class MainApp(QDialog):
         bed.set_integer_only(self.BStop1End, 0, 100)
         bed.set_integer_only(self.BStop2Start, 0, 100)
         bed.set_integer_only(self.BStop2End, 0, 100)
+        self.BeforeOnset.setMinimum(1)
+        self.AfterOnset.setMinimum(1)
+
+        # Timeline Visualizer Integration
+
+        # Get the layout of TimelineVisualizer and clear it first
+        layout = QVBoxLayout(self.TimelineVisualizer)
+        self.timeline_widget = TimelineWidget(self.recordButton, self.stopButton, self.BeforeOnset, self.AfterOnset,
+                                              self.TimeBetweenTrials, self.NumOfTrials, self.StatusBar)
+        layout.addWidget(self.timeline_widget)  # Ensures centering without breaking layout
+
+
+    def setup_muV_live_plot(self):
+        """ Sets up the live EEG plot inside the muVPlot tab. """
+        layout = QVBoxLayout(self.muVPlot)
+        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        layout.addWidget(self.muVGraph)
+
+    def handle_tab_change_on_Visualizer(self, index):
+        """ Turns the live plot on/off when switching tabs. """
+        if self.Visualizer.currentWidget() == self.muVPlot:
+            self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
+        else:
+            self.muVGraph.timer.stop()
 
     def toggle_board(self):
         """
@@ -138,10 +201,15 @@ class MainApp(QDialog):
                 self.Port,
                 self.ChannelDial,
                 self.CommonReferenceOnOff,
-                self.StatusBar
+                self.StatusBar,
+                self.BoardOn
             )
-            if not self.board_shim:  # If board failed to start, uncheck the box
-                self.BoardOnOff.setChecked(False)
+            if self.board_shim:  # If board successfully turns on
+                self.muVGraph.board_shim = self.board_shim  # 🔹 Update MuVGraph's reference dynamically
+                self.muVGraph.timer.start(self.muVGraph.update_speed_ms)  # 🔹 Ensure timer starts
+            else:
+                self.BoardOnOff.setChecked(False)  # If board failed, uncheck
+
         else:  # **Turn OFF the board**
             beeg.turn_off_board(
                 self.board_shim,
@@ -149,8 +217,11 @@ class MainApp(QDialog):
                 self.Port,
                 self.ChannelDial,
                 self.CommonReferenceOnOff,
-                self.StatusBar
+                self.StatusBar,
+                self.BoardOn
             )
+            self.muVGraph.board_shim = None  # 🔹 Clear the board reference in MuVGraph
+            self.muVGraph.timer.stop()  # 🔹 Stop live plot updates
 
     def eventFilter(self, obj, event):
         """Refresh port list only when QComboBox is clicked."""
