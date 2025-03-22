@@ -1,6 +1,12 @@
 import os
 import sys
 
+# If you're using VSCode make sure to remove the comment from this
+# however if you are using pycharm leave it as a Comment or dont either way works
+
+# # Add the parent directory of GUI_Development to the Python path
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
     QCheckBox, QDial, QTabWidget, QVBoxLayout, QSizePolicy
 from PyQt5.QtCore import Qt
