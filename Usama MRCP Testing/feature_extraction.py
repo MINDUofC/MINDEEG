@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 from joblib import dump
 
 # ====== Load Preprocessed EEG ======
-data = np.load("calibration_data/single_clench_trials.npz")
+data = np.load("../calibration_data/single_clench_trials.npz")
 csp_data = data["csp"]        # shape: (n_trials, 8, 375)
 mrcp_data = data["mrcp"]      # shape: (n_trials, 8, 375)
 labels = data["labels"]       # shape: (n_trials,)
@@ -21,7 +21,7 @@ csp = CSP(n_components=4, log=True)
 X_csp = csp.fit_transform(csp_input, labels)  # Output: (n_trials, 4)
 
 # Save CSP model for live use
-dump(csp, "calibration_data/trained_csp.pkl")
+dump(csp, "../calibration_data/trained_csp.pkl")
 print("💾 Trained CSP saved to calibration_data/trained_csp.pkl")
 
 # ====== MRCP Feature Extraction ======
@@ -61,8 +61,8 @@ scaler_mrcp = StandardScaler()
 X_csp = scaler_csp.fit_transform(X_csp)
 X_mrcp = scaler_mrcp.fit_transform(X_mrcp)
 
-dump(scaler_csp, "calibration_data/scaler_csp.pkl")
-dump(scaler_mrcp, "calibration_data/scaler_mrcp.pkl")
+dump(scaler_csp, "../calibration_data/scaler_csp.pkl")
+dump(scaler_mrcp, "../calibration_data/scaler_mrcp.pkl")
 
 # ====== Combine CSP + MRCP Features ======
 X_combined = np.hstack((X_csp, X_mrcp))  # shape: (n_trials, 8)
@@ -75,5 +75,5 @@ print("X_combined shape:", X_combined.shape)
 print("Labels shape:", labels.shape)
 
 # Optional: save for training
-np.savez("calibration_data/features_ready.npz", X_csp=X_csp, X_mrcp=X_mrcp, X_combined=X_combined, labels=labels)
+np.savez("../calibration_data/features_ready.npz", X_csp=X_csp, X_mrcp=X_mrcp, X_combined=X_combined, labels=labels)
 print("💾 Saved features to calibration_data/features_ready.npz")
