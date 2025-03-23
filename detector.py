@@ -49,10 +49,13 @@ try:
             print(f"  Clench in {t}...")
             time.sleep(1)
 
-        print("✊ CLENCH NOW!")
-        clench_start = time.time()
+        print("⏳ Get ready...")
+        time.sleep(1.5)  # pre-movement period
 
-        # Wait until enough samples are collected (3 seconds)
+        print("✊ CLENCH NOW!")
+        time.sleep(1.5)  # collect post-movement EEG
+
+        # Ensure enough data is in the buffer
         while board.get_board_data_count() < samples:
             time.sleep(0.1)
 
@@ -82,9 +85,13 @@ try:
         auc = np.trapezoid(avg_signal)
 
         X_mrcp = [min_val, time_to_peak, slope, auc]
+        scaler_csp = joblib.load("calibration_data/scaler_csp.pkl")
+        scaler_mrcp = joblib.load("calibration_data/scaler_mrcp.pkl")
 
         # Combine features and predict
-        X_live = np.hstack((X_csp, X_mrcp)).reshape(1, -1)
+        X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))
+        X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))
+        X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)
         pred = model.predict(X_live)[0]
         label = "🟥 LEFT HAND" if pred == 0 else "🟦 RIGHT HAND"
         print(f"🤖 Prediction: {label}")
