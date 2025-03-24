@@ -7,6 +7,8 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 from pyqtgraph.Qt import QtGui, QtCore, QtWidgets 
 
+from matplotlib import pyplot as plt
+from sklearn.decomposition import PCA, FastICA
 
 class Graph:
 
@@ -139,7 +141,45 @@ class Graph:
 
                 )
 
-                self.curves[count].setData(data[channel].tolist())
+            # PCA / FastICA
+
+            # Extract the filtered EEG data for all channels
+            eeg_data = data[self.eeg_channels, :] # matrix of shape (n_channels, num_points)
+
+            # PCA from sklearn expects data as (n_samples, n_features)
+            # Each time sample is an observation and each channel is a feature
+            eeg_data_transpose = eeg_data.T  # Shape: (num_points, n_channels)
+
+            # Fit the PCA model on the current window of data
+            ica = FastICA(n_components=6)
+            ica.fit(eeg_data_transpose)
+            components = ica.transform(eeg_data_transpose)
+
+            offset = 200  # Adjust this value to increase or decrease the spacing
+            plt.figure(figsize=(12, 10))  # Increase figure size for better visibility
+            for i in range(6):
+                plt.plot(components[:, i] + offset * i)
+
+            plt.yticks(range(0, offset * 6, offset), range(1, 7))
+            plt.ylabel('Components, µV')
+            plt.xlabel('Sample')
+            plt.title('Components data')
+            plt.show()
+
+            # # Manually select which components to remove by zero-ing them out 
+            # eeg_data_ica[:, 0] = 0 # Need to plot to determine which components are artifacts
+
+            # # Reconstruct the signal from the modified principal components
+            # X_reconstructed = pca.inverse_transform(X_pca)
+
+            # # Transpose back to (n_channels, num_points) so that each row corresponds to a channel
+            # cleaned_data = X_reconstructed.T
+
+            # Update each channel's plot with new data
+            # for count in range(len(self.eeg_channels)):
+            #     self.curves[count].setData(cleaned_data[count].tolist())
+            
+            self.curves[count].setData(data[channel].tolist())
 
             self.app.processEvents()
 
@@ -231,10 +271,6 @@ def main():
         if board.is_prepared():
             logging.info('Releasing session')
             board.release_session()
-
-
-
-
 
 
 if __name__ == '__main__':
