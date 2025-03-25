@@ -16,30 +16,30 @@ class LiveTopomap:
         self.board_id = board_shim.get_board_id()
         self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
-        self.update_speed_ms = 500  # Update interval in milliseconds
+        self.update_speed_ms = 9  # Update interval in milliseconds
 
         # Define the 10-10 system montage
         eeg_positions_10_10 = {
-        "Fp1.": (-0.5, 1.0), "Fp2.": (0.5, 1.0), "Fpz.": (0.0, 1.0),
-        "Af7.": (-0.75, 0.75), "Af3.": (-0.25, 0.75), "Afz.": (0.0, 0.75), "Af4.": (0.25, 0.75), "Af8.": (0.75, 0.75),
-        "F7..": (-1.0, 0.5), "F5..": (-0.75, 0.5), "F3..": (-0.5, 0.5), "F1..": (-0.25, 0.5),
-        "Fz..": (0.0, 0.5), "F2..": (0.25, 0.5), "F4..": (0.5, 0.5), "F6..": (0.75, 0.5), "F8..": (1.0, 0.5), 
-        "Ft7.": (-1.0, 0.3), "Fc5.": (-0.75, 0.3), "Fc3.": (-0.5, 0.3), "Fc1.": (-0.25, 0.3),
-        "Fcz.": (0.0, 0.3), "Fc2.": (0.25, 0.3), "Fc4.": (0.5, 0.3), "Fc6.": (0.75, 0.3), "Ft8.": (1.0, 0.3),
-        "T9..": (-1.2, 0.0), "T7..": (-1.0, 0.0), "C5..": (-0.75, 0.0), "C3..": (-0.5, 0.0), "C1..": (-0.25, 0.0),
-        "Cz..": (0.0, 0.0), "C2..": (0.25, 0.0), "C4..": (0.5, 0.0), "C6..": (0.75, 0.0), "T8..": (1.0, 0.0), "T10.": (1.2, 0.0),
-        "Tp7.": (-1.0, -0.3), "Cp5.": (-0.75, -0.3), "Cp3.": (-0.5, -0.3), "Cp1.": (-0.25, -0.3),
-        "Cpz.": (0.0, -0.3), "Cp2.": (0.25, -0.3), "Cp4.": (0.5, -0.3), "Cp6.": (0.75, -0.3), "Tp8.": (1.0, -0.3),
-        "P7..": (-1.0, -0.5), "P5..": (-0.75, -0.5), "P3..": (-0.5, -0.5), "P1..": (-0.25, -0.5),
-        "Pz..": (0.0, -0.5), "P2..": (0.25, -0.5), "P4..": (0.5, -0.5), "P6..": (0.75, -0.5), "P8..": (1.0, -0.5),
-        "Po7.": (-0.75, -0.75), "Po3.": (-0.25, -0.75), "Poz.": (0.0, -0.75), "Po4.": (0.25, -0.75), "Po8.": (0.75, -0.75),
-        "O1..": (-0.5, -1.0), "Oz..": (0.0, -1.0), "O2..": (0.5, -1.0), "Iz..": (0.0, -1.2)
+        "Nz": (0.0, 1.3), "Fp1": (-0.5, 1.0), "Fp2": (0.5, 1.0), "Fpz": (0.0, 1.0),
+        "AF7": (-0.75, 0.75), "AF3": (-0.25, 0.75), "AFz": (0.0, 0.75), "AF4": (0.25, 0.75), "AF8": (0.75, 0.75),
+        "F9": (-1.2, 0.6), "F7": (-1.0, 0.5), "F5": (-0.75, 0.5), "F3": (-0.5, 0.5), "F1": (-0.25, 0.5),
+        "Fz": (0.0, 0.5), "F2": (0.25, 0.5), "F4": (0.5, 0.5), "F6": (0.75, 0.5), "F8": (1.0, 0.5), "F10": (1.2, 0.6),
+        "FT9": (-1.2, 0.3), "FT7": (-1.0, 0.3), "FC5": (-0.75, 0.3), "FC3": (-0.5, 0.3), "FC1": (-0.25, 0.3),
+        "FCz": (0.0, 0.3), "FC2": (0.25, 0.3), "FC4": (0.5, 0.3), "FC6": (0.75, 0.3), "FT8": (1.0, 0.3), "FT10": (1.2, 0.3),
+        "T9": (-1.2, 0.0), "T7": (-1.0, 0.0), "C5": (-0.75, 0.0), "C3": (-0.5, 0.0), "C1": (-0.25, 0.0),
+        "Cz": (0.0, 0.0), "C2": (0.25, 0.0), "C4": (0.5, 0.0), "C6": (0.75, 0.0), "T8": (1.0, 0.0), "T10": (1.2, 0.0),
+        "TP9": (-1.2, -0.3), "TP7": (-1.0, -0.3), "CP5": (-0.75, -0.3), "CP3": (-0.5, -0.3), "CP1": (-0.25, -0.3),
+        "CPz": (0.0, -0.3), "CP2": (0.25, -0.3), "CP4": (0.5, -0.3), "CP6": (0.75, -0.3), "TP8": (1.0, -0.3), "TP10": (1.2, -0.3),
+        "P9": (-1.2, -0.6), "P7": (-1.0, -0.5), "P5": (-0.75, -0.5), "P3": (-0.5, -0.5), "P1": (-0.25, -0.5),
+        "Pz": (0.0, -0.5), "P2": (0.25, -0.5), "P4": (0.5, -0.5), "P6": (0.75, -0.5), "P8": (1.0, -0.5), "P10": (1.2, -0.6),
+        "PO7": (-0.75, -0.75), "PO3": (-0.25, -0.75), "POz": (0.0, -0.75), "PO4": (0.25, -0.75), "PO8": (0.75, -0.75),
+        "O1": (-0.5, -1.0), "Oz": (0.0, -1.0), "O2": (0.5, -1.0), "Iz": (0.0, -1.2)
         }
         self.ch_pos = {ch: (x, y, 0.0) for ch, (x, y) in eeg_positions_10_10.items()}
         self.custom_montage = mne.channels.make_dig_montage(ch_pos=self.ch_pos, coord_frame='head')
 
         # Define channel names for the active channels
-        self.active_channel_names = ["Fc3.", "C3..", "C1..", "Fcz.", "Cz..", "C2..", "C4..", "Fc4."]
+        self.active_channel_names = ["FC3 ", "C3", "CP3", "Cz", "FCz", "CP4", "C4", "FC4"]
 
         # MNE info object for all 10-10 channels
         self.raw_info = mne.create_info(
@@ -76,7 +76,7 @@ class LiveTopomap:
 
     def update(self):
         # Get live data from the board
-        data = self.board_shim.get_current_board_data(62)
+        data = self.board_shim.get_current_board_data(125)
 
         # Extract and process live data for the active channels
         filtered_signals = []
@@ -98,6 +98,7 @@ class LiveTopomap:
                 0
             )
             filtered_signals.append(np.mean(channel_data))
+            #filtered_signals.append(np.mean(channel_data[-10:]))
 
         # Update the corresponding positions in the full montage
         for i, ch_name in enumerate(self.raw_info["ch_names"]):
@@ -119,7 +120,7 @@ class LiveTopomap:
         else:
             self.cbar.update_normal(im)
 
-        plt.pause(0.1)  # Pause briefly to allow updates
+        plt.pause(0.001)  # Pause briefly to allow updates
 
 
 

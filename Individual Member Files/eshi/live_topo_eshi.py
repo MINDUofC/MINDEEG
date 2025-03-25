@@ -24,7 +24,7 @@ def main():
     board = BoardShim(board_id,param)
     board.get_eeg_channels(board_id)
 
-    board.prepare_session(1000 )
+    board.prepare_session(1000)
     board.start_stream()
     # Number of data points to retrieve
     num_samples = 30  # For 1 second at 30 Hz

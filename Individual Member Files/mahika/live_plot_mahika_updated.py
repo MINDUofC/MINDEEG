@@ -141,9 +141,6 @@ class Graph:
 
                 self.curves[count].setData(data[channel].tolist())
 
-
-
-
             self.app.processEvents()
 
 

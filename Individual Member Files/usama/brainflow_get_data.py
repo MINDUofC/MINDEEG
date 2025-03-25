@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 # Define the required and optional arguments
 parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False, default=0)
 parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
-parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='COM5')
+parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='COM3')
 parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards', required=False, default=57)
 args = parser.parse_args()
 
@@ -50,7 +50,7 @@ for command in commands:
     print(f"Sent command: {command}")
     time.sleep(1)  # Wait 1 second before sending the next command
 print("START")
-t = 10
+t = 60
 num_samples = t * 125 
 time.sleep(t)
 data = board.get_current_board_data (num_samples)
