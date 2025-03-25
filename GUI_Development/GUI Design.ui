@@ -157,7 +157,7 @@ QTabBar::tab:pressed {
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="muVPlot">
        <property name="styleSheet">
@@ -165,6 +165,11 @@ QTabBar::tab:pressed {
        </property>
        <attribute name="title">
         <string>Live Plot</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="FFTPlot">
+       <attribute name="title">
+        <string>FFT Plot</string>
        </attribute>
       </widget>
       <widget class="QWidget" name="PSDPlot">
