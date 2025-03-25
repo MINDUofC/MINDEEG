@@ -3,7 +3,7 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 
 # ====== Load Features ======
-data = np.load("../calibration_data/features_ready.npz")
+data = np.load("calibration_data/features_ready.npz")
 X = data["X_combined"]    # shape: (n_trials, 8)
 y = data["labels"]        # shape: (n_trials,)
 
