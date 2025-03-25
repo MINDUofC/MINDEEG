@@ -33,7 +33,7 @@ class FFTGraph(QWidget):
         self.plot.setLabel("left", "Amplitude (µV) ")
         self.plot.showGrid(x=True, y=True)
         self.plot.setYRange(0, 100, padding=0)  # <- Set Y-axis from 0 to max expected
-        self.plot.setXRange(0, 65, padding=0)
+        self.plot.setXRange(0, 65, padding=0.01)
         self.plot.addLegend(offset=(-20, 10))
         layout.addWidget(self.plot)
 

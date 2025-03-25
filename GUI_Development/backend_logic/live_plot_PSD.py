@@ -32,9 +32,8 @@ class PSDGraph(QWidget):
         self.plot.setLabel("left", "log₁₀ Power (µV²/Hz)")
         self.plot.showGrid(x=True, y=True)
         self.plot.setLogMode(y=False)  # Keep linear scale
-        self.plot.setRange(xRange=[0, 65], yRange=[-3, 3])  # log10(1e-3) to log10(1e3)
-        # self.plot.setYRange((1e-3, 1e3), padding=0)
-        # self.plot.setXRange((0,65), padding=0)
+        self.plot.setXRange(0, 65, padding=0.01)
+        self.plot.setYRange(-3, 3, padding=0.05)  # log10(1e-3) to log10(1e3)
         self.plot.addLegend(offset=(-20, 10))
         layout.addWidget(self.plot)
 
