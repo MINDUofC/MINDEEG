@@ -19,7 +19,7 @@ class PSDGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 672/3  # Fast update every ~224ms
+        self.update_speed_ms = int(672/3)  # Fast update every ~224ms
 
         self.init_ui()
         self.init_timer()
@@ -29,11 +29,13 @@ class PSDGraph(QWidget):
 
         self.plot = pg.PlotWidget(title="Power Spectral Density (PSD)")
         self.plot.setLabel("bottom", "Frequency (Hz)")
-        self.plot.setLabel("left", "Power (\u00b5V\u00b2/Hz)")  # µV²/Hz for power spectral density
+        self.plot.setLabel("left", "log₁₀ Power (µV²/Hz)")
         self.plot.showGrid(x=True, y=True)
-        self.plot.setLogMode(y=True)  # Log scale for better visibility of frequency spikes
-        self.plot.setYRange(1e-1, 1e4, padding=0.1)
-        self.plot.addLegend(offset=(10, 10))
+        self.plot.setLogMode(y=False)  # Keep linear scale
+        self.plot.setRange(xRange=[0, 65], yRange=[-3, 3])  # log10(1e-3) to log10(1e3)
+        # self.plot.setYRange((1e-3, 1e3), padding=0)
+        # self.plot.setXRange((0,65), padding=0)
+        self.plot.addLegend(offset=(-20, 10))
         layout.addWidget(self.plot)
 
         self.curves = []
@@ -44,6 +46,7 @@ class PSDGraph(QWidget):
             self.curves.append(curve)
 
         self.pause_button = QPushButton("Pause")
+        self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
         layout.addWidget(self.pause_button)
 
@@ -53,7 +56,12 @@ class PSDGraph(QWidget):
         self.timer.start(self.update_speed_ms)
 
     def toggle_pause(self):
-        self.timer.stop() if self.timer.isActive() else self.timer.start(self.update_speed_ms)
+        if self.timer.isActive():
+            self.timer.stop()
+            self.pause_button.setText("Resume")
+        else:
+            self.timer.start(self.update_speed_ms)
+            self.pause_button.setText("Pause")
 
     def update_plot(self):
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
@@ -87,7 +95,7 @@ class PSDGraph(QWidget):
         window = windows.hamming(nperseg)  # Tapered window to reduce spectral leakage
 
         for idx, ch in enumerate(self.eeg_channels):
-            signal = data[ch][-self.num_points:] * window  # Apply window to signal
+            signal = data[ch][-self.num_points:] * window
             freqs, power = welch(
                 signal,
                 fs=self.sampling_rate,
@@ -96,4 +104,7 @@ class PSDGraph(QWidget):
                 noverlap=noverlap,
                 scaling='density'
             )
-            self.curves[idx].setData(freqs, power)
+            log_power = np.log10(np.clip(power, 1e-3, 1e3))  # Clip to avoid log(0) or extreme values
+            self.curves[idx].setData(freqs, log_power)
+            # if you switch to linear scale, just use the power variable instead of log_power
+

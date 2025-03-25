@@ -17,6 +17,7 @@ import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
 from backend_logic.live_plot_muV import MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
+from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 
 
@@ -160,14 +161,15 @@ class MainApp(QDialog):
         self.setup_FFT_live_plot()
 
         self.PSDGraph = None
-        # will add setup soon for PSD
+        self.setup_PSDGraph()
 
-        # Connecting the BoardConfig area to actually control the settings with the board internally
-        self.BoardOnOff.clicked.connect(self.toggle_board)
+        self.Visualizer.setCurrentIndex(0)  # 0 for muVPlot, 1 for FFT, 2 for PSD, so just showing the muVPlot on start
 
         # When the tab is not showing the livePlot, don't update live plot, for better optimization
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)  # Detect tab change
 
+        # Connecting the BoardConfig area to actually control the settings with the board internally
+        self.BoardOnOff.clicked.connect(self.toggle_board)
 
         # Setting safety inputs so no invalid inputs are given, only integers
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -199,14 +201,17 @@ class MainApp(QDialog):
         layout.addWidget(self.muVGraph)
 
     def setup_FFT_live_plot(self):
-        """Sets up the live FFT Plot for Frequency Domain analysis, within the FFTPlot Tab """
+        """Sets up the live FFT Plot for Frequency Domain analysis, within the FFTPlot Tab"""
         layout = QVBoxLayout(self.FFTPlot)
         self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
         layout.addWidget(self.FFTGraph)
 
     # Temp Funct not done yet
     def setup_PSDGraph(self):
-        pass
+        """Sets up the live PSD Plot for more precise Frequency analysis, within the PSDPlot Tab"""
+        layout = QVBoxLayout(self.PSDPlot)
+        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        layout.addWidget(self.PSDGraph)
 
     def handle_tab_change_on_Visualizer(self, index):
         """ Turns the live plot on/off when switching tabs. """
@@ -215,17 +220,17 @@ class MainApp(QDialog):
         if self.Visualizer.currentWidget() == self.muVPlot:
             self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
             self.FFTGraph.timer.stop()
-            # self.PSDGraph.timer.stop()
+            self.PSDGraph.timer.stop()
 
         # FFT TAB
         elif self.Visualizer.currentWidget() == self.FFTPlot:
             self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
             self.muVGraph.timer.stop()
-            # self.PSDGraph.timer.stop()
+            self.PSDGraph.timer.stop()
 
         # PSD TAB
         else:
-            # self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
+            self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
             self.FFTGraph.timer.stop()
             self.muVGraph.timer.stop()
 

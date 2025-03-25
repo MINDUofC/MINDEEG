@@ -1,5 +1,6 @@
 import numpy as np
 import pyqtgraph as pg
+from joblib.numpy_pickle_utils import xrange
 from scipy.signal import windows
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import QTimer
@@ -32,7 +33,8 @@ class FFTGraph(QWidget):
         self.plot.setLabel("left", "Amplitude (µV) ")
         self.plot.showGrid(x=True, y=True)
         self.plot.setYRange(0, 100, padding=0)  # <- Set Y-axis from 0 to max expected
-        self.plot.addLegend(offset=(10, 10))
+        self.plot.setXRange(0, 65, padding=0)
+        self.plot.addLegend(offset=(-20, 10))
         layout.addWidget(self.plot)
 
         self.curves = []
@@ -43,6 +45,7 @@ class FFTGraph(QWidget):
             self.curves.append(curve)
 
         self.pause_button = QPushButton("Pause")
+        self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
         layout.addWidget(self.pause_button)
 
@@ -52,7 +55,12 @@ class FFTGraph(QWidget):
         self.timer.start(self.update_speed_ms)
 
     def toggle_pause(self):
-        self.timer.stop() if self.timer.isActive() else self.timer.start(self.update_speed_ms)
+        if self.timer.isActive():
+            self.timer.stop()
+            self.pause_button.setText("Resume")
+        else:
+            self.timer.start(self.update_speed_ms)
+            self.pause_button.setText("Pause")
 
     def update_plot(self):
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
