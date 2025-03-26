@@ -1,5 +1,6 @@
 import numpy as np
 import pyqtgraph as pg
+from scipy.ndimage import uniform_filter1d
 from scipy.signal import welch, windows
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import QTimer
@@ -19,7 +20,7 @@ class PSDGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = int(672/3)  # Fast update every ~224ms
+        self.update_speed_ms = 30  # Fast update every ~224ms
 
         self.init_ui()
         self.init_timer()
@@ -29,11 +30,11 @@ class PSDGraph(QWidget):
 
         self.plot = pg.PlotWidget(title="Power Spectral Density (PSD)")
         self.plot.setLabel("bottom", "Frequency (Hz)")
-        self.plot.setLabel("left", "log₁₀ Power (µV²/Hz)")
+        self.plot.setLabel("left", "ln(1 + Power) (µV²/Hz)")
         self.plot.showGrid(x=True, y=True)
         self.plot.setLogMode(y=False)  # Keep linear scale
         self.plot.setXRange(0, 65, padding=0.01)
-        self.plot.setYRange(-3, 3, padding=0.05)  # log10(1e-3) to log10(1e3)
+        self.plot.setYRange(0, 9, padding=0.05)
         self.plot.addLegend(offset=(-20, 10))
         layout.addWidget(self.plot)
 
@@ -94,16 +95,23 @@ class PSDGraph(QWidget):
         window = windows.hamming(nperseg)  # Tapered window to reduce spectral leakage
 
         for idx, ch in enumerate(self.eeg_channels):
-            signal = data[ch][-self.num_points:] * window
+            signal = data[ch]
+            if len(signal) < self.num_points:
+                return
+
+            signal = signal[-self.num_points:] * window
             freqs, power = welch(
                 signal,
-                fs=self.sampling_rate,
+                fs=self.sampling_rate,  # Ensure this is 125 Hz or as configured
                 window=window,
-                nperseg=nperseg,
-                noverlap=noverlap,
+                nperseg=self.num_points,  # Should be high enough for clear frequency resolution
+                noverlap=int(0.5 * self.num_points),
                 scaling='density'
             )
-            log_power = np.log10(np.clip(power, 1e-3, 1e3))  # Clip to avoid log(0) or extreme values
+
+            log_power = np.log1p(power)  # Safe log
+            log_power = uniform_filter1d(log_power, size=4)  # Smooth
+
             self.curves[idx].setData(freqs, log_power)
             # if you switch to linear scale, just use the power variable instead of log_power
 

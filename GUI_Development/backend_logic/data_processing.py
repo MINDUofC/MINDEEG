@@ -27,7 +27,8 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
             pass# signal = bandpass_filters()
 
         if preprocessing["BandStopOnOff"].isChecked():
-            pass# signal = bandstop_filters()
+            # This is a temporary fix to the no bandstop, as we need bandstop pretty badly to see signals
+            DataFilter.perform_bandstop(signal, 125, 50.0, 65.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
 
         if preprocessing["FastICA"].isChecked():
             pass # DO ICA when we know how to
@@ -35,7 +36,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
         if preprocessing["BaselineCorrection"].isChecked():
             pass # DO Baseline Correct when we know how to
 
-        processed_data[channel] = interpolate_signal(signal)  # Always interpolate
+        processed_data[channel] = signal  # Always interpolate
 
     return processed_data
 
@@ -62,11 +63,3 @@ def ICA(signal):
 
 def Baseline(signal):
     pass
-
-
-def interpolate_signal(data, upsample_factor=2):
-    """Interpolates signal for smoother visualization."""
-    x = np.arange(len(data))
-    x_new = np.linspace(0, len(data) - 1, len(data) * upsample_factor)
-    interpolator = CubicSpline(x, data)
-    return interpolator(x_new)

@@ -234,7 +234,6 @@ class MainApp(QDialog):
             self.FFTGraph.timer.stop()
             self.muVGraph.timer.stop()
 
-
     def toggle_board(self):
         """
         Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
@@ -249,8 +248,19 @@ class MainApp(QDialog):
                 self.BoardOn
             )
             if self.board_shim:  # If board successfully turns on
-                self.muVGraph.board_shim = self.board_shim  # 🔹 Update MuVGraph's reference dynamically
-                self.muVGraph.timer.start(self.muVGraph.update_speed_ms)  # 🔹 Ensure timer starts
+                # 🔹 Update all graphs with the new board_shim
+                self.muVGraph.board_shim = self.board_shim
+                self.FFTGraph.board_shim = self.board_shim
+                self.PSDGraph.board_shim = self.board_shim
+
+                # 🔹 Start timer for current tab only
+                current_tab = self.Visualizer.currentWidget()
+                if current_tab == self.muVPlot:
+                    self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
+                elif current_tab == self.FFTPlot:
+                    self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
+                elif current_tab == self.PSDPlot:
+                    self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
             else:
                 self.BoardOnOff.setChecked(False)  # If board failed, uncheck
 
@@ -264,8 +274,10 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            self.muVGraph.board_shim = None  # 🔹 Clear the board reference in MuVGraph
-            self.muVGraph.timer.stop()  # 🔹 Stop live plot updates
+            # 🔹 Clear references and stop all timers
+            for graph in [self.muVGraph, self.FFTGraph, self.PSDGraph]:
+                graph.board_shim = None
+                graph.timer.stop()
 
     def eventFilter(self, obj, event):
         """Refresh port list only when QComboBox is clicked."""

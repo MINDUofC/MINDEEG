@@ -24,7 +24,7 @@ class MuVGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 50  # Plot update speed
+        self.update_speed_ms = 8  # Plot update speed
 
         self.init_ui()
         self.init_timer()
@@ -67,7 +67,6 @@ class MuVGraph(QWidget):
     def update_plot(self):
         """ Fetches EEG data and updates plots only when board is ON. """
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
-            # print("EEG board is OFF or not initialized. Skipping update.") DUBUGGING MESSAGE
             return
 
         # Lazy Initialization: Fetch Board Attributes Only When Needed

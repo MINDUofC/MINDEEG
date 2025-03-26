@@ -20,7 +20,7 @@ class FFTGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 500  # Slightly slower for FFT to stabilize
+        self.update_speed_ms = 30
 
         self.init_ui()
         self.init_timer()
@@ -35,6 +35,8 @@ class FFTGraph(QWidget):
         self.plot.setYRange(0, 100, padding=0)  # <- Set Y-axis from 0 to max expected
         self.plot.setXRange(0, 65, padding=0.01)
         self.plot.addLegend(offset=(-20, 10))
+        self.plot.enableAutoRange(axis='y', enable=True)
+
         layout.addWidget(self.plot)
 
         self.curves = []
@@ -81,7 +83,11 @@ class FFTGraph(QWidget):
 
         for idx, ch in enumerate(self.eeg_channels):
             # Apply the window to the latest slice of EEG data
-            signal = data[ch][-self.num_points:]  # Ensure same length
+            signal = data[ch]
+            if len(signal) < self.num_points:
+                return  # Not enough data yet — skip this frame
+
+            signal = signal[-self.num_points:]  # Now we can safely slice
             windowed_signal = signal * window
 
             # Perform FFT on windowed signal
