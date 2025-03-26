@@ -7,7 +7,7 @@ from scipy.signal import detrend
 
 # ====== Load Trained Models ======
 model = joblib.load("trained_model_1.pkl")
-csp = joblib.load("../calibration_data/trained_csp.pkl")
+csp = joblib.load("calibration_data/trained_csp.pkl")
 
 # ====== Config ======
 fs = 125

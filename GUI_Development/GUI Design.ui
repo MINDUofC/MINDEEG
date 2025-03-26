@@ -167,6 +167,11 @@ QTabBar::tab:pressed {
         <string>Live Plot</string>
        </attribute>
       </widget>
+      <widget class="QWidget" name="FFTPlot">
+       <attribute name="title">
+        <string>FFT Plot</string>
+       </attribute>
+      </widget>
       <widget class="QWidget" name="PSDPlot">
        <attribute name="title">
         <string>PSD Plot</string>

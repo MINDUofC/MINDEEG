@@ -7,7 +7,7 @@ from scipy.signal import detrend
 
 # ====== Load Trained Models ======
 model = joblib.load("trained_model.pkl")
-csp = joblib.load("../calibration_data/trained_csp.pkl")
+csp = joblib.load("calibration_data/trained_csp.pkl")
 
 # ====== Config ======
 fs = 125
@@ -74,8 +74,8 @@ try:
 
         X_mrcp = [min_val, time_to_peak, slope, auc]
 
-        scaler_csp = joblib.load("../calibration_data/scaler_csp.pkl")
-        scaler_mrcp = joblib.load("../calibration_data/scaler_mrcp.pkl")
+        scaler_csp = joblib.load("calibration_data/scaler_csp.pkl")
+        scaler_mrcp = joblib.load("calibration_data/scaler_mrcp.pkl")
 
 
         # ====== Predict ======

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # ====== Load Features ======
-data = np.load("../calibration_data/features_ready.npz")
+data = np.load("calibration_data/features_ready.npz")
 X = data["X_combined"]    # shape: (n_trials, 8)
 y = data["labels"]        # shape: (n_trials,)
 

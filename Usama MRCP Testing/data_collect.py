@@ -13,7 +13,7 @@ post_clench_sec = 1
 pause_between_trials = 2     # Pause after each trial
 trials_per_class = 50
 labels = ['left', 'right']
-output_dir = "../calibration_data"
+output_dir = "calibration_data"
 os.makedirs(output_dir, exist_ok=True)
 
 # ====== INIT BOARD ======

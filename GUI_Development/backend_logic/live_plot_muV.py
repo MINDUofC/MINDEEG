@@ -46,6 +46,7 @@ class MuVGraph(QWidget):
             self.curves.append(curve)
 
         self.pause_button = QPushButton("Pause")
+        self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
         layout.addWidget(self.pause_button)
 
@@ -55,7 +56,13 @@ class MuVGraph(QWidget):
         self.timer.start(self.update_speed_ms)  # Start the timer here
 
     def toggle_pause(self):
-        self.timer.stop() if self.timer.isActive() else self.timer.start(self.update_speed_ms)
+        if self.timer.isActive():
+            self.timer.stop()
+            self.pause_button.setText("Resume")
+        else:
+            self.timer.start(self.update_speed_ms)
+            self.pause_button.setText("Pause")
+
 
     def update_plot(self):
         """ Fetches EEG data and updates plots only when board is ON. """
