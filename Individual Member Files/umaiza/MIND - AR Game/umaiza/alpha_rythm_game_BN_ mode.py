@@ -1,6 +1,7 @@
-import pygame
+import pygame 
 import sys
 import time
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -42,10 +43,11 @@ mode = None
 winner = None
 countdown_start = None
 
-# Load images
-player1_img = pygame.image.load("umaiza/game_pngs/player1.png")
-player2_img = pygame.image.load("umaiza/game_pngs/player2.png")
-rope_img = pygame.image.load("umaiza/game_pngs/rope.png")
+# Absolute paths for images
+base_path = "C:/Users/umaiz/Desktop/github eie/New folder/MINDEEG/Individual Member Files/umaiza/MIND - AR Game/umaiza/game_pngs/"
+player1_img = pygame.image.load(os.path.join(base_path, "player1.png"))
+player2_img = pygame.image.load(os.path.join(base_path, "player2.png"))
+rope_img = pygame.image.load(os.path.join(base_path, "rope.png"))
 
 # Scale images
 player1_img = pygame.transform.scale(player1_img, (100, 100))
@@ -55,6 +57,10 @@ rope_img = pygame.transform.scale(rope_img, (400, 25))
 # Blink counters
 blink_p1 = 0
 blink_p2 = 0
+
+# Player toggle positions
+toggle_p1 = 0
+toggle_p2 = 0
 
 def draw_mode_select():
     screen.fill(WHITE)
@@ -104,8 +110,8 @@ def draw_game(rope_x, tug1, tug2):
     draw_meter(rope_x)
 
     # Draw players
-    player2_x = 100 - (5 if tug2 else 0)  # P2 - Left
-    player1_x = WIDTH - 200 + (5 if tug1 else 0)  # P1 - Right
+    player2_x = 100 - (5 if tug2 else 0) + toggle_p2  # P2 - Left, toggle added
+    player1_x = WIDTH - 200 + (5 if tug1 else 0) + toggle_p1  # P1 - Right, toggle added
     player_y = HEIGHT // 2 - 100
 
     screen.blit(player2_img, (player2_x, player_y))
@@ -120,7 +126,7 @@ def draw_game(rope_x, tug1, tug2):
     mode_label = small_font.render(f"Mode: {'Blink' if mode == 'blink' else 'Focus'}", True, BLACK)
     screen.blit(mode_label, (10, HEIGHT - 30))
 
-    # Player labels (Flipped their positions)
+    # Player labels
     label_p2 = small_font.render(f"P2 (N)", True, BLUE)
     label_p1 = small_font.render(f"P1 (B)", True, RED)
     screen.blit(label_p2, (player1_x + 25, player_y + 110))  # P2 label under P1
@@ -144,13 +150,15 @@ def draw_winner_screen(winner):
     screen.blit(quit_text, (WIDTH//2 - quit_text.get_width()//2, HEIGHT//2 + 40))
 
 def reset_game():
-    global rope_x, state, winner, countdown_start, blink_p1, blink_p2
+    global rope_x, state, winner, countdown_start, blink_p1, blink_p2, toggle_p1, toggle_p2
     rope_x = WIDTH // 2
     state = COUNTDOWN
     winner = None
     countdown_start = time.time()
     blink_p1 = 0
     blink_p2 = 0
+    toggle_p1 = 0
+    toggle_p2 = 0
 
 while True:
     for event in pygame.event.get():
@@ -169,9 +177,11 @@ while True:
                 if event.key == pygame.K_b:
                     blink_p1 += 1
                     rope_x -= blink_rope_speed  # Move rope left
+                    toggle_p2 = 5 if toggle_p2 == 0 else 0  # Toggle player 2's movement (left)
                 elif event.key == pygame.K_n:
                     blink_p2 += 1
                     rope_x += blink_rope_speed  # Move rope right
+                    toggle_p1 = 5 if toggle_p1 == 0 else 0  # Toggle player 1's movement (right)
 
     keys = pygame.key.get_pressed()
 

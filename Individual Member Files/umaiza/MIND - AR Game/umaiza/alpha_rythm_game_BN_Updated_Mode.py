@@ -1,6 +1,7 @@
-import pygame
+import pygame 
 import sys
 import time
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -42,10 +43,11 @@ mode = None
 winner = None
 countdown_start = None
 
-# Load images
-player1_img = pygame.image.load("umaiza/game_pngs/player1.png")
-player2_img = pygame.image.load("umaiza/game_pngs/player2.png")
-rope_img = pygame.image.load("umaiza/game_pngs/rope.png")
+# Absolute paths for images
+base_path = "C:/Users/umaiz/Desktop/github eie/New folder/MINDEEG/Individual Member Files/umaiza/MIND - AR Game/umaiza/game_pngs/"
+player1_img = pygame.image.load(os.path.join(base_path, "player1.png"))
+player2_img = pygame.image.load(os.path.join(base_path, "player2.png"))
+rope_img = pygame.image.load(os.path.join(base_path, "rope.png"))
 
 # Scale images
 player1_img = pygame.transform.scale(player1_img, (100, 100))
