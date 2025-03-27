@@ -23,6 +23,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
 
         DataFilter.remove_environmental_noise(signal,125,NoiseTypes.FIFTY_AND_SIXTY)
 
+
         # **Apply preprocessing based on GUI selections**
         if preprocessing["DetrendOnOff"].isChecked():
             signal = detrend_signal(signal)
