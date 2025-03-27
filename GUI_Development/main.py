@@ -112,6 +112,7 @@ class MainApp(QDialog):
         # TIMER, VISUALIZER, RECORD AND STATUS
         self.TimelineVisualizer = self.findChild(QWidget, "TimelineVisualizer")
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
+        self.NoPlot = self.findChild(QWidget, "NoPlot")
         self.muVPlot = self.findChild(QWidget, "muVPlot")
         self.FFTPlot = self.findChild(QWidget, "FFTPlot")
         self.PSDPlot = self.findChild(QWidget, "PSDPlot")
@@ -214,31 +215,33 @@ class MainApp(QDialog):
         layout.addWidget(self.PSDGraph)
 
     def handle_tab_change_on_Visualizer(self, index):
-        """ Turns the live plot on/off when switching tabs. """
+        """Turns the live plot on/off when switching tabs."""
 
-        # MUV TAB
-        if self.Visualizer.currentWidget() == self.muVPlot:
+        current_tab = self.Visualizer.currentWidget()
+
+        if current_tab == self.muVPlot:
             self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
             self.FFTGraph.timer.stop()
             self.PSDGraph.timer.stop()
 
-        # FFT TAB
-        elif self.Visualizer.currentWidget() == self.FFTPlot:
+        elif current_tab == self.FFTPlot:
             self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
             self.muVGraph.timer.stop()
             self.PSDGraph.timer.stop()
 
-        # PSD TAB
-        else:
+        elif current_tab == self.PSDPlot:
             self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
-            self.FFTGraph.timer.stop()
             self.muVGraph.timer.stop()
+            self.FFTGraph.timer.stop()
+
+        elif current_tab == self.NoPlot:
+            # ⛔ Stop all plots if on NoPlot tab
+            self.muVGraph.timer.stop()
+            self.FFTGraph.timer.stop()
+            self.PSDGraph.timer.stop()
 
     def toggle_board(self):
-        """
-        Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
-        """
-        if self.BoardOnOff.isChecked():  # **Turn ON the board**
+        if self.BoardOnOff.isChecked():  # Turn ON
             self.board_shim = beeg.turn_on_board(
                 self.BoardID,
                 self.Port,
@@ -247,13 +250,13 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            if self.board_shim:  # If board successfully turns on
-                # 🔹 Update all graphs with the new board_shim
+
+            if self.board_shim:
                 self.muVGraph.board_shim = self.board_shim
                 self.FFTGraph.board_shim = self.board_shim
                 self.PSDGraph.board_shim = self.board_shim
 
-                # 🔹 Start timer for current tab only
+                # 🔹 Only start timer if NOT on NoPlot
                 current_tab = self.Visualizer.currentWidget()
                 if current_tab == self.muVPlot:
                     self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
@@ -261,10 +264,14 @@ class MainApp(QDialog):
                     self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
                 elif current_tab == self.PSDPlot:
                     self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
-            else:
-                self.BoardOnOff.setChecked(False)  # If board failed, uncheck
+                else:
+                    # NoPlot is showing → nothing should run
+                    pass
 
-        else:  # **Turn OFF the board**
+            else:
+                self.BoardOnOff.setChecked(False)
+
+        else:  # Turn OFF
             beeg.turn_off_board(
                 self.board_shim,
                 self.BoardID,
@@ -274,7 +281,6 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            # 🔹 Clear references and stop all timers
             for graph in [self.muVGraph, self.FFTGraph, self.PSDGraph]:
                 graph.board_shim = None
                 graph.timer.stop()

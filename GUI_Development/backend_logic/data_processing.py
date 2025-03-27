@@ -1,5 +1,5 @@
 import numpy as np
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
 from scipy.interpolate import CubicSpline
 
 
@@ -19,6 +19,8 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     for channel in eeg_channels:
         signal = data[channel]
 
+        DataFilter.remove_environmental_noise(signal,125,NoiseTypes.FIFTY_AND_SIXTY)
+
         # **Apply preprocessing based on GUI selections**
         if preprocessing["DetrendOnOff"].isChecked():
             signal = detrend_signal(signal)
@@ -27,8 +29,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
             pass# signal = bandpass_filters()
 
         if preprocessing["BandStopOnOff"].isChecked():
-            # This is a temporary fix to the no bandstop, as we need bandstop pretty badly to see signals
-            DataFilter.perform_bandstop(signal, 125, 50.0, 65.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            pass
 
         if preprocessing["FastICA"].isChecked():
             pass # DO ICA when we know how to
