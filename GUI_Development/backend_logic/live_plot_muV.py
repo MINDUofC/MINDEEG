@@ -24,7 +24,7 @@ class MuVGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 50  # Plot update speed
+        self.update_speed_ms = 8  # Plot update speed
 
         self.init_ui()
         self.init_timer()
@@ -46,6 +46,7 @@ class MuVGraph(QWidget):
             self.curves.append(curve)
 
         self.pause_button = QPushButton("Pause")
+        self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
         layout.addWidget(self.pause_button)
 
@@ -55,12 +56,17 @@ class MuVGraph(QWidget):
         self.timer.start(self.update_speed_ms)  # Start the timer here
 
     def toggle_pause(self):
-        self.timer.stop() if self.timer.isActive() else self.timer.start(self.update_speed_ms)
+        if self.timer.isActive():
+            self.timer.stop()
+            self.pause_button.setText("Resume")
+        else:
+            self.timer.start(self.update_speed_ms)
+            self.pause_button.setText("Pause")
+
 
     def update_plot(self):
         """ Fetches EEG data and updates plots only when board is ON. """
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
-            # print("EEG board is OFF or not initialized. Skipping update.") DUBUGGING MESSAGE
             return
 
         # Lazy Initialization: Fetch Board Attributes Only When Needed

@@ -1,5 +1,5 @@
 import numpy as np
-from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
 from scipy.interpolate import CubicSpline
 # Include this for manual implementation
 #from scipy.signal import butter, filtfilt, lfilter
@@ -20,6 +20,8 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     processed_data = {}
     for channel in eeg_channels:
         signal = data[channel]
+
+        DataFilter.remove_environmental_noise(signal,125,NoiseTypes.FIFTY_AND_SIXTY)
 
         # **Apply preprocessing based on GUI selections**
         if preprocessing["DetrendOnOff"].isChecked():
@@ -61,7 +63,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
         if preprocessing["BaselineCorrection"].isChecked():
             pass # DO Baseline Correct when we know how to
 
-        processed_data[channel] = interpolate_signal(signal)  # Always interpolate
+        processed_data[channel] = signal  # Always interpolate
 
     return processed_data
 
