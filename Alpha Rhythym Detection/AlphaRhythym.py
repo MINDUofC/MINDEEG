@@ -86,6 +86,23 @@ class FFTWindow(QMainWindow):
             self.curves[idx].setData(freqs, amplitude)
 
 
+
+
+class AlphaDetector():
+    def __init__(self, board_shim):
+        self.board_shim = board_shim
+        self.board_id = board_shim.get_board_id()
+        self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
+        self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
+        self.num_points = int(6 * self.sampling_rate)
+        self.update_speed_ms = 30
+
+
+
+
+
+
+
 def main():
     BoardShim.enable_dev_board_logger()
     logging.basicConfig(level=logging.INFO)
