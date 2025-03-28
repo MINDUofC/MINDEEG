@@ -2,15 +2,18 @@ import argparse
 import logging
 import sys
 import time
+from turtledemo.penrose import start
+
 import numpy as np
 import pyqtgraph as pg
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QLabel
 from PyQt5.QtCore import QTimer
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 from scipy.signal import windows
+from scipy.stats import alpha
 
 
 class FFTWindow(QMainWindow):
@@ -88,17 +91,102 @@ class FFTWindow(QMainWindow):
 
 
 
-class AlphaDetector():
+class AlphaDetector(QMainWindow):
+
     def __init__(self, board_shim):
+        super().__init__()
         self.board_shim = board_shim
         self.board_id = board_shim.get_board_id()
         self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
-        self.num_points = int(6 * self.sampling_rate)
+        self.num_points = int(15 * self.sampling_rate)
         self.update_speed_ms = 30
+        self.isCalibrated = False
+        self.calibration_data = None
+
+        self.alpha_mean = None
+        self.alpha_standard_deviation = None
+
+        self.setWindowTitle("Alpha Rhythm Detector")
+        self.setGeometry(50, 50, 500, 300)
+        self.status = QLabel()
+        self.status.setText("Start Detector or Calibrate")
+        self.Cbutton = QPushButton("Start Calibration")
+        self.Sbutton = QPushButton("Start Alpha Wave Detector")
+        self.layout = QVBoxLayout(self.Cbutton)
+        self.layout.addWidget(self.status)
+        self.layout.addWidget(self.Cbutton)
+        self.layout.addWidget(self.Sbutton)
+
+        self.calibrationTimer = None
+        self.countDown = 20
+
+        self.RecordCtimer = None
+
+
+        self.Cbutton.clicked.connect(self.init_calibrator())
+
+        self.Sbutton.clicked.connect(self.start())
+
+
+    def init_calibrator(self):
+        self.status.setText("Starting Calibration....")
+        self.calibrationTimer = QTimer()
+        self.calibrationTimer.timeout.connect(self.update_calibrator())
+        self.calibrationTimer.start(1000)
 
 
 
+    def update_calibrator(self):
+
+        if self.countDown > 15:
+            time_until_start = self.countDown - 15
+            self.status.setText(f"Starting in {time_until_start} seconds")
+
+        elif self.countDown == 15:
+            self.status.setText("Calibrating...")
+            self.calibration_data = self.board_shim.get_current_board_data(self.num_points)
+            for i in range(len(self.eeg_channels)):
+                DataFilter.detrend(self.calibration_data[i], DetrendOperations.LINEAR.value)
+                DataFilter.remove_environmental_noise(self.calibration_data[i],self.sampling_rate,2)
+                DataFilter.perform_bandpass(self.calibration_data[i],self.sampling_rate,2,30,4,FilterTypes.BUTTERWORTH_ZERO_PHASE,0)
+
+
+        elif self.countDown < 15:
+            self.status.setText(f"Calibrating... {self.countDown} sec remaining")
+
+        self.countDown -= 1
+
+        if self.countDown < 0:
+            self.calibrationTimer.stop()
+
+            for i in range(len(self.eeg_channels)):
+                nfft = len(self.calibration_data[i])  # Typically your sampling rate * seconds
+
+                fft = DataFilter.perform_fft(self.calibration_data[i],2)
+                freq_bins = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
+
+                # Get only the positive half of the spectrum (real FFT is symmetric)
+                positive_freqs = freq_bins[:nfft // 2]
+                positive_fft = fft[:nfft // 2]
+
+                alpha_band_fft = np.where((positive_freqs >= 8) & (positive_freqs <= 13), positive_fft, 0)
+
+
+
+
+
+            self.status.setText("Done!")
+            self.isCalibrated = True
+
+
+
+
+
+    def start(self):
+        if not self.isCalibrated:
+            return
+        pass
 
 
 
