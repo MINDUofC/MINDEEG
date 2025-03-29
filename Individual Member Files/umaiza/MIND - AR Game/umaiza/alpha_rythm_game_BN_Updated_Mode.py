@@ -66,7 +66,7 @@ def draw_mode_select():
     screen.fill(WHITE)
     title = font.render("Select Game Mode", True, BLACK)
     blink = font.render("1 - Eye Blink Mode (B & N keys)", True, BLACK)
-    focus = font.render("2 - Focus Mode (Hold F & J keys)", True, BLACK)
+    focus = font.render("2 - Relax Mode (Hold F & J keys)", True, BLACK)
     screen.blit(title, (WIDTH//2 - title.get_width()//2, 100))
     screen.blit(blink, (WIDTH//2 - blink.get_width()//2, 180))
     screen.blit(focus, (WIDTH//2 - focus.get_width()//2, 230))
