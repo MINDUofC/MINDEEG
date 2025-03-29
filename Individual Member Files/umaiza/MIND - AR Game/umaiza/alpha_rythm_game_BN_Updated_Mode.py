@@ -33,15 +33,17 @@ blink_rope_speed = 15
 win_boundary = 100
 
 # Game States
+SPLASH = -1
 MODE_SELECT = 0
 START = 1
 COUNTDOWN = 2
 PLAYING = 3
 GAME_OVER = 4
-state = MODE_SELECT
+state = SPLASH
 mode = None
 winner = None
 countdown_start = None
+splash_start_time = time.time()
 
 # Absolute paths for images
 base_path = "C:/Users/umaiz/Desktop/github eie/New folder/MINDEEG/Individual Member Files/umaiza/MIND - AR Game/umaiza/game_pngs/"
@@ -49,7 +51,12 @@ player1_img = pygame.image.load(os.path.join(base_path, "player1.png"))
 player2_img = pygame.image.load(os.path.join(base_path, "player2.png"))
 rope_img = pygame.image.load(os.path.join(base_path, "rope.png"))
 
-# Scale images
+# Load and stretch splash screen logo image
+logo_img = pygame.image.load(os.path.join(base_path, "MIND Background.png")).convert()
+logo_img = pygame.transform.scale(logo_img, (WIDTH, HEIGHT))
+logo_img.set_alpha(0)  # Start transparent for fade effect
+
+# Scale player/rope images
 player1_img = pygame.transform.scale(player1_img, (100, 100))
 player2_img = pygame.transform.scale(player2_img, (100, 100))
 rope_img = pygame.transform.scale(rope_img, (400, 25))
@@ -62,11 +69,33 @@ blink_p2 = 0
 toggle_p1 = 0
 toggle_p2 = 0
 
+# Splash screen with extended display and fade effect
+def draw_splash_screen():
+    current_time = time.time() - splash_start_time
+    fade_duration = 1.0
+    full_display_duration = 3.0
+    total_duration = fade_duration * 2 + full_display_duration
+
+    if current_time < fade_duration:
+        alpha = int(255 * (current_time / fade_duration))  # Fade in
+    elif current_time < fade_duration + full_display_duration:
+        alpha = 255  # Fully visible
+    elif current_time < total_duration:
+        fade_out_time = current_time - (fade_duration + full_display_duration)
+        alpha = int(255 * (1 - (fade_out_time / fade_duration)))  # Fade out
+    else:
+        return True  # Done
+
+    logo_img.set_alpha(alpha)
+    screen.fill(WHITE)
+    screen.blit(logo_img, (0, 0))
+    return False
+
 def draw_mode_select():
     screen.fill(WHITE)
     title = font.render("Select Game Mode", True, BLACK)
     blink = font.render("1 - Eye Blink Mode (B & N keys)", True, BLACK)
-    focus = font.render("2 - Focus Mode (Hold F & J keys)", True, BLACK)
+    focus = font.render("2 - Relax Mode (Hold F & J keys)", True, BLACK)
     screen.blit(title, (WIDTH//2 - title.get_width()//2, 100))
     screen.blit(blink, (WIDTH//2 - blink.get_width()//2, 180))
     screen.blit(focus, (WIDTH//2 - focus.get_width()//2, 230))
@@ -96,8 +125,7 @@ def draw_meter(rope_x):
     pygame.draw.rect(screen, GRAY, (bar_x, bar_y, bar_width, bar_height))
 
     max_offset = WIDTH // 2 - win_boundary
-    offset = (rope_x - WIDTH // 2) / max_offset  # Corrected logic for win meter
-
+    offset = (rope_x - WIDTH // 2) / max_offset
     offset = max(-1, min(1, offset))
     fill_width = (bar_width // 2) * offset
     fill_color = RED if fill_width < 0 else BLUE
@@ -109,30 +137,25 @@ def draw_game(rope_x, tug1, tug2):
     screen.fill(WHITE)
     draw_meter(rope_x)
 
-    # Draw players
-    player2_x = 100 - (5 if tug2 else 0) + toggle_p2  # P2 - Left, toggle added
-    player1_x = WIDTH - 200 + (5 if tug1 else 0) + toggle_p1  # P1 - Right, toggle added
+    player2_x = 100 - (5 if tug2 else 0) + toggle_p2
+    player1_x = WIDTH - 200 + (5 if tug1 else 0) + toggle_p1
     player_y = HEIGHT // 2 - 100
 
     screen.blit(player2_img, (player2_x, player_y))
     screen.blit(player1_img, (player1_x, player_y))
 
-    # Draw rope
     rope_y = player_y + 60
     rope_rect = rope_img.get_rect(center=(rope_x, rope_y))
     screen.blit(rope_img, rope_rect)
 
-    # Mode label
     mode_label = small_font.render(f"Mode: {'Blink' if mode == 'blink' else 'Focus'}", True, BLACK)
     screen.blit(mode_label, (10, HEIGHT - 30))
 
-    # Player labels
     label_p2 = small_font.render(f"P2 (N)", True, BLUE)
     label_p1 = small_font.render(f"P1 (B)", True, RED)
-    screen.blit(label_p2, (player1_x + 25, player_y + 110))  # P2 label under P1
-    screen.blit(label_p1, (player2_x + 25, player_y + 110))  # P1 label under P2
+    screen.blit(label_p2, (player1_x + 25, player_y + 110))
+    screen.blit(label_p1, (player2_x + 25, player_y + 110))
 
-    # Blink counters
     if mode == "blink":
         blink_text_p1 = small_font.render(f"P1 Blinks: {blink_p1}", True, RED)
         blink_text_p2 = small_font.render(f"P2 Blinks: {blink_p2}", True, BLUE)
@@ -160,6 +183,7 @@ def reset_game():
     toggle_p1 = 0
     toggle_p2 = 0
 
+# Game loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -176,16 +200,20 @@ while True:
             elif state == PLAYING and mode == "blink":
                 if event.key == pygame.K_b:
                     blink_p1 += 1
-                    rope_x -= blink_rope_speed  # Move rope left
-                    toggle_p2 = 5 if toggle_p2 == 0 else 0  # Toggle player 2's movement (left)
+                    rope_x -= blink_rope_speed
+                    toggle_p2 = 5 if toggle_p2 == 0 else 0
                 elif event.key == pygame.K_n:
                     blink_p2 += 1
-                    rope_x += blink_rope_speed  # Move rope right
-                    toggle_p1 = 5 if toggle_p1 == 0 else 0  # Toggle player 1's movement (right)
+                    rope_x += blink_rope_speed
+                    toggle_p1 = 5 if toggle_p1 == 0 else 0
 
     keys = pygame.key.get_pressed()
 
-    if state == MODE_SELECT:
+    if state == SPLASH:
+        if draw_splash_screen():
+            state = MODE_SELECT
+
+    elif state == MODE_SELECT:
         draw_mode_select()
 
     elif state == START:
@@ -202,7 +230,6 @@ while True:
         if mode == "focus":
             tug1 = keys[pygame.K_f]
             tug2 = keys[pygame.K_j]
-
             if tug1:
                 rope_x -= rope_speed
             if tug2:
@@ -211,7 +238,6 @@ while True:
             tug1 = False
             tug2 = False
 
-        # Win conditions
         if rope_x < win_boundary:
             winner = "Player 1"
             state = GAME_OVER
