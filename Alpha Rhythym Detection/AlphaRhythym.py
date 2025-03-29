@@ -128,6 +128,13 @@ class AlphaDetector(QMainWindow):
         self.calibrationTimer = None
         self.countDown = 20
 
+        self.gameplay_timer = QTimer()
+        self.gameplay_timer.timeout.connect(self.update_alpha_detection) # Connect detector timer to detector function
+        self.alpha_buffer = []  # Stores sliding window of alpha amplitudes
+        self.window_duration = 1  # seconds per FFT window
+        self.window_points = int(self.window_duration * self.sampling_rate)
+        self.threshold = 1  # z-score threshold for activation
+
         self.RecordCtimer = None
 
 
@@ -187,15 +194,53 @@ class AlphaDetector(QMainWindow):
             self.status.setText("Done!")
             self.isCalibrated = True
 
-
-
-
-
     def start(self):
         if not self.isCalibrated:
+            self.status.setText("Please calibrate first!")
             return
-        pass
 
+        self.status.setText("Alpha Detection Started!")
+        self.gameplay_timer.start(self.update_speed_ms)
+
+    def update_alpha_detection(self):
+        if not self.board_shim:
+            return
+
+        data = self.board_shim.get_current_board_data(self.window_points)
+
+        alpha_values = []
+        for i in range(len(self.eeg_channels) - 2):
+            signal = data[i]
+            if len(signal) < self.window_points:
+                return
+
+            DataFilter.detrend(signal, DetrendOperations.LINEAR.value)
+            DataFilter.remove_environmental_noise(signal, self.sampling_rate, 2)
+            DataFilter.perform_bandpass(signal, self.sampling_rate, 2, 30, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+
+            fft = DataFilter.perform_fft(signal, 2)
+            freqs = np.fft.rfftfreq(len(signal), d=1.0 / self.sampling_rate)
+
+            alpha_band = fft[(freqs >= 8) & (freqs <= 13)]
+            alpha_amplitude = np.mean(np.abs(alpha_band))
+            alpha_values.append(alpha_amplitude)
+
+        mean_alpha = np.mean(alpha_values)
+        self.alpha_buffer.append(mean_alpha)
+
+        # Optional smoothing
+        if len(self.alpha_buffer) > 10:
+            self.alpha_buffer.pop(0)
+        smoothed_alpha = np.mean(self.alpha_buffer)
+
+        # Normalize
+        z_score = (smoothed_alpha - self.overall_alpha_mean) / self.overall_alpha_standard_deviation
+
+        # Detection logic
+        if z_score > self.threshold:
+            self.status.setText(f"Alpha ON! (z = {z_score:.2f})  → Multiplier: {1 + (z_score - 1):.2f}")
+        else:
+            self.status.setText(f"Alpha OFF (z = {z_score:.2f})  → Multiplier: 1.00")
 
 
 
