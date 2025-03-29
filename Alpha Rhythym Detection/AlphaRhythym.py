@@ -72,6 +72,10 @@ class FFTWindow(QMainWindow):
         freqs = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
         window = windows.hamming(self.num_points)
 
+        alpha_start, alpha_end = 8, 13
+        alpha_mask = (freqs >= alpha_start) & (freqs <= alpha_end)
+        alpha_freqs = freqs[alpha_mask]
+
         for idx, ch in enumerate(self.eeg_channels):
             signal = data[ch]
             if len(signal) < self.num_points:
@@ -79,16 +83,14 @@ class FFTWindow(QMainWindow):
 
             signal = signal[-self.num_points:]
             DataFilter.detrend(signal, DetrendOperations.LINEAR.value)
-            # DataFilter.perform_bandpass(signal, self.sampling_rate, 8, 13, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
-            DataFilter.remove_environmental_noise(signal,self.sampling_rate,2)
-            # DataFilter.perform_bandstop(signal, self.sampling_rate, 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            DataFilter.remove_environmental_noise(signal, self.sampling_rate, 2)
 
             windowed = signal * window
             fft_vals = np.fft.rfft(windowed)
             amplitude = np.abs(fft_vals)
-            self.curves[idx].setData(freqs, amplitude)
 
-
+            alpha_amplitudes = amplitude[alpha_mask]
+            self.curves[idx].setData(alpha_freqs, alpha_amplitudes)
 
 
 class AlphaDetector(QMainWindow):
@@ -104,8 +106,9 @@ class AlphaDetector(QMainWindow):
         self.isCalibrated = False
         self.calibration_data = None
 
-        self.alpha_mean = None
-        self.alpha_standard_deviation = None
+        self.all_channels_alpha = []
+        self.overall_alpha_mean = None
+        self.overall_alpha_standard_deviation = None
 
         self.setWindowTitle("Alpha Rhythm Detector")
         self.setGeometry(50, 50, 500, 300)
@@ -160,21 +163,22 @@ class AlphaDetector(QMainWindow):
         if self.countDown < 0:
             self.calibrationTimer.stop()
 
+            self.all_channels_alpha = []  # Clear previous values
+
             for i in range(len(self.eeg_channels)):
-                nfft = len(self.calibration_data[i])  # Typically your sampling rate * seconds
+                signal = self.calibration_data[i]
+                fft = DataFilter.perform_fft(signal, 2)  # 2 = Hamming Window
+                freq_bins = np.fft.rfftfreq(len(signal), d=1.0 / self.sampling_rate)
 
-                fft = DataFilter.perform_fft(self.calibration_data[i],2)
-                freq_bins = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
+                alpha_indices = np.where((freq_bins >= 8) & (freq_bins <= 13))
+                alpha_fft_values = fft[alpha_indices]
+                alpha_avg_amplitude = np.mean(np.abs(alpha_fft_values))  # Amplitude, not power
 
-                # Get only the positive half of the spectrum (real FFT is symmetric)
-                positive_freqs = freq_bins[:nfft // 2]
-                positive_fft = fft[:nfft // 2]
+                self.all_channels_alpha.append(alpha_avg_amplitude)
 
-                alpha_band_fft = np.where((positive_freqs >= 8) & (positive_freqs <= 13), positive_fft, 0)
-
-
-
-
+            # Compute stats across all channels
+            self.overall_alpha_mean = np.mean(self.all_channels_alpha)
+            self.overall_alpha_standard_deviation = np.std(self.all_channels_alpha)
 
             self.status.setText("Done!")
             self.isCalibrated = True
