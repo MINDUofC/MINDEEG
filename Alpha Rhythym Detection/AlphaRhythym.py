@@ -19,6 +19,9 @@ from scipy.stats import alpha
 class FFTWindow(QMainWindow):
     def __init__(self, board_shim):
         super().__init__()
+        self.alpha_history = []
+        self.alpha_plot_length = 5000  # Show last 100 updates
+
 
         self.board_shim = board_shim
         self.board_id = board_shim.get_board_id()
@@ -38,18 +41,16 @@ class FFTWindow(QMainWindow):
         self.layout = QVBoxLayout(self.central_widget)
 
         self.plot = pg.PlotWidget(title="FFT - Alpha Band")
-        self.plot.setLabel("bottom", "Frequency (Hz)")
-        self.plot.setLabel("left", "Amplitude (µV)")
-        self.plot.setXRange(0, 65)
+        self.plot.setLabel("bottom", "Time (Updates)")
+        self.plot.setLabel("left", "Mean Alpha Amplitude (µV)")
+        self.plot.setXRange(0, self.alpha_plot_length)
         self.plot.enableAutoRange(axis='y', enable=True)
         self.plot.addLegend(offset=(-20, 10))
         self.plot.showGrid(x=True, y=True)
         self.layout.addWidget(self.plot)
 
-        for i in range(len(self.eeg_channels)):
-            curve = self.plot.plot(pen=pg.mkPen(self.colors[i % len(self.colors)], width=1.5),
-                                   name=f"Ch {i + 1}")
-            self.curves.append(curve)
+        self.alpha_curve = self.plot.plot(pen=pg.mkPen('c', width=2), name="Mean Alpha Amplitude")
+
 
         self.pause_button = QPushButton("Pause")
         self.pause_button.clicked.connect(self.toggle_pause)
@@ -69,28 +70,31 @@ class FFTWindow(QMainWindow):
             return
 
         data = self.board_shim.get_current_board_data(self.num_points)
-        freqs = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
-        window = windows.hamming(self.num_points)
+        if data.shape[1] < self.num_points:
+            return
 
-        alpha_start, alpha_end = 8, 13
-        alpha_mask = (freqs >= alpha_start) & (freqs <= alpha_end)
-        alpha_freqs = freqs[alpha_mask]
+        overall_alpha_amplitudes = []
 
-        for idx, ch in enumerate(self.eeg_channels):
-            signal = data[ch]
-            if len(signal) < self.num_points:
-                continue
-
-            signal = signal[-self.num_points:]
+        for i in range(len(self.eeg_channels) - 2):
+            signal = data[i][-self.num_points:]
             DataFilter.detrend(signal, DetrendOperations.LINEAR.value)
             DataFilter.remove_environmental_noise(signal, self.sampling_rate, 2)
 
-            windowed = signal * window
-            fft_vals = np.fft.rfft(windowed)
-            amplitude = np.abs(fft_vals)
+            fft = DataFilter.perform_fft(signal, 2)  # Hamming
+            freq_bins = np.fft.rfftfreq(len(signal), d=1.0 / self.sampling_rate)
 
-            alpha_amplitudes = amplitude[alpha_mask]
-            self.curves[idx].setData(alpha_freqs, alpha_amplitudes)
+            alpha_indices = np.where((freq_bins >= 8) & (freq_bins <= 13))
+            alpha_fft_values = fft[alpha_indices]
+            avg_alpha = np.mean(np.abs(alpha_fft_values))
+            overall_alpha_amplitudes.append(avg_alpha)
+
+        mean_alpha = np.mean(overall_alpha_amplitudes)
+
+        self.alpha_history.append(mean_alpha)
+        if len(self.alpha_history) > self.alpha_plot_length:
+            self.alpha_history.pop(0)
+
+        self.alpha_curve.setData(self.alpha_history)
 
 
 class AlphaDetector(QMainWindow):
@@ -165,7 +169,7 @@ class AlphaDetector(QMainWindow):
 
             self.all_channels_alpha = []  # Clear previous values
 
-            for i in range(len(self.eeg_channels)):
+            for i in range(len(self.eeg_channels)-2):
                 signal = self.calibration_data[i]
                 fft = DataFilter.perform_fft(signal, 2)  # 2 = Hamming Window
                 freq_bins = np.fft.rfftfreq(len(signal), d=1.0 / self.sampling_rate)
@@ -208,7 +212,7 @@ def main():
     params.serial_port = args.serial_port
     board_shim = BoardShim(args.board_id, params)
 
-    commands = [f"chon_{i}_12;rldadd_{i}" for i in range(1, 9)]
+    commands = [f"chon_{i}_12;rldadd_{i}" for i in range(1, 7)]
     try:
         board_shim.prepare_session()
         board_shim.start_stream(450000)
