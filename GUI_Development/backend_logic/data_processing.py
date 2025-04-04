@@ -48,7 +48,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
             freq_ranges_bs = []
             # Default Values
             if preprocessing["NumberBandStop"].value() == 0:
-                freq_ranges_bs.append((58.0, 62.0))
+                freq_ranges_bs.append((50.0, 65.0))
             # User-defined Values
             else:
                 if preprocessing["NumberBandStop"].value() >= 1:
@@ -79,7 +79,7 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     return processed_data
 
 
-def bandpass_filters(signal, freq_ranges, sampling_rate=128,order=4 ):
+def bandpass_filters(signal, freq_ranges, sampling_rate=125,order=4 ):
     """
     Applies multiple bandpass filters in sequence, one for each (start_freq, end_freq) pair,
     using BrainFlow's built-in bandpass filter.
@@ -112,7 +112,7 @@ def bandpass_filters(signal, freq_ranges, sampling_rate=128,order=4 ):
     return signal
 
 
-def bandstop_filters(signal, freq_ranges, sampling_rate=128,  order=4 ):
+def bandstop_filters(signal, freq_ranges, sampling_rate=125,  order=4 ):
     """
         Applies multiple bandstop filters in sequence, one for each (start_freq, end_freq) pair,
         using BrainFlow's built-in bandpass filter.
