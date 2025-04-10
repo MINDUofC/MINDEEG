@@ -17,7 +17,7 @@ from PyQt5 import uic
 import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
-from backend_logic.live_plot_muV import MuVGraph
+from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
