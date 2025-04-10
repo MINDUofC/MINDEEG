@@ -2,7 +2,8 @@ import numpy as np
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
 from scipy.interpolate import CubicSpline
 # Include this for manual implementation
-#from scipy.signal import butter, filtfilt, lfilter
+import scipy.signal as signal_lib
+    #butter, filtfilt, lfilter
 
 
 def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
@@ -62,7 +63,16 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
             pass # DO ICA when we know how to
 
         if preprocessing["BaselineCorrection"].isChecked():
-            pass # DO Baseline Correct when we know how to
+            signal = Baseline(signal)
+         # DO Baseline Correct when we know how to
+
+        if preprocessing["Average"].isChecked():
+            window_size = preprocessing["Window"].value()
+            signal = mean_smoothing(signal, window_size)
+
+        if preprocessing["Median"].isChecked():
+            window_size = preprocessing["Window"].value()
+            signal = median_smoothing(signal, window_size)
 
         processed_data[channel] = signal  # Always interpolate
 
@@ -169,3 +179,48 @@ def interpolate_signal(data, upsample_factor=2):
     x_new = np.linspace(0, len(data) - 1, len(data) * upsample_factor)
     interpolator = CubicSpline(x, data)
     return interpolator(x_new)
+
+
+def mean_smoothing(signal, window_size):
+    """Applies a moving average filter."""
+
+    # MANUAL IMPLEMENTATION
+    # if window_size < 1:
+    #     return signal
+    # return np.convolve(signal, np.ones(window_size), 'valid') / window_size
+
+    """Applies moving average smoothing using BrainFlow's built-in rolling filter."""
+    if window_size < 1:
+        return signal
+    DataFilter.perform_rolling_filter(signal, window_size, NoiseTypes.MOVING_AVERAGE.value)
+
+    return signal
+
+
+def median_smoothing(signal, window_size):
+    """Applies a moving median filter."""
+
+    # MANUAL IMPLEMENTATION
+    # if window_size < 1:
+    #     return signal
+    # if window_size % 2 == 0:
+    #     window_size += 1
+    #
+    # half = window_size // 2
+    # padded = np.pad(signal, (half, half), mode='edge')  # pad signal to handle boundaries
+    # smoothed = []
+    #
+    # for i in range(len(signal)):
+    #     window = padded[i:i + window_size]
+    #     smoothed.append(np.median(window))
+    #
+    # return np.array(smoothed)
+
+    if window_size < 1:
+        return signal
+    if window_size % 2 == 0:
+        window_size += 1  # median filter kernel size must be odd
+    return signal_lib.medfilt(signal, kernel_size=window_size)
+
+
+

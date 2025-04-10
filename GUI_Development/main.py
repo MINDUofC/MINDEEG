@@ -67,6 +67,11 @@ class MainApp(QDialog):
         self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
 
+        # Initializing Data Smoothing and Aggregation Filters
+        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
+        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
+        self.Window = self.findChild(QSpinBox, "Window")
+
         # Dictionary to store all importance controls
         self.preprocessing_controls = {
 
@@ -85,13 +90,11 @@ class MainApp(QDialog):
             "BaselineCorrection": self.BaselineCorrOnOff,
             "NumberBandPass": self.NumBandPass,
             "NumberBandStop": self.NumBandStop,
+            "Average": self.AverageOnOff,
+            "Median": self.MedianOnOff,
+            "Window": self.Window
+
         }
-
-
-        # Initializing Data Smoothing and Aggregation Filters
-        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
-        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
-        self.Window = self.findChild(QSpinBox, "Window")
 
         # DATA FILE SELECTION
         self.RawData = self.findChild(QCheckBox, "RawData")
