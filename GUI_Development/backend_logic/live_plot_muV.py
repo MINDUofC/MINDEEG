@@ -17,18 +17,23 @@ class MuVGraphVispyStacked(QWidget):
         self.BoardOnCheckBox = BoardOnCheckBox
         self.preprocessing_controls = preprocessing_controls
 
-        self.eeg_channels = None
-        self.sampling_rate = None
-        self.num_points = None
+        # Live update config
         self.update_speed_ms = 30
         self.max_points = 1000
 
+        # Visual + layout config
+        self.offset_spacing = 130
+        self.label_margin_ratio = 0.07
+
+        # Lazy vars
+        self.eeg_channels = None
+        self.sampling_rate = None
+        self.num_points = None
+
+        # Elements
         self.lines = []
         self.labels = []
         self.separators = []
-
-        self.offset_spacing = 150
-        self.label_margin_ratio = 0.05
 
         self.last_time = time.time()
         self.init_ui()
@@ -41,26 +46,18 @@ class MuVGraphVispyStacked(QWidget):
         self.canvas = scene.SceneCanvas(keys=None, show=False, bgcolor="black", parent=self)
         self.view = self.canvas.central_widget.add_view()
         self.view.camera = 'panzoom'
-
-        self.offset_spacing = 130  # compressed height
-        self.label_margin_ratio = 0.07  # more margin for labels
-
-        self.view.camera.set_range(x=(0, 1), y=(-20, self.offset_spacing * 8 + 40))  # move down
+        self.view.camera.set_range(x=(0, 1), y=(-20, self.offset_spacing * 8 + 40))
         self.view.camera.interactive = False
 
         layout.addWidget(self.canvas.native)
 
-        num_channels = 8
-
-        for i in range(num_channels):
-            y_offset = (num_channels - i - 0.5) * self.offset_spacing  # top-down order
-
-            # Placeholder flat lines (until real data arrives)
+        for i in range(8):
+            # Placeholder flat line per channel
             x_placeholder = np.linspace(0, 1 - self.label_margin_ratio, 200)
-            x_placeholder += self.label_margin_ratio  # shift right
-            y_placeholder = np.full_like(x_placeholder, y_offset)
+            x_placeholder += self.label_margin_ratio
+            y_placeholder = np.full_like(x_placeholder, (i + 0.5) * self.offset_spacing)
 
-            color = colormap.map(np.array([i / num_channels]))[0]
+            color = colormap.map(np.array([i / 8]))[0]
             line = Line(
                 pos=np.column_stack((x_placeholder, y_placeholder)),
                 color=color,
@@ -68,7 +65,7 @@ class MuVGraphVispyStacked(QWidget):
             )
             self.lines.append(line)
 
-            # Rotated channel labels (PyQtGraph style)
+            # Channel label
             label = Text(
                 text=f"Channel {i + 1}",
                 color='#CCCCCC',
@@ -77,12 +74,12 @@ class MuVGraphVispyStacked(QWidget):
                 parent=self.view.scene,
                 anchor_x='center',
                 anchor_y='center',
-                pos=(self.label_margin_ratio * 0.15, y_offset)
+                pos=(self.label_margin_ratio * 0.15, (i + 0.5) * self.offset_spacing)
             )
             self.labels.append(label)
 
-            # Horizontal separators
-            sep_y = (num_channels - i) * self.offset_spacing
+            # Separator line
+            sep_y = (i + 1) * self.offset_spacing
             sep = Line(
                 pos=np.array([[0, sep_y], [1, sep_y]]),
                 color=(0.3, 0.3, 0.3, 0.6),
@@ -90,7 +87,7 @@ class MuVGraphVispyStacked(QWidget):
             )
             self.separators.append(sep)
 
-        # Title at top center
+        # Title
         self.title = Text(
             text="µV - Time Domain Plot",
             color='#DDDDDD',
@@ -102,7 +99,7 @@ class MuVGraphVispyStacked(QWidget):
             pos=(0.5, self.offset_spacing * 8 + 30)
         )
 
-        # Pause button below plot
+        # Pause button
         self.pause_button = QPushButton("Pause")
         self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
@@ -111,7 +108,7 @@ class MuVGraphVispyStacked(QWidget):
     def init_timer(self):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_plot)
-        self.timer.start(self.update_speed_ms)
+        # Do NOT start it here — it will be started only when the tab is activated
 
     def toggle_pause(self):
         if self.timer.isActive():
@@ -125,6 +122,7 @@ class MuVGraphVispyStacked(QWidget):
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
             return
 
+        # Lazy init board params
         if self.eeg_channels is None or self.sampling_rate is None or self.num_points is None:
             self.eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_shim.get_board_id())
@@ -146,19 +144,15 @@ class MuVGraphVispyStacked(QWidget):
                 x = x[-self.max_points:]
                 y = y[-self.max_points:]
 
+            # Normalize and vertically offset
             y_min, y_max = np.min(y), np.max(y)
-            if y_max - y_min == 0:
-                y_norm = np.zeros_like(y)
-            else:
-                y_norm = (y - y_min) / (y_max - y_min)
-
+            y_norm = (y - y_min) / (y_max - y_min) if y_max - y_min != 0 else np.zeros_like(y)
             y_scaled = y_norm * self.offset_spacing * 0.8
             offset_y = y_scaled + i * self.offset_spacing
 
+            # Scale X to respect label margin
             x_scaled = x / x.max() if x.max() != 0 else x
             x_scaled = x_scaled * (1 - self.label_margin_ratio)
             x_scaled += self.label_margin_ratio
 
             self.lines[i].set_data(np.column_stack((x_scaled, offset_y)))
-
-        self.view.camera.set_range(x=(0, 1), y=(0, self.offset_spacing * len(self.eeg_channels)))
