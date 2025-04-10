@@ -3,7 +3,7 @@ import time
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import QTimer
 from vispy import scene
-from vispy.scene import Line
+from vispy.scene import Line, Text
 from vispy.color import get_colormap
 from brainflow.board_shim import BoardShim
 from GUI_Development.backend_logic.data_processing import get_filtered_data
@@ -24,7 +24,11 @@ class MuVGraphVispyStacked(QWidget):
         self.max_points = 1000
 
         self.lines = []
-        self.offset_spacing = 150  # µV offset between channels
+        self.labels = []
+        self.separators = []
+
+        self.offset_spacing = 150
+        self.label_margin_ratio = 0.05
 
         self.last_time = time.time()
         self.init_ui()
@@ -34,22 +38,35 @@ class MuVGraphVispyStacked(QWidget):
         layout = QVBoxLayout(self)
         colormap = get_colormap("cool")
 
-        # Shared canvas and view
         self.canvas = scene.SceneCanvas(keys=None, show=False, bgcolor="black", parent=self)
         self.view = self.canvas.central_widget.add_view()
         self.view.camera = 'panzoom'
         self.view.camera.set_range()
-        self.view.camera.interactive = False  # Lock user from panning/zooming unless you want it
+        self.view.camera.interactive = False
 
         layout.addWidget(self.canvas.native)
 
-        # Create 8 line visuals
         for i in range(8):
             color = colormap.map(np.array([i / 8]))[0]
             line = Line(pos=np.zeros((2, 2)), color=color, parent=self.view.scene)
             self.lines.append(line)
 
-        # Pause button
+            label = Text(
+                text=f"Channel {i + 1}",
+                color='white',
+                font_size=6,  # smaller font
+                rotation=-90,  # flipped the other way
+                parent=self.view.scene,
+                anchor_x='center',
+                anchor_y='center',
+                pos=(self.label_margin_ratio * 0.25, (i + 0.5) * self.offset_spacing)
+            )
+            self.labels.append(label)
+
+            sep_y = (i + 1) * self.offset_spacing
+            sep = Line(pos=np.array([[0, sep_y], [1, sep_y]]), color=(0.3, 0.3, 0.3, 0.6), parent=self.view.scene)
+            self.separators.append(sep)
+
         self.pause_button = QPushButton("Pause")
         self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
@@ -82,6 +99,9 @@ class MuVGraphVispyStacked(QWidget):
             self.board_shim, self.num_points, self.eeg_channels, self.preprocessing_controls
         )
 
+        canvas_width = self.canvas.size[0]
+        label_margin = canvas_width * self.label_margin_ratio
+
         for i, channel in enumerate(self.eeg_channels):
             y = filtered_data[channel]
             x = np.linspace(0, len(y) / self.sampling_rate, len(y))
@@ -90,25 +110,19 @@ class MuVGraphVispyStacked(QWidget):
                 x = x[-self.max_points:]
                 y = y[-self.max_points:]
 
-            # 🧠 Normalize and confine to a vertical "band"
             y_min, y_max = np.min(y), np.max(y)
             if y_max - y_min == 0:
                 y_norm = np.zeros_like(y)
             else:
                 y_norm = (y - y_min) / (y_max - y_min)
 
-            y_scaled = y_norm * self.offset_spacing * 0.8  # Scale to 80% of lane height
-            offset_y = y_scaled + i * self.offset_spacing  # Vertically offset
+            y_scaled = y_norm * self.offset_spacing * 0.8
+            offset_y = y_scaled + i * self.offset_spacing
 
-            self.lines[i].set_data(np.column_stack((x, offset_y)))
+            x_scaled = x / x.max() if x.max() != 0 else x
+            x_scaled = x_scaled * (1 - self.label_margin_ratio)
+            x_scaled += self.label_margin_ratio
 
-        # Autoscale view to fit all channels
-        self.view.camera.set_range(
-            x=(x.min(), x.max()),
-            y=(0, self.offset_spacing * len(self.eeg_channels))
-        )
+            self.lines[i].set_data(np.column_stack((x_scaled, offset_y)))
 
-        # Optional: FPS print for performance testing
-        # now = time.time()
-        # print(f"FPS: {1 / (now - self.last_time):.1f}")
-        # self.last_time = now
+        self.view.camera.set_range(x=(0, 1), y=(0, self.offset_spacing * len(self.eeg_channels)))
