@@ -41,32 +41,66 @@ class MuVGraphVispyStacked(QWidget):
         self.canvas = scene.SceneCanvas(keys=None, show=False, bgcolor="black", parent=self)
         self.view = self.canvas.central_widget.add_view()
         self.view.camera = 'panzoom'
-        self.view.camera.set_range()
+
+        # Slightly compressed layout: reduce spacing between channels
+        self.offset_spacing = 130  # Used to be 150
+
+        self.label_margin_ratio = 0.07  # Increased margin to shift signals right & make room for labels
+        self.view.camera.set_range(x=(0, 1), y=(-20, self.offset_spacing * 8 + 40))  # moved everything down
         self.view.camera.interactive = False
 
         layout.addWidget(self.canvas.native)
 
         for i in range(8):
+            # Placeholder straight line (flat until real data comes in)
+            x_placeholder = np.linspace(0, 1 - self.label_margin_ratio, 200)
+            x_placeholder += self.label_margin_ratio  # shift everything to the right
+            y_placeholder = np.full_like(x_placeholder, (i + 0.5) * self.offset_spacing)
+
             color = colormap.map(np.array([i / 8]))[0]
-            line = Line(pos=np.zeros((2, 2)), color=color, parent=self.view.scene)
+            line = Line(
+                pos=np.column_stack((x_placeholder, y_placeholder)),
+                color=color,
+                parent=self.view.scene
+            )
             self.lines.append(line)
 
+            # Channel label (smaller, more left)
             label = Text(
                 text=f"Channel {i + 1}",
-                color='white',
-                font_size=6,  # smaller font
-                rotation=-90,  # flipped the other way
+                color='#CCCCCC',  # Light grey like PyQtGraph
+                font_size=5,
+                rotation=-90,
                 parent=self.view.scene,
                 anchor_x='center',
                 anchor_y='center',
-                pos=(self.label_margin_ratio * 0.25, (i + 0.5) * self.offset_spacing)
+                pos=(self.label_margin_ratio * 0.15, (i + 0.5) * self.offset_spacing)
             )
+
             self.labels.append(label)
 
+            # Horizontal separator line
             sep_y = (i + 1) * self.offset_spacing
-            sep = Line(pos=np.array([[0, sep_y], [1, sep_y]]), color=(0.3, 0.3, 0.3, 0.6), parent=self.view.scene)
+            sep = Line(
+                pos=np.array([[0, sep_y], [1, sep_y]]),
+                color=(0.3, 0.3, 0.3, 0.6),
+                parent=self.view.scene
+            )
             self.separators.append(sep)
 
+        # Title (adjusted position + new name)
+        self.title = Text(
+            text="µV - Time Domain Plot",
+            color='#DDDDDD',  # Slightly brighter for heading
+            font_size=9,
+            bold=False,
+            parent=self.view.scene,
+            anchor_x='center',
+            anchor_y='top',
+            pos=(0.5, self.offset_spacing * 8 + 30)
+        )
+
+        # Pause button
         self.pause_button = QPushButton("Pause")
         self.pause_button.setStyleSheet("font-family: 'Montserrat ExtraBold';")
         self.pause_button.clicked.connect(self.toggle_pause)
