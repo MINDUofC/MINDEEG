@@ -3,8 +3,10 @@ import logging
 import sys
 import time
 
-
-from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QHBoxLayout, QApplication
+from PyQt5.QtWidgets import (
+    QMainWindow, QLabel, QVBoxLayout, QWidget,
+    QPushButton, QHBoxLayout, QApplication, QSpinBox
+)
 from PyQt5.QtCore import QTimer, pyqtSignal
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
@@ -12,22 +14,24 @@ import numpy as np
 import pyqtgraph as pg
 
 class BlinkDetector(QMainWindow):
-    blink_detected = pyqtSignal()  # 🚨 Signal stub you can connect to external logic!
+    blink_detected = pyqtSignal()  # Signal stub you can connect to external logic!
 
     def __init__(self, board_shim):
         super().__init__()
         self.board_shim = board_shim
         self.board_id = board_shim.get_board_id()
-        self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)[6:8]  # Only channels 7 and 8
+        # Only channels 7 and 8
+        self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)[6:8]
         print("EEG Channels:", self.eeg_channels)
 
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
         self.num_points = int(2 * self.sampling_rate)
-        self.threshold_uv = 200  # µV
+        # Default threshold in µV (will be adjustable)
+        self.threshold_uv = 200
         self.blink_count = 0
 
         self.setWindowTitle("Blink Detector")
-        self.setGeometry(100, 100, 1000, 600)
+        self.setGeometry(100, 100, 1000, 650)
 
         self.init_ui()
         self.timer = QTimer()
@@ -58,6 +62,18 @@ class BlinkDetector(QMainWindow):
         label_layout.addWidget(self.counter)
         layout.addLayout(label_layout)
 
+        # ── Threshold Control ──
+        threshold_layout = QHBoxLayout()
+        threshold_label = QLabel("Threshold (µV):")
+        self.threshold_spin = QSpinBox()
+        self.threshold_spin.setRange(0, 1000)
+        self.threshold_spin.setValue(self.threshold_uv)
+        self.threshold_spin.setSuffix(" µV")
+        self.threshold_spin.valueChanged.connect(self.on_threshold_change)
+        threshold_layout.addWidget(threshold_label)
+        threshold_layout.addWidget(self.threshold_spin)
+        layout.addLayout(threshold_layout)
+
         # ── Start/Stop Buttons ──
         self.start_btn = QPushButton("Start Detection")
         self.start_btn.clicked.connect(self.start_detection)
@@ -66,6 +82,10 @@ class BlinkDetector(QMainWindow):
         self.stop_btn = QPushButton("Stop Detection")
         self.stop_btn.clicked.connect(self.stop_detection)
         layout.addWidget(self.stop_btn)
+
+    def on_threshold_change(self, value):
+        """Update the blink threshold dynamically from spin box"""
+        self.threshold_uv = value
 
     def start_detection(self):
         self.status.setText("Detecting Blinks...")
@@ -91,7 +111,6 @@ class BlinkDetector(QMainWindow):
 
         data = self.board_shim.get_current_board_data(self.num_points)
 
-        # Extract channels 7 and 8 (indices 6 and 7)
         ch7, ch8 = self.eeg_channels
         sig7 = data[ch7][-self.num_points:]
         sig8 = data[ch8][-self.num_points:]
@@ -99,23 +118,27 @@ class BlinkDetector(QMainWindow):
         if len(sig7) < self.num_points or len(sig8) < self.num_points:
             return
 
-        # Apply filtering to both signals
+        # Filtering pipeline on both channels
         for signal in (sig7, sig8):
             DataFilter.detrend(signal, DetrendOperations.LINEAR.value)
             DataFilter.remove_environmental_noise(signal, self.sampling_rate, 2)
-            DataFilter.perform_bandpass(signal, self.sampling_rate, 3.0, 45.0, 4,
-                                        FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
-            DataFilter.perform_bandstop(signal, self.sampling_rate, 50.0, 65.0, 4,
-                                        FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            DataFilter.perform_bandpass(
+                signal, self.sampling_rate, 3.0, 45.0, 4,
+                FilterTypes.BUTTERWORTH_ZERO_PHASE, 0
+            )
+            DataFilter.perform_bandstop(
+                signal, self.sampling_rate, 50.0, 65.0, 4,
+                FilterTypes.BUTTERWORTH_ZERO_PHASE, 0
+            )
 
-        # Update live plots for both channels
+        # Update live plots
         self.curves[0].setData(sig7.tolist())
         self.curves[1].setData(sig8.tolist())
 
-        # Average signal for blink detection
+        # Average channels for blink detection
         avg_signal = (np.array(sig7) + np.array(sig8)) / 2.0
 
-        # Blink detection logic (based on µV threshold)
+        # Compare against dynamic threshold
         if np.any(np.abs(avg_signal) > self.threshold_uv):
             self.blink_count += 1
             self.counter.setText(f"Blinks: {self.blink_count}")
@@ -145,24 +168,21 @@ def main():
         board_shim.start_stream(450000)
         time.sleep(2)
 
-        # Send NeuroPawn Config Commands
+        # Configure each channel
         for cmd in commands:
             for sub_cmd in cmd.split(";"):
                 board_shim.config_board(sub_cmd)
                 logging.info(f"Sent command: {sub_cmd}")
                 time.sleep(0.2)
 
-        # Start Qt app and Blink Detector GUI
+        # Launch Qt application
         app = QApplication(sys.argv)
         detector = BlinkDetector(board_shim)
-
-        # Connect blink signal to terminal printout
         detector.blink_detected.connect(lambda: print("Blink detected!"))
-
         detector.show()
         sys.exit(app.exec_())
 
-    except Exception as e:
+    except Exception:
         logging.error("Error during execution", exc_info=True)
 
     finally:
