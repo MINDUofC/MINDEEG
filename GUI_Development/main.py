@@ -17,7 +17,7 @@ from PyQt5 import uic
 import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
-from backend_logic.live_plot_muV import MuVGraph
+from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
@@ -67,6 +67,11 @@ class MainApp(QDialog):
         self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
 
+        # Initializing Data Smoothing and Aggregation Filters
+        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
+        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
+        self.Window = self.findChild(QSpinBox, "Window")
+
         # Dictionary to store all importance controls
         self.preprocessing_controls = {
 
@@ -85,13 +90,11 @@ class MainApp(QDialog):
             "BaselineCorrection": self.BaselineCorrOnOff,
             "NumberBandPass": self.NumBandPass,
             "NumberBandStop": self.NumBandStop,
+            "Average": self.AverageOnOff,
+            "Median": self.MedianOnOff,
+            "Window": self.Window
+
         }
-
-
-        # Initializing Data Smoothing and Aggregation Filters
-        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
-        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
-        self.Window = self.findChild(QSpinBox, "Window")
 
         # DATA FILE SELECTION
         self.RawData = self.findChild(QCheckBox, "RawData")
@@ -160,7 +163,7 @@ class MainApp(QDialog):
 
         # Embed the live muV plot into`muVPlot` widget and do the same for FFT and PSD
         self.muVGraph = None
-        self.setup_muV_live_plot()
+
 
         self.FFTGraph = None
         self.setup_FFT_live_plot()
@@ -219,30 +222,30 @@ class MainApp(QDialog):
         layout.addWidget(self.PSDGraph)
 
     def handle_tab_change_on_Visualizer(self, index):
-        """Turns the live plot on/off when switching tabs."""
-
         current_tab = self.Visualizer.currentWidget()
 
         if current_tab == self.muVPlot:
+            # ⏳ Lazy-load MuVGraph only when this tab is opened
+            if self.muVGraph is None:
+                self.setup_muV_live_plot()
+
             self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
-            self.FFTGraph.timer.stop()
-            self.PSDGraph.timer.stop()
+            if self.FFTGraph: self.FFTGraph.timer.stop()
+            if self.PSDGraph: self.PSDGraph.timer.stop()
 
         elif current_tab == self.FFTPlot:
-            self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
-            self.muVGraph.timer.stop()
-            self.PSDGraph.timer.stop()
+            if self.FFTGraph: self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
+            if self.muVGraph: self.muVGraph.timer.stop()
+            if self.PSDGraph: self.PSDGraph.timer.stop()
 
         elif current_tab == self.PSDPlot:
-            self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
-            self.muVGraph.timer.stop()
-            self.FFTGraph.timer.stop()
+            if self.PSDGraph: self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
+            if self.muVGraph: self.muVGraph.timer.stop()
+            if self.FFTGraph: self.FFTGraph.timer.stop()
 
         elif current_tab == self.NoPlot:
-            # ⛔ Stop all plots if on NoPlot tab
-            self.muVGraph.timer.stop()
-            self.FFTGraph.timer.stop()
-            self.PSDGraph.timer.stop()
+            for graph in [self.muVGraph, self.FFTGraph, self.PSDGraph]:
+                if graph: graph.timer.stop()
 
     def toggle_board(self):
         if self.BoardOnOff.isChecked():  # Turn ON
