@@ -29,6 +29,8 @@ class BlinkDetector(QMainWindow):
         # Default threshold in µV (will be adjustable)
         self.threshold_uv = 200
         self.blink_count = 0
+        # Debounce flag for rising-edge detection
+        self._in_blink = False
 
         self.setWindowTitle("Blink Detector")
         self.setGeometry(100, 100, 1000, 650)
@@ -91,7 +93,8 @@ class BlinkDetector(QMainWindow):
         self.status.setText("Detecting Blinks...")
         self.blink_count = 0
         self.counter.setText("Blinks: 0")
-        self.timer.start(10)
+        self._in_blink = False  # reset debounce flag
+        self.timer.start(30) # Sampling 30ms
 
     def stop_detection(self):
         self.status.setText("Stopped")
@@ -100,6 +103,7 @@ class BlinkDetector(QMainWindow):
         # Reset blink count and label
         self.blink_count = 0
         self.counter.setText("Blinks: 0")
+        self._in_blink = False
 
         # Clear plots
         for curve in self.curves:
@@ -110,11 +114,9 @@ class BlinkDetector(QMainWindow):
             return
 
         data = self.board_shim.get_current_board_data(self.num_points)
-
         ch7, ch8 = self.eeg_channels
         sig7 = data[ch7][-self.num_points:]
         sig8 = data[ch8][-self.num_points:]
-
         if len(sig7) < self.num_points or len(sig8) < self.num_points:
             return
 
@@ -137,15 +139,22 @@ class BlinkDetector(QMainWindow):
 
         # Average channels for blink detection
         avg_signal = (np.array(sig7) + np.array(sig8)) / 2.0
+        above_thresh = np.any(np.abs(avg_signal) > self.threshold_uv)
 
-        # Compare against dynamic threshold
-        if np.any(np.abs(avg_signal) > self.threshold_uv):
+        # Rising-edge only debounce logic
+        if not self._in_blink and above_thresh:
             self.blink_count += 1
             self.counter.setText(f"Blinks: {self.blink_count}")
             self.status.setText("Blink Detected!")
             self.blink_detected.emit()
+            self._in_blink = True
+        elif self._in_blink and not above_thresh:
+            # Signal returned below threshold ⇒ ready for next blink
+            self._in_blink = False
         else:
-            self.status.setText("")
+            # Clear status if no blink
+            if not above_thresh:
+                self.status.setText("")
 
 
 def main():
