@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import os
+import json
 
 # Initialize Pygame
 pygame.init()
@@ -42,6 +43,7 @@ PLAYING = 3
 GAME_OVER = 4
 BETWEEN_ROUNDS = 6
 ROUND_RESULTS = 7
+LEADERBOARD = 8
 state = SPLASH
 mode = None
 winner = None
@@ -50,6 +52,11 @@ countdown_start = None
 splash_start_time = time.time()
 between_round_timer = None
 fade_displayed = False
+
+# Leaderboard variables
+leaderboard_updated = False
+leaderboard_file = "leaderboard.txt"
+leaderboard = {"Player 1": 0, "Player 2": 0} 
 
 # Round mode
 round_mode = 1
@@ -67,6 +74,45 @@ logo_img.set_alpha(0)
 
 # Blink counters
 toggle_p1 = toggle_p2 = blink_p1 = blink_p2 = 0
+
+def load_leaderboard():
+    if not os.path.exists(leaderboard_file):
+        return {}
+    with open(leaderboard_file, "r") as file:
+        return json.load(file)
+
+def save_leaderboard(leaderboard):
+    with open(leaderboard_file, "w") as file:
+        json.dump(leaderboard, file)
+
+def reset_leaderboard():
+    leaderboard = {"Player 1": 0, "Player 2": 0}
+    save_leaderboard(leaderboard)
+    return leaderboard
+
+def update_leaderboard(winner):
+    leaderboard = load_leaderboard()
+    if winner not in leaderboard:
+        leaderboard[winner] = 0
+    leaderboard[winner] += 1
+    save_leaderboard(leaderboard)
+
+def draw_leaderboard():
+    screen.fill(WHITE)
+    title = font.render("Leaderboard", True, BLACK)
+    screen.blit(title, (WIDTH//2 - title.get_width()//2, 50))
+
+    leaderboard = load_leaderboard()
+    sorted_scores = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+
+    y = 120
+    for name, score in sorted_scores:
+        entry = small_font.render(f"{name}: {score} wins", True, BLACK)
+        screen.blit(entry, (WIDTH//2 - entry.get_width()//2, y))
+        y += 40
+
+    back_text = font.render("Press ESC to go back", True, BLACK)
+    screen.blit(back_text, (WIDTH//2 - back_text.get_width()//2, HEIGHT - 60))
 
 def fade_in_surface(surface, duration=1.0):
     start_time = time.time()
@@ -109,9 +155,12 @@ def draw_mode_select():
     title = font.render("Select Game Mode", True, BLACK)
     blink = font.render("1 - Eye Blink Mode (B & N keys)", True, BLACK)
     focus = font.render("2 - Relax Mode (Hold F & J keys)", True, BLACK)
+    leaderboard = font.render("L - View Leaderboard", True, BLACK)
+
     screen.blit(title, (WIDTH//2 - title.get_width()//2, 100))
     screen.blit(blink, (WIDTH//2 - blink.get_width()//2, 180))
     screen.blit(focus, (WIDTH//2 - focus.get_width()//2, 230))
+    screen.blit(leaderboard, (WIDTH//2 - leaderboard.get_width()//2, 280))
 
 def draw_round_select():
     screen.fill(WHITE)
@@ -141,8 +190,8 @@ def draw_countdown():
 def draw_game(rope_x, tug1, tug2):
     screen.fill(WHITE)
     draw_meter(rope_x)
-    player2_x = 100 - (5 if tug2 else 0) + toggle_p2
-    player1_x = WIDTH - 200 + (5 if tug1 else 0) + toggle_p1
+    player2_x = 100 - (5 if tug1 else 0) + toggle_p2
+    player1_x = WIDTH - 200 + (5 if tug2 else 0) + toggle_p1
     player_y = HEIGHT // 2 - 100
     screen.blit(player2_img, (player2_x, player_y))
     screen.blit(player1_img, (player1_x, player_y))
@@ -152,8 +201,8 @@ def draw_game(rope_x, tug1, tug2):
     screen.blit(mode_label, (10, HEIGHT - 30))
     score_label = small_font.render(f"Score - P1: {score_p1} | P2: {score_p2}", True, BLACK)
     screen.blit(score_label, (WIDTH - 220, HEIGHT - 30))
-    screen.blit(small_font.render("P2 (N)", True, BLUE), (player1_x + 25, player_y + 110))
-    screen.blit(small_font.render("P1 (B)", True, RED), (player2_x + 25, player_y + 110))
+    screen.blit(small_font.render("P2 (N/J)", True, BLUE), (player1_x + 25, player_y + 110))
+    screen.blit(small_font.render("P1 (B/F)", True, RED), (player2_x + 25, player_y + 110))
     if mode == "blink":
         screen.blit(small_font.render(f"P1 Blinks: {blink_p1}", True, RED), (20, HEIGHT - 60))
         screen.blit(small_font.render(f"P2 Blinks: {blink_p2}", True, BLUE), (WIDTH - 180, HEIGHT - 60))
@@ -203,12 +252,14 @@ def draw_winner_screen(winner):
     fade_in_surface(surface)
 
 def reset_game():
-    global rope_x, winner, countdown_start, blink_p1, blink_p2, toggle_p1, toggle_p2, fade_displayed
+    global rope_x, winner, countdown_start, blink_p1, blink_p2, toggle_p1, toggle_p2, fade_displayed, leaderboard_updated
     rope_x = WIDTH // 2
     winner = None
     countdown_start = time.time()
     blink_p1 = blink_p2 = toggle_p1 = toggle_p2 = 0
     fade_displayed = False
+    leaderboard_updated = False
+reset_leaderboard()
 
 # Game Loop
 while True:
@@ -224,6 +275,8 @@ while True:
                 elif event.key == pygame.K_2:
                     mode = "focus"
                     state = ROUND_SELECT
+                elif event.key == pygame.K_l:
+                    state = LEADERBOARD
             elif state == ROUND_SELECT:
                 if event.key == pygame.K_1:
                     round_mode = 1
@@ -263,6 +316,10 @@ while True:
         draw_round_select()
     elif state == START:
         draw_start_screen()
+    elif state == LEADERBOARD:
+        draw_leaderboard()
+        if keys[pygame.K_ESCAPE]:
+            state = MODE_SELECT
     elif state == COUNTDOWN:
         draw_countdown()
         if time.time() - countdown_start >= 3.5:
@@ -304,6 +361,13 @@ while True:
             state = COUNTDOWN
     elif state == GAME_OVER:
         draw_winner_screen(winner)
+        if not leaderboard_updated:
+            update_leaderboard(winner)
+            leaderboard_updated = True
+        if keys[pygame.K_SPACE]:
+            reset_game()
+        elif keys[pygame.K_ESCAPE]:
+            state = MODE_SELECT
 
     pygame.display.flip()
     clock.tick(FPS)
