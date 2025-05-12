@@ -1,4 +1,5 @@
-﻿import numpy as np
+﻿#MODEL
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
@@ -8,7 +9,8 @@ import seaborn as sns
 import os
 
 # ====== Load Features ======
-file_path = os.path.join(os.path.dirname(__file__), "features_ready.npz")
+script_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+file_path = os.path.join(script_dir, "features_ready.npz")
 data = np.load(file_path)
 X = data["X_combined"]    # shape: (n_trials, 8)
 y = data["labels"]        # shape: (n_trials,) → values: 0 (left), 1 (right), 2 (rest)
@@ -44,6 +46,6 @@ plt.tight_layout()
 plt.show()
 
 # ====== Save Model ======
-joblib.dump(clf, "trained_model.pkl")
+joblib.dump(clf, os.path.join(script_dir, "trained_model.pkl"))
 print("💾 Trained model saved to 'trained_model.pkl'")
 

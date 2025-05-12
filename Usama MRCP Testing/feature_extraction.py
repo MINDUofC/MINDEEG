@@ -1,4 +1,5 @@
-﻿import numpy as np
+﻿#FEATURE EXTRACTION
+import numpy as np
 from mne.decoding import CSP
 from scipy.signal import detrend
 from sklearn.preprocessing import StandardScaler
@@ -6,14 +7,18 @@ from joblib import dump
 
 
 # ====== Load Preprocessed EEG ======
+
 import os
 
 # Always get the real directory of the current script
-script_dir = os.path.dirname(os.path.abspath(__file__))
+#script_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
 file_path = os.path.join(script_dir, "three_class_clench_trials_from_pause.npz")
 
 print("🔍 Loading from:", file_path)
 data = np.load(file_path)
+
+
 
 csp_data = data["csp"]        # shape: (n_trials, 8, 375)
 mrcp_data = data["mrcp"]      # shape: (n_trials, 8, 375)
@@ -24,15 +29,10 @@ print(f"Classes present: {np.unique(labels, return_counts=True)}")
 # ====== CSP Feature Extraction ======
 print("Extracting CSP features...")
 
-csp_input = np.array([detrend(trial, axis=1) for trial in csp_data])
-
 # Fit CSP (1-vs-rest by default in MNE)
 csp = CSP(n_components=4, log=True)
-X_csp = csp.fit_transform(csp_input, labels)  # shape: (n_trials, 4)
+X_csp = csp.fit_transform(csp_data, labels)  # shape: (n_trials, 4)
 
-# Save CSP model for real-time use
-dump(csp, "trained_csp.pkl")
-print("💾 Trained CSP saved to calibration_data/trained_csp.pkl")
 
 # ====== MRCP Feature Extraction ======
 print("Extracting MRCP features...")
@@ -64,8 +64,12 @@ scaler_mrcp = StandardScaler()
 X_csp = scaler_csp.fit_transform(X_csp)
 X_mrcp = scaler_mrcp.fit_transform(X_mrcp)
 
-dump(scaler_csp, "scaler_csp.pkl")
-dump(scaler_mrcp, "scaler_mrcp.pkl")
+
+# Save CSP model and scalers
+dump(csp, os.path.join(script_dir, "trained_csp.pkl"))
+dump(scaler_csp, os.path.join(script_dir, "scaler_csp.pkl"))
+dump(scaler_mrcp, os.path.join(script_dir, "scaler_mrcp.pkl"))
+
 
 # ====== Combine Features ======
 X_combined = np.hstack((X_csp, X_mrcp))  # shape: (n_trials, 8)
@@ -77,11 +81,13 @@ print("X_mrcp shape:", X_mrcp.shape)
 print("X_combined shape:", X_combined.shape)
 print("Labels shape:", labels.shape)
 
-np.savez("features_ready.npz", 
-         X_csp=X_csp, 
-         X_mrcp=X_mrcp, 
-         X_combined=X_combined, 
+
+# Save features
+np.savez(os.path.join(script_dir, "features_ready.npz"),
+         X_csp=X_csp,
+         X_mrcp=X_mrcp,
+         X_combined=X_combined,
          labels=labels)
 
-print("💾 Saved features to calibration_data/features_ready.npz")
+print("💾 All files saved to:", script_dir)
 
