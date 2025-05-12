@@ -1,0 +1,106 @@
+﻿#DECTECTOR 2
+import time
+import numpy as np
+import joblib
+from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
+from scipy.signal import detrend
+import os
+
+# ====== Load Trained Models ======
+BASE_DIR = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+model = joblib.load(os.path.join(BASE_DIR, "trained_model.pkl"))
+csp = joblib.load(os.path.join(BASE_DIR, "trained_csp.pkl"))
+
+# ====== Config ======
+fs = 125
+window_sec = 3
+samples = fs * window_sec
+C3_idx, C4_idx, Cz_idx = 0, 1, 2
+serial_port = "COM3"
+board_id = 57
+
+params = BrainFlowInputParams()
+params.serial_port = serial_port
+board = BoardShim(board_id, params)
+
+print("🔌 Preparing board...")
+board.prepare_session()
+board.start_stream()
+time.sleep(2)
+
+# ====== CONFIGURE EEG CHANNELS ======
+commands = [
+    "chon_1_12", "rldadd_1", "chon_2_12", "rldadd_2",
+    "chon_3_12", "rldadd_3", "chon_4_12", "rldadd_4",
+    "chon_5_12", "rldadd_5", "chon_6_12", "rldadd_6",
+    "chon_7_12", "rldadd_7", "chon_8_12", "rldadd_8"
+]
+for cmd in commands:
+    board.config_board(cmd)
+    time.sleep(1)
+
+print("✅ Real-time continuous detection started. Ctrl+C to stop.")
+print("👉 Keep clenching left or right hand — predictions will show below every few seconds.")
+
+try:
+    trial_num = 1
+    while True:
+        # Make sure buffer has enough data
+        while board.get_board_data_count() < samples:
+            time.sleep(0.1)
+
+        data = board.get_current_board_data(samples)
+        eeg_channels = board.get_eeg_channels(board_id)
+        raw = data[eeg_channels]  # shape: (n_channels, n_samples)
+
+        # ====== Filter EEG ======
+        csp_input = np.copy(raw)
+        mrcp_input = np.copy(raw)
+
+        for ch in range(raw.shape[0]):
+            DataFilter.detrend(mrcp_input[ch], DetrendOperations.LINEAR)
+            DataFilter.detrend(csp_input[ch], DetrendOperations.LINEAR)
+            DataFilter.perform_bandstop(mrcp_input[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
+            DataFilter.perform_bandstop(csp_input[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
+            DataFilter.perform_bandpass(mrcp_input[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            DataFilter.perform_bandpass(csp_input[ch], fs, 8.0, 30.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+
+        # ====== Extract Features ======
+        X_csp = csp.transform(csp_input[np.newaxis, :, :])[0]
+
+        c3, c4, cz = mrcp_input[C3_idx], mrcp_input[C4_idx], mrcp_input[Cz_idx]
+        avg_signal = (c3 + c4 + cz) / 3.0
+
+        min_val = np.min(avg_signal)
+        min_idx = np.argmin(avg_signal)
+        time_to_peak = min_idx / fs
+        slope = (avg_signal[min_idx] - avg_signal[0]) / (min_idx + 1e-5)
+        auc = np.trapezoid(avg_signal)
+
+        X_mrcp = [min_val, time_to_peak, slope, auc]
+
+        scaler_csp = joblib.load(os.path.join(BASE_DIR, "scaler_csp.pkl"))
+        scaler_mrcp = joblib.load(os.path.join(BASE_DIR, "scaler_mrcp.pkl"))
+
+
+        # ====== Predict ======
+        # Standardize live features
+        X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))
+        X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))
+        X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)
+        pred = model.predict(X_live)[0]
+        label = "🟥 LEFT HAND" if pred == 0 else "🟦 RIGHT HAND"
+        print(f"Trial {trial_num} → 🤖 Prediction: {label}")
+        trial_num += 1
+
+        # Wait before next window to avoid overlap (optional: tune this)
+        time.sleep(1.0)  # controls detection rate (every ~1s)
+
+except KeyboardInterrupt:
+    print("\n🛑 Stopped by user.")
+
+finally:
+    board.stop_stream()
+    board.release_session()
+    print("🔌 Board session closed.")
