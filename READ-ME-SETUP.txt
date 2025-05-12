@@ -9,7 +9,8 @@ pip install numpy==2.2.1
 pip install pip==23.2.1
 pip install pyqtgraph==0.13.7
 pip install setuptools==75.8.0
-
+pip install vispy
+(for vispy, make sure you have c++ build tools installed via the visual studio 2022 installer, otherwise the build will fail)
 
 
 - this repo is using Python 13, so please use the same python or similar versions, or else there might be issues in downloading the packages and/or changes to some code snippets, that can cause errors

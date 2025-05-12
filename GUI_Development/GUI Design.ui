@@ -159,12 +159,35 @@ QTabBar::tab:pressed {
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <widget class="QWidget" name="NoPlot">
+       <attribute name="title">
+        <string>No Plot</string>
+       </attribute>
+       <widget class="QLabel" name="label_16">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>871</width>
+          <height>211</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </widget>
       <widget class="QWidget" name="muVPlot">
        <property name="styleSheet">
         <string notr="true"/>
        </property>
        <attribute name="title">
         <string>Live Plot</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="FFTPlot">
+       <attribute name="title">
+        <string>FFT Plot</string>
        </attribute>
       </widget>
       <widget class="QWidget" name="PSDPlot">

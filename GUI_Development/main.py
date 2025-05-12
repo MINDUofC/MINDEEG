@@ -4,8 +4,10 @@ import sys
 # If you're using VSCode make sure to remove the comment from this
 # however if you are using pycharm leave it as a Comment or dont either way works
 
-# # Add the parent directory of GUI_Development to the Python path
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# BOARD ID : 57
+
+# Add the parent directory of GUI_Development to the Python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from PyQt5.QtWidgets import QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget, QSpinBox, QLineEdit, \
     QCheckBox, QDial, QTabWidget, QVBoxLayout, QSizePolicy
@@ -15,7 +17,9 @@ from PyQt5 import uic
 import resources_rc
 import backend_design.backend_design as bed  # Import backend functions
 import backend_logic.backend_eeg as beeg
-from backend_logic.live_plot_muV import MuVGraph
+from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
+from backend_logic.live_plot_FFT import FFTGraph
+from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 
 
@@ -63,6 +67,11 @@ class MainApp(QDialog):
         self.BaselineCorrOnOff = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff = self.findChild(QCheckBox, "FastICAOnOff")
 
+        # Initializing Data Smoothing and Aggregation Filters
+        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
+        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
+        self.Window = self.findChild(QSpinBox, "Window")
+
         # Dictionary to store all importance controls
         self.preprocessing_controls = {
 
@@ -79,13 +88,13 @@ class MainApp(QDialog):
             "BStop2End": self.BStop2End,
             "FastICA": self.FastICAOnOff,
             "BaselineCorrection": self.BaselineCorrOnOff,
+            "NumberBandPass": self.NumBandPass,
+            "NumberBandStop": self.NumBandStop,
+            "Average": self.AverageOnOff,
+            "Median": self.MedianOnOff,
+            "Window": self.Window
+
         }
-
-
-        # Initializing Data Smoothing and Aggregation Filters
-        self.AverageOnOff = self.findChild(QCheckBox, "AverageOnOff")
-        self.MedianOnOff = self.findChild(QCheckBox, "MedianOnOff")
-        self.Window = self.findChild(QSpinBox, "Window")
 
         # DATA FILE SELECTION
         self.RawData = self.findChild(QCheckBox, "RawData")
@@ -110,7 +119,9 @@ class MainApp(QDialog):
         # TIMER, VISUALIZER, RECORD AND STATUS
         self.TimelineVisualizer = self.findChild(QWidget, "TimelineVisualizer")
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
+        self.NoPlot = self.findChild(QWidget, "NoPlot")
         self.muVPlot = self.findChild(QWidget, "muVPlot")
+        self.FFTPlot = self.findChild(QWidget, "FFTPlot")
         self.PSDPlot = self.findChild(QWidget, "PSDPlot")
         self.recordButton = self.findChild(QPushButton, "recordButton")
         self.stopButton = self.findChild(QPushButton,"stopButton")
@@ -150,16 +161,23 @@ class MainApp(QDialog):
         # Connect the port to the device serial and allows connection, dynamically updating
         self.Port.installEventFilter(self)
 
-        # Embed the live muV plot into`muVPlot` widget
+        # Embed the live muV plot into`muVPlot` widget and do the same for FFT and PSD
         self.muVGraph = None
-        self.setup_muV_live_plot()
 
-        # Connecting the BoardConfig area to actually control the settings with the board internally
-        self.BoardOnOff.clicked.connect(self.toggle_board)
+
+        self.FFTGraph = None
+        self.setup_FFT_live_plot()
+
+        self.PSDGraph = None
+        self.setup_PSDGraph()
+
+        self.Visualizer.setCurrentIndex(0)  # 0 for muVPlot, 1 for FFT, 2 for PSD, so just showing the muVPlot on start
 
         # When the tab is not showing the livePlot, don't update live plot, for better optimization
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)  # Detect tab change
 
+        # Connecting the BoardConfig area to actually control the settings with the board internally
+        self.BoardOnOff.clicked.connect(self.toggle_board)
 
         # Setting safety inputs so no invalid inputs are given, only integers
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -190,18 +208,47 @@ class MainApp(QDialog):
         self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
         layout.addWidget(self.muVGraph)
 
+    def setup_FFT_live_plot(self):
+        """Sets up the live FFT Plot for Frequency Domain analysis, within the FFTPlot Tab"""
+        layout = QVBoxLayout(self.FFTPlot)
+        self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        layout.addWidget(self.FFTGraph)
+
+    # Temp Funct not done yet
+    def setup_PSDGraph(self):
+        """Sets up the live PSD Plot for more precise Frequency analysis, within the PSDPlot Tab"""
+        layout = QVBoxLayout(self.PSDPlot)
+        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        layout.addWidget(self.PSDGraph)
+
     def handle_tab_change_on_Visualizer(self, index):
-        """ Turns the live plot on/off when switching tabs. """
-        if self.Visualizer.currentWidget() == self.muVPlot:
+        current_tab = self.Visualizer.currentWidget()
+
+        if current_tab == self.muVPlot:
+            # ⏳ Lazy-load MuVGraph only when this tab is opened
+            if self.muVGraph is None:
+                self.setup_muV_live_plot()
+
             self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
-        else:
-            self.muVGraph.timer.stop()
+            if self.FFTGraph: self.FFTGraph.timer.stop()
+            if self.PSDGraph: self.PSDGraph.timer.stop()
+
+        elif current_tab == self.FFTPlot:
+            if self.FFTGraph: self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
+            if self.muVGraph: self.muVGraph.timer.stop()
+            if self.PSDGraph: self.PSDGraph.timer.stop()
+
+        elif current_tab == self.PSDPlot:
+            if self.PSDGraph: self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
+            if self.muVGraph: self.muVGraph.timer.stop()
+            if self.FFTGraph: self.FFTGraph.timer.stop()
+
+        elif current_tab == self.NoPlot:
+            for graph in [self.muVGraph, self.FFTGraph, self.PSDGraph]:
+                if graph: graph.timer.stop()
 
     def toggle_board(self):
-        """
-        Handles turning the EEG board ON/OFF based on the BoardOnOff checkbox state.
-        """
-        if self.BoardOnOff.isChecked():  # **Turn ON the board**
+        if self.BoardOnOff.isChecked():  # Turn ON
             self.board_shim = beeg.turn_on_board(
                 self.BoardID,
                 self.Port,
@@ -210,13 +257,28 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            if self.board_shim:  # If board successfully turns on
-                self.muVGraph.board_shim = self.board_shim  # 🔹 Update MuVGraph's reference dynamically
-                self.muVGraph.timer.start(self.muVGraph.update_speed_ms)  # 🔹 Ensure timer starts
-            else:
-                self.BoardOnOff.setChecked(False)  # If board failed, uncheck
 
-        else:  # **Turn OFF the board**
+            if self.board_shim:
+                self.muVGraph.board_shim = self.board_shim
+                self.FFTGraph.board_shim = self.board_shim
+                self.PSDGraph.board_shim = self.board_shim
+
+                # 🔹 Only start timer if NOT on NoPlot
+                current_tab = self.Visualizer.currentWidget()
+                if current_tab == self.muVPlot:
+                    self.muVGraph.timer.start(self.muVGraph.update_speed_ms)
+                elif current_tab == self.FFTPlot:
+                    self.FFTGraph.timer.start(self.FFTGraph.update_speed_ms)
+                elif current_tab == self.PSDPlot:
+                    self.PSDGraph.timer.start(self.PSDGraph.update_speed_ms)
+                else:
+                    # NoPlot is showing → nothing should run
+                    pass
+
+            else:
+                self.BoardOnOff.setChecked(False)
+
+        else:  # Turn OFF
             beeg.turn_off_board(
                 self.board_shim,
                 self.BoardID,
@@ -226,8 +288,9 @@ class MainApp(QDialog):
                 self.StatusBar,
                 self.BoardOn
             )
-            self.muVGraph.board_shim = None  # 🔹 Clear the board reference in MuVGraph
-            self.muVGraph.timer.stop()  # 🔹 Stop live plot updates
+            for graph in [self.muVGraph, self.FFTGraph, self.PSDGraph]:
+                graph.board_shim = None
+                graph.timer.stop()
 
     def eventFilter(self, obj, event):
         """Refresh port list only when QComboBox is clicked."""
