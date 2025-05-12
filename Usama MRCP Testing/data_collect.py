@@ -7,12 +7,12 @@ from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 
 # ====== CONFIG ======
 fs = 125
-window_sec = 3
+window_sec = 3               # Total trial window: 2s before + 1s after
 samples_per_trial = fs * window_sec
 pre_clench_sec = 2
-post_clench_sec = 2
-pause_rest_sec = 4
-trials_per_class = 20
+post_clench_sec = 1
+pause_between_trials = 2     # Pause after each trial
+trials_per_class = 50
 labels = ['left', 'right']
 
 label_to_class = {'left': 0, 'right': 1, 'rest': 2}
@@ -28,7 +28,7 @@ params.serial_port = "COM3"
 board_id = 57
 board = BoardShim(board_id, params)
 
-print("🔌 Preparing board session...")
+print("Preparing session...")
 board.prepare_session()
 board.start_stream()
 time.sleep(2)
@@ -45,79 +45,64 @@ for cmd in commands:
     time.sleep(1)
 
 eeg_channels = board.get_eeg_channels(board_id)
-print("📡 EEG Channels:", eeg_channels)
+print("EEG Channels:", eeg_channels)
 
 # ====== COLLECT TRIALS ======
 trials = []
+
 total_trials = trials_per_class * len(labels)
 trial_counter = 1
 start_time = time.time()
 
 for label in labels:
-    print(f"\n========== STARTING {label.upper()} TRIALS ==========")
+    print(f"\n========== STARTING {label.upper()} HAND TRIALS ==========")
     time.sleep(2)
 
     for i in range(trials_per_class):
-        print(f"\nTrial {trial_counter}/{total_trials} — {label.upper()}")
+        print(f"\nTrial {trial_counter}/{total_trials} — {label.upper()} HAND")
 
-        print("Reset... Next trial in:")
+        # Optional: inter-trial pause
+        print(f"Reset... Next trial in:")
         for t in reversed(range(1, 4)):
             print(f"{t}...")
             time.sleep(1)
 
+        # Pre-clench baseline collection (this is included in EEG window)
         print("🧘‍♂️ Relax and stay still...")
         time.sleep(pre_clench_sec)
 
         print("✊ CLENCH NOW!")
         time.sleep(post_clench_sec)
 
-        # Collect movement EEG
-        while board.get_board_data_count() < samples_per_trial:
-            time.sleep(0.1)
+        # Collect EEG (whole 3-second window: 2s before + 1s after)
         data = board.get_current_board_data(samples_per_trial)
         eeg = data[eeg_channels]
 
         trials.append({
             "label": label,
-            "class_type": label_to_class[label],
             "raw_eeg": eeg
         })
-        print(f"✔️ {label.upper()} trial {i+1} recorded")
 
-        # ========== REST TRIAL from pause ==========
-        print("😴 Collecting rest from inter-trial pause...")
-        time.sleep(pause_rest_sec)
+        print(f"✔️ {label} hand trial {i+1} recorded")
 
-        while board.get_board_data_count() < samples_per_trial:
-            time.sleep(0.1)
-        rest_data = board.get_current_board_data(samples_per_trial)
-        rest_eeg = rest_data[eeg_channels]
-
-        trials.append({
-            "label": "rest",
-            "class_type": label_to_class["rest"],
-            "raw_eeg": rest_eeg
-        })
-        print(f"✔️ REST trial {i+1} recorded from pause")
-
+        # Optional pause
+        print("...pausing before next trial...")
+        time.sleep(pause_between_trials)
         trial_counter += 1
 
 # ====== CLEANUP ======
 board.stop_stream()
 board.release_session()
-print("🧠 Board session ended.")
 
 # ====== FILTER & SAVE ======
 filtered_data = {
     "labels": [],
-    "class_types": [],
     "mrcp": [],
     "csp": []
 }
 
 for trial in trials:
     label = trial["label"]
-    class_type = trial["class_type"]
     raw = np.copy(trial["raw_eeg"])
     mrcp_filtered = np.copy(raw)
     csp_filtered = np.copy(raw)
@@ -129,23 +114,23 @@ for trial in trials:
         DataFilter.perform_bandstop(mrcp_filtered[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
         DataFilter.perform_bandstop(csp_filtered[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
         DataFilter.perform_bandpass(mrcp_filtered[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+        # CSP/ERD: 8–30 Hz
         DataFilter.perform_bandpass(csp_filtered[ch], fs, 8.0, 30.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
 
-    filtered_data["labels"].append(label)
-    filtered_data["class_types"].append(class_type)
+    filtered_data["labels"].append(0 if label == "left" else 1)
     filtered_data["mrcp"].append(mrcp_filtered)
     filtered_data["csp"].append(csp_filtered)
 
 filtered_data["labels"] = np.array(filtered_data["labels"])
-filtered_data["class_types"] = np.array(filtered_data["class_types"])
-filtered_data["mrcp"] = np.array(filtered_data["mrcp"])
-filtered_data["csp"] = np.array(filtered_data["csp"])
+filtered_data["mrcp"] = np.array(filtered_data["mrcp"])  # shape: (n_trials, n_channels, 375)
+filtered_data["csp"] = np.array(filtered_data["csp"])    # shape: (n_trials, n_channels, 375)
 
-filename = os.path.join(output_dir, "three_class_clench_trials_from_pause.npz")
+filename = os.path.join(output_dir, "single_clench_trials.npz")
 np.savez(filename, **filtered_data)
-print(f"✅ Saved filtered EEG data to: {filename}")
+print(f"✅ Saved EEG data to: {filename}")
 
+# Print total time
 elapsed = time.time() - start_time
-print(f"\n🕒 Calibration completed in {elapsed:.1f} seconds (~{elapsed/60:.1f} min)")
+print(f"\n🕒 Calibration complete in {elapsed:.1f} seconds (~{elapsed/60:.1f} min)")
 
 

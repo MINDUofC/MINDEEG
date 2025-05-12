@@ -5,7 +5,6 @@ import joblib
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 from scipy.signal import detrend
-import os
 
 # ====== Load Trained Models ======
 
@@ -96,19 +95,15 @@ try:
         auc = np.trapezoid(avg_signal)
 
         X_mrcp = [min_val, time_to_peak, slope, auc]
-        
+        scaler_csp = joblib.load("calibration_data/scaler_csp.pkl")
+        scaler_mrcp = joblib.load("calibration_data/scaler_mrcp.pkl")
 
         # Combine features and predict
         X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))
         X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))
         X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)
         pred = model.predict(X_live)[0]
-        if pred == 0:
-            label = "🟥 LEFT HAND"
-        elif pred == 1:
-            label = "🟦 RIGHT HAND"
-        else:
-            label = "⬜ REST"
+        label = "🟥 LEFT HAND" if pred == 0 else "🟦 RIGHT HAND"
         print(f"🤖 Prediction: {label}")
 
         trial_num += 1
