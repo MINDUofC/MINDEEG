@@ -1,8 +1,9 @@
-﻿import os
+﻿#DATA_COLLECT
+import os
 import time
 import numpy as np
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-from brainflow.data_filter import DataFilter, FilterTypes
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 
 # ====== CONFIG ======
 fs = 125
@@ -13,8 +14,11 @@ post_clench_sec = 2
 pause_rest_sec = 4
 trials_per_class = 20
 labels = ['left', 'right']
+
 label_to_class = {'left': 0, 'right': 1, 'rest': 2}
-output_dir = "calibration_data"
+
+
+output_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
 os.makedirs(output_dir, exist_ok=True)
 
 # ====== INIT BOARD ======
@@ -119,6 +123,11 @@ for trial in trials:
     csp_filtered = np.copy(raw)
 
     for ch in range(raw.shape[0]):
+        # Detrend (remove linear trend)
+        DataFilter.detrend(mrcp_filtered[ch], DetrendOperations.LINEAR)
+        DataFilter.detrend(csp_filtered[ch], DetrendOperations.LINEAR)
+        DataFilter.perform_bandstop(mrcp_filtered[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
+        DataFilter.perform_bandstop(csp_filtered[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
         DataFilter.perform_bandpass(mrcp_filtered[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
         DataFilter.perform_bandpass(csp_filtered[ch], fs, 8.0, 30.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
 
