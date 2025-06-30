@@ -7,64 +7,53 @@ import scipy.signal as signal_lib
 
 def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     """
-    Retrieves and applies signal processing to EEG data based on GUI selections.
-
-    :param board_shim: The BoardShim object to fetch data from.
-    :param num_points: Number of data points to retrieve.
-    :param eeg_channels: List of EEG channels to process.
-    :param preprocessing: Dictionary containing GUI elements for preprocessing.
-    :return: Processed EEG data dictionary {channel: filtered_signal}
+    Retrieves raw EEG data and applies optional preprocessing steps,
+    delegating all BP/BS logic to the helper functions.
     """
     data = board_shim.get_current_board_data(num_points)
     processed_data = {}
 
     for channel in eeg_channels:
-        signal = data[channel].copy()  # work on a copy
+        signal = data[channel].copy()
 
-        # remove mains noise first
-        DataFilter.remove_environmental_noise(signal, 125, NoiseTypes.FIFTY_AND_SIXTY)
+        # 1) Remove mains hum (50/60 Hz)
+        DataFilter.remove_environmental_noise(
+            data=signal,
+            sampling_rate=125,
+            noise_type=NoiseTypes.FIFTY_AND_SIXTY
+        )
 
-        # 1) Detrend
+        # 2) Detrend if requested
         if preprocessing["DetrendOnOff"].isChecked():
             signal = detrend_signal(signal)
 
-        # 2) Band-pass
+        # 3) Band-pass / low-pass / high-pass (all logic inside bandpass_filters)
         if preprocessing["BandPassOnOff"].isChecked():
-            num_bp = preprocessing["NumberBandPass"].value()
-            bp_ranges = []
-            for i in range(1, num_bp + 1):
-                # dynamically look up the start/end widgets
-                start = float(preprocessing[f"BP{i}Start"].text())
-                end   = float(preprocessing[f"BP{i}End"].text())
-                # only accept strictly positive, ascending ranges
-                if 0 < start < end:
-                    bp_ranges.append((start, end))
-            # only filter if we got at least one valid band
-            if bp_ranges:
-                signal = bandpass_filters(signal, bp_ranges)
+            signal = bandpass_filters(
+                signal,
+                preprocessing,
+                sampling_rate=125,
+                order=4
+            )
 
-        # 3) Band-stop
+        # 4) Band-stop / low-cut / high-cut (all logic inside bandstop_filters)
         if preprocessing["BandStopOnOff"].isChecked():
-            num_bs = preprocessing["NumberBandStop"].value()
-            bs_ranges = []
-            for i in range(1, num_bs + 1):
-                start = float(preprocessing[f"BStop{i}Start"].text())
-                end   = float(preprocessing[f"BStop{i}End"].text())
-                if 0 < start < end:
-                    bs_ranges.append((start, end))
-            if bs_ranges:
-                signal = bandstop_filters(signal, bs_ranges)
+            signal = bandstop_filters(
+                signal,
+                preprocessing,
+                sampling_rate=125,
+                order=4
+            )
 
-        # 4) (Stub) FastICA
+        # 5) (Placeholder) FastICA
         if preprocessing["FastICA"].isChecked():
-            # TODO: implement ICA
-            pass
+            pass  # TODO: implement ICA
 
-        # 5) Baseline correction
+        # 6) Baseline correction
         if preprocessing["BaselineCorrection"].isChecked():
             signal = Baseline(signal)
 
-        # 6) Smoothing
+        # 7) Smoothing
         window_size = preprocessing["Window"].value()
         if preprocessing["Average"].isChecked():
             signal = mean_smoothing(signal, window_size)
@@ -76,40 +65,135 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     return processed_data
 
 
-def bandpass_filters(signal, freq_ranges, sampling_rate=125, order=4):
+def bandpass_filters(signal, preprocessing, sampling_rate=125, order=4):
     """
-    Applies each valid band-pass in freq_ranges, ignoring any invalid ones.
+    Applies each user-configured filter slot as either:
+      • Low-pass   (blank/zero start, valid end)
+      • High-pass  (valid start, blank/zero end)
+      • Band-pass  (both present, start < end)
+    Invalid or nonsensical entries are skipped.
     """
-    # filter out any bad ranges just in case
-    valid = [(s, e) for s, e in freq_ranges if 0 < s < e]
-    for start_freq, end_freq in valid:
-        DataFilter.perform_bandpass(
-            signal,
-            sampling_rate,
-            start_freq,
-            end_freq,
-            order,
-            FilterTypes.BUTTERWORTH.value,
-            0
-        )
+    num_bp = preprocessing["NumberBandPass"].value()
+
+    for i in range(1, num_bp + 1):
+        raw_start = preprocessing[f"BP{i}Start"].text().strip()
+        raw_end   = preprocessing[f"BP{i}End"].text().strip()
+
+        # Skip completely empty slots
+        if not raw_start and not raw_end:
+            continue
+
+        # Parse floats (or None on failure/blank)
+        try:
+            start = float(raw_start) if raw_start else None
+        except ValueError:
+            start = None
+        try:
+            end   = float(raw_end)   if raw_end   else None
+        except ValueError:
+            end = None
+
+        # 1) True band-pass
+        if start and end and start < end:
+            DataFilter.perform_bandpass(
+                data=signal,
+                sampling_rate=sampling_rate,
+                start_freq=start,
+                stop_freq=end,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # 2) Low-pass only (no valid start ⇒ pass all below `end`)
+        elif end and (not start or start <= 0):
+            DataFilter.perform_lowpass(
+                data=signal,
+                sampling_rate=sampling_rate,
+                cutoff=end,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # 3) High-pass only (no valid end ⇒ pass all above `start`)
+        elif start and (not end or end <= 0):
+            DataFilter.perform_highpass(
+                data=signal,
+                sampling_rate=sampling_rate,
+                cutoff=start,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # else: invalid combination → skip
+
     return signal
 
 
-def bandstop_filters(signal, freq_ranges, sampling_rate=125, order=4):
+def bandstop_filters(signal, preprocessing, sampling_rate=125, order=4):
     """
-    Applies each valid band-stop in freq_ranges, ignoring any invalid ones.
+    Applies each user-configured slot as either:
+      • Band-stop  (both present, start < end)
+      • High-pass  (blank/zero start ⇒ cut below `end`)
+      • Low-pass   (blank/zero end   ⇒ cut above `start`)
+    Invalid entries are skipped silently.
     """
-    valid = [(s, e) for s, e in freq_ranges if 0 < s < e]
-    for start_freq, end_freq in valid:
-        DataFilter.perform_bandstop(
-            signal,
-            sampling_rate,
-            start_freq,
-            end_freq,
-            order,
-            FilterTypes.BUTTERWORTH.value,
-            0
-        )
+    num_bs = preprocessing["NumberBandStop"].value()
+
+    for i in range(1, num_bs + 1):
+        raw_start = preprocessing[f"BStop{i}Start"].text().strip()
+        raw_end   = preprocessing[f"BStop{i}End"].text().strip()
+
+        if not raw_start and not raw_end:
+            continue
+
+        try:
+            start = float(raw_start) if raw_start else None
+        except ValueError:
+            start = None
+        try:
+            end   = float(raw_end)   if raw_end   else None
+        except ValueError:
+            end = None
+
+        # 1) True band-stop
+        if start and end and start < end:
+            DataFilter.perform_bandstop(
+                data=signal,
+                sampling_rate=sampling_rate,
+                start_freq=start,
+                stop_freq=end,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # 2) High-pass style (remove below `end`) when start missing
+        elif end and (not start or start <= 0):
+            DataFilter.perform_highpass(
+                data=signal,
+                sampling_rate=sampling_rate,
+                cutoff=end,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # 3) Low-pass style (remove above `start`) when end missing
+        elif start and (not end or end <= 0):
+            DataFilter.perform_lowpass(
+                data=signal,
+                sampling_rate=sampling_rate,
+                cutoff=start,
+                order=order,
+                filter_type=FilterTypes.BUTTERWORTH.value,
+                ripple=0
+            )
+
+        # else: skip invalid slots
+
     return signal
 
 
