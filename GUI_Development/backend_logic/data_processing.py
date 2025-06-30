@@ -5,7 +5,6 @@ from scipy.interpolate import CubicSpline
 import scipy.signal as signal_lib
     #butter, filtfilt, lfilter
 
-
 def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     """
     Retrieves and applies signal processing to EEG data based on GUI selections.
@@ -17,132 +16,100 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
     :return: Processed EEG data dictionary {channel: filtered_signal}
     """
     data = board_shim.get_current_board_data(num_points)
-
     processed_data = {}
+
     for channel in eeg_channels:
-        signal = data[channel]
+        signal = data[channel].copy()  # work on a copy
 
-        DataFilter.remove_environmental_noise(signal,125,NoiseTypes.FIFTY_AND_SIXTY)
+        # remove mains noise first
+        DataFilter.remove_environmental_noise(signal, 125, NoiseTypes.FIFTY_AND_SIXTY)
 
-
-        # **Apply preprocessing based on GUI selections**
+        # 1) Detrend
         if preprocessing["DetrendOnOff"].isChecked():
             signal = detrend_signal(signal)
 
+        # 2) Band-pass
         if preprocessing["BandPassOnOff"].isChecked():
-            freq_ranges_bp = []
-            # Default Values
-            if preprocessing["NumberBandPass"].value() == 0:
-                freq_ranges_bp.append((8.0, 13.0))
-            # User-defined Values
-            else:
-                if preprocessing["NumberBandPass"].value() >= 1:
-                    freq_ranges_bp.append((float(preprocessing["BP1Start"]. text()),
-                                        float(preprocessing["BP1End"]. text())))
-                if preprocessing["NumberBandPass"].value() >= 2:
-                    freq_ranges_bp.append((float(preprocessing["BP2Start"]. text()),
-                                        float(preprocessing["BP2End"]. text())))
-            signal = bandpass_filters(signal, freq_ranges_bp) #pass
+            num_bp = preprocessing["NumberBandPass"].value()
+            bp_ranges = []
+            for i in range(1, num_bp + 1):
+                # dynamically look up the start/end widgets
+                start = float(preprocessing[f"BP{i}Start"].text())
+                end   = float(preprocessing[f"BP{i}End"].text())
+                # only accept strictly positive, ascending ranges
+                if 0 < start < end:
+                    bp_ranges.append((start, end))
+            # only filter if we got at least one valid band
+            if bp_ranges:
+                signal = bandpass_filters(signal, bp_ranges)
 
+        # 3) Band-stop
         if preprocessing["BandStopOnOff"].isChecked():
-            freq_ranges_bs = []
-            # Default Values
-            if preprocessing["NumberBandStop"].value() == 0:
-                freq_ranges_bs.append((50.0, 65.0))
-            # User-defined Values
-            else:
-                if preprocessing["NumberBandStop"].value() >= 1:
-                    freq_ranges_bs.append((float(preprocessing["BStop1Start"].text()),
-                                           float(preprocessing["BStop1End"].text())))
-                if preprocessing["NumberBandStop"].value() >= 2:
-                    freq_ranges_bs.append((float(preprocessing["BStop2Start"].text()),
-                                           float(preprocessing["BStop2End"].text())))
-            signal = bandstop_filters(signal, freq_ranges_bs) #pass
+            num_bs = preprocessing["NumberBandStop"].value()
+            bs_ranges = []
+            for i in range(1, num_bs + 1):
+                start = float(preprocessing[f"BStop{i}Start"].text())
+                end   = float(preprocessing[f"BStop{i}End"].text())
+                if 0 < start < end:
+                    bs_ranges.append((start, end))
+            if bs_ranges:
+                signal = bandstop_filters(signal, bs_ranges)
 
+        # 4) (Stub) FastICA
         if preprocessing["FastICA"].isChecked():
-            pass # DO ICA when we know how to
+            # TODO: implement ICA
+            pass
 
+        # 5) Baseline correction
         if preprocessing["BaselineCorrection"].isChecked():
             signal = Baseline(signal)
-         # DO Baseline Correct when we know how to
 
+        # 6) Smoothing
+        window_size = preprocessing["Window"].value()
         if preprocessing["Average"].isChecked():
-            window_size = preprocessing["Window"].value()
             signal = mean_smoothing(signal, window_size)
-
         if preprocessing["Median"].isChecked():
-            window_size = preprocessing["Window"].value()
             signal = median_smoothing(signal, window_size)
 
-        processed_data[channel] = signal  # Always interpolate
+        processed_data[channel] = signal
 
     return processed_data
 
 
-def bandpass_filters(signal, freq_ranges, sampling_rate=125,order=4 ):
+def bandpass_filters(signal, freq_ranges, sampling_rate=125, order=4):
     """
-    Applies multiple bandpass filters in sequence, one for each (start_freq, end_freq) pair,
-    using BrainFlow's built-in bandpass filter.
-
-    :param signal:         1D NumPy array of your EEG (or other) data
-    :param sampling_rate:  Sampling rate in Hz
-    :param freq_ranges:    List of tuples: [(start_freq1, end_freq1), (start_freq2, end_freq2), ...]
-    :param order:          Filter order
-    :return:               Filtered signal
+    Applies each valid band-pass in freq_ranges, ignoring any invalid ones.
     """
-    for (start_freq, end_freq) in freq_ranges:
+    # filter out any bad ranges just in case
+    valid = [(s, e) for s, e in freq_ranges if 0 < s < e]
+    for start_freq, end_freq in valid:
         DataFilter.perform_bandpass(
             signal,
             sampling_rate,
             start_freq,
             end_freq,
             order,
-            FilterTypes.BUTTERWORTH.value,  # or FilterTypes.BUTTERWORTH_ZERO_PHASE.value if desired
-            0  # ripple (used only for Chebyshev)
+            FilterTypes.BUTTERWORTH.value,
+            0
         )
-
-
-        # Manual Implementation: LESS RELIABLE
-        # nyquist = sampling_rate / 2
-        # low = start_freq / nyquist
-        # high = end_freq / nyquist
-        # b, a = butter(order, [low, high], btype='band')
-        # signal = lfilter(b, a, signal)
-
     return signal
 
 
-def bandstop_filters(signal, freq_ranges, sampling_rate=125,  order=4 ):
+def bandstop_filters(signal, freq_ranges, sampling_rate=125, order=4):
     """
-        Applies multiple bandstop filters in sequence, one for each (start_freq, end_freq) pair,
-        using BrainFlow's built-in bandpass filter.
-
-        :param signal:         1D NumPy array of your EEG (or other) data
-        :param sampling_rate:  Sampling rate in Hz
-        :param freq_ranges:    List of tuples: [(start_freq1, end_freq1), (start_freq2, end_freq2), ...]
-        :param order:          Filter order
-        :return:               Filtered signal
+    Applies each valid band-stop in freq_ranges, ignoring any invalid ones.
     """
-
-    for (start_freq, end_freq) in freq_ranges:
+    valid = [(s, e) for s, e in freq_ranges if 0 < s < e]
+    for start_freq, end_freq in valid:
         DataFilter.perform_bandstop(
             signal,
             sampling_rate,
             start_freq,
             end_freq,
             order,
-            FilterTypes.BUTTERWORTH.value,  # or FilterTypes.BUTTERWORTH_ZERO_PHASE.value if desired
-            0  # ripple (used only for Chebyshev)
+            FilterTypes.BUTTERWORTH.value,
+            0
         )
-
-
-        # Manual Implementation: LESS RELIABLE
-        # nyquist = sampling_rate / 2
-        # low = start_freq / nyquist
-        # high = end_freq / nyquist
-        # b, a = butter(order, [low, high], btype='bandstop')
-        # signal = lfilter(b, a, signal)
-
     return signal
 
 
