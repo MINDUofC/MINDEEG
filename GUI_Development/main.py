@@ -174,6 +174,10 @@ class MainApp(QDialog):
         self.Visualizer.setCurrentIndex(0)
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)
 
+        # ─── Enforce mutual exclusivity between Average and Median ──────
+        self.AverageOnOff.clicked.connect(self._on_average_toggled)
+        self.MedianOnOff.clicked.connect(self._on_median_toggled)
+
     def setup_muV_live_plot(self):
         """Lazy-create and embed the µV live plot into its tab."""
         layout = QVBoxLayout(self.muVPlot)
@@ -277,6 +281,23 @@ class MainApp(QDialog):
     def paintEvent(self, event):
         """Custom painting (rounded corners, shadows) via backend helper."""
         bed.paintEvent(self, event)
+
+    def _on_average_toggled(self, checked: bool):
+        """
+        If Average smoothing is turned on, force Median smoothing off.
+        """
+        if checked:
+            # Uncheck Median when Average is enabled
+            self.MedianOnOff.setChecked(False)
+
+    def _on_median_toggled(self, checked: bool):
+        """
+        If Median smoothing is turned on, force Average smoothing off.
+        """
+        if checked:
+            # Uncheck Average when Median is enabled
+            self.AverageOnOff.setChecked(False)
+
 
 
 if __name__ == "__main__":

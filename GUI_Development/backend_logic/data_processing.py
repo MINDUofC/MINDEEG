@@ -1,4 +1,5 @@
 import numpy as np
+from brainflow import AggOperations
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, NoiseTypes
 from scipy.interpolate import CubicSpline
 # Include this for manual implementation
@@ -243,7 +244,7 @@ def mean_smoothing(signal, window_size):
     """Applies moving average smoothing using BrainFlow's built-in rolling filter."""
     if window_size < 1:
         return signal
-    DataFilter.perform_rolling_filter(signal, window_size, NoiseTypes.MOVING_AVERAGE.value)
+    DataFilter.perform_rolling_filter(signal, window_size, AggOperations.MEAN)
 
     return signal
 
@@ -269,9 +270,6 @@ def median_smoothing(signal, window_size):
 
     if window_size < 1:
         return signal
-    if window_size % 2 == 0:
-        window_size += 1  # median filter kernel size must be odd
-    return signal_lib.medfilt(signal, kernel_size=window_size)
+    DataFilter.perform_rolling_filter(signal, window_size, AggOperations.MEDIAN)
 
-
-
+    return signal

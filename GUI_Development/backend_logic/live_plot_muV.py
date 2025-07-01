@@ -24,6 +24,7 @@ class MuVGraphVispyStacked(QWidget):
         # Visual + layout config
         self.offset_spacing = 130
         self.label_margin_ratio = 0.07
+        self._fixed_amp_range = None
 
         # Lazy vars
         self.eeg_channels = None
@@ -122,37 +123,92 @@ class MuVGraphVispyStacked(QWidget):
         if not self.board_shim or not self.BoardOnCheckBox.isChecked():
             return
 
-        # Lazy init board params
+        # Lazy init board parameters
         if self.eeg_channels is None or self.sampling_rate is None or self.num_points is None:
             self.eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_shim.get_board_id())
-            self.num_points = int(6 * self.sampling_rate)
+            self.num_points = int(6 * self.sampling_rate)  # 6-second window
             print(f"Board Initialized: {len(self.eeg_channels)} EEG channels, {self.sampling_rate} Hz")
 
         filtered_data = get_filtered_data(
-            self.board_shim, self.num_points, self.eeg_channels, self.preprocessing_controls
+            self.board_shim,
+            self.num_points,
+            self.eeg_channels,
+            self.preprocessing_controls
         )
 
-        canvas_width = self.canvas.size[0]
-        label_margin = canvas_width * self.label_margin_ratio
+        track_height = self.offset_spacing * 0.8
+        num_active = len(self.eeg_channels)
 
-        for i, channel in enumerate(self.eeg_channels):
-            y = filtered_data[channel]
-            x = np.linspace(0, len(y) / self.sampling_rate, len(y))
+        for idx, line in enumerate(self.lines):
+            if idx < num_active:
+                # ─── Active channel plotting ────────────────────────────
+                channel = self.eeg_channels[idx]
+                y = filtered_data[channel]
+                x = np.linspace(0, len(y) / self.sampling_rate, len(y))
 
-            if len(x) > self.max_points:
-                x = x[-self.max_points:]
-                y = y[-self.max_points:]
+                # Trim to max_points
+                if len(x) > self.max_points:
+                    x = x[-self.max_points:]
+                    y = y[-self.max_points:]
 
-            # Normalize and vertically offset
-            y_min, y_max = np.min(y), np.max(y)
-            y_norm = (y - y_min) / (y_max - y_min) if y_max - y_min != 0 else np.zeros_like(y)
-            y_scaled = y_norm * self.offset_spacing * 0.8
-            offset_y = y_scaled + i * self.offset_spacing
+                smoothing_on = (
+                        self.preprocessing_controls["Average"].isChecked()
+                        or self.preprocessing_controls["Median"].isChecked()
+                )
 
-            # Scale X to respect label margin
-            x_scaled = x / x.max() if x.max() != 0 else x
-            x_scaled = x_scaled * (1 - self.label_margin_ratio)
-            x_scaled += self.label_margin_ratio
+                if smoothing_on:
+                    # Lock amplitude range once
+                    if self._fixed_amp_range is None:
+                        peak = max(abs(y.min()), abs(y.max()), 1e-6)
+                        self._fixed_amp_range = peak
 
-            self.lines[i].set_data(np.column_stack((x_scaled, offset_y)))
+                    amp = self._fixed_amp_range
+                    y_clamped = np.clip(y, -amp, amp)
+                    y_scaled = (y_clamped / amp) * (track_height / 2)
+
+
+                else:
+                    # Reset for next smoothing
+                    self._fixed_amp_range = None
+
+                    # Dynamic min/max → [0…1]
+                    y_min, y_max = y.min(), y.max()
+                    if y_max - y_min != 0:
+                        y_norm = (y - y_min) / (y_max - y_min)
+                    else:
+                        y_norm = np.zeros_like(y)
+
+                    # Scale + mean-lock
+                    y_scaled = y_norm * track_height
+                    curr_mean = y_scaled.mean()
+                    desired_mean = track_height / 2
+                    y_scaled = y_scaled - curr_mean + desired_mean
+
+                # ─── FLAT-LINE THE OLDEST PORTION ALWAYS ───────────────────
+                # Slightly reduce height
+                y_scaled *= 0.95
+                flat_duration_s = 0.1  # or 0.2 if you prefer
+                flat_pts = min(int(flat_duration_s * self.sampling_rate), len(y_scaled))
+                y_scaled[:flat_pts] = 0
+
+                # Vertical stacking: centered if smoothing, else original
+                if smoothing_on:
+                    offset_y = y_scaled + (idx + 0.5) * self.offset_spacing
+                else:
+                    offset_y = y_scaled + (idx + 0.20) * self.offset_spacing
+
+                # X scaling
+                if x.max() != 0:
+                    x_scaled = (x / x.max()) * (1 - self.label_margin_ratio)
+                else:
+                    x_scaled = x
+                x_scaled += self.label_margin_ratio
+
+                # Draw and show
+                line.set_data(np.column_stack((x_scaled, offset_y)))
+                line.visible = True
+
+
+
+
