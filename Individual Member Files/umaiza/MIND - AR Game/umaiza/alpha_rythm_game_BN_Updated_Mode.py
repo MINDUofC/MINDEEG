@@ -57,7 +57,7 @@ score_p1 = 0
 score_p2 = 0
 
 # Paths
-base_path = "C:/Users/umaiz/Desktop/github eie/New folder/MINDEEG/Individual Member Files/umaiza/MIND - AR Game/umaiza/game_pngs/"
+base_path = os.getcwd() + "\\Individual Member Files\\umaiza\\MIND - AR Game\\umaiza\\game_pngs\\"
 player1_img = pygame.transform.scale(pygame.image.load(os.path.join(base_path, "player1.png")), (100, 100))
 player2_img = pygame.transform.scale(pygame.image.load(os.path.join(base_path, "player2.png")), (100, 100))
 rope_img = pygame.transform.scale(pygame.image.load(os.path.join(base_path, "rope.png")), (400, 25))

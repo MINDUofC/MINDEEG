@@ -1,13 +1,22 @@
-﻿import time
+﻿#DETECTOR 1
+import time
 import numpy as np
 import joblib
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
-from brainflow.data_filter import DataFilter, FilterTypes
+from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
 from scipy.signal import detrend
+import os
 
 # ====== Load Trained Models ======
-model = joblib.load("trained_model_1.pkl")
-csp = joblib.load("calibration_data/trained_csp.pkl")
+
+BASE_DIR = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+
+model = joblib.load(os.path.join(BASE_DIR, "trained_model.pkl"))
+csp = joblib.load(os.path.join(BASE_DIR, "trained_csp.pkl"))
+scaler_csp = joblib.load(os.path.join(BASE_DIR, "scaler_csp.pkl"))
+scaler_mrcp = joblib.load(os.path.join(BASE_DIR, "scaler_mrcp.pkl"))
+
+
 
 # ====== Config ======
 fs = 125
@@ -68,11 +77,13 @@ try:
         mrcp_input = np.copy(raw)
 
         for ch in range(raw.shape[0]):
-            DataFilter.perform_bandpass(csp_input[ch], fs, 8, 30, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
+            DataFilter.detrend(mrcp_input[ch], DetrendOperations.LINEAR)
+            DataFilter.detrend(csp_input[ch], DetrendOperations.LINEAR)
+            DataFilter.perform_bandstop(mrcp_input[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
+            DataFilter.perform_bandstop(csp_input[ch],BoardShim.get_sampling_rate(board_id), 58.0, 62.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE.value,0)
             DataFilter.perform_bandpass(mrcp_input[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
-
+            DataFilter.perform_bandpass(csp_input[ch], fs, 8.0, 30.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)
         # ====== Extract Features ======
-        csp_input = detrend(csp_input, axis=1)
         X_csp = csp.transform(csp_input[np.newaxis, :, :])[0]
 
         c3, c4, cz = mrcp_input[C3_idx], mrcp_input[C4_idx], mrcp_input[Cz_idx]
@@ -85,15 +96,19 @@ try:
         auc = np.trapezoid(avg_signal)
 
         X_mrcp = [min_val, time_to_peak, slope, auc]
-        scaler_csp = joblib.load("calibration_data/scaler_csp.pkl")
-        scaler_mrcp = joblib.load("calibration_data/scaler_mrcp.pkl")
+        
 
         # Combine features and predict
         X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))
         X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))
         X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)
         pred = model.predict(X_live)[0]
-        label = "🟥 LEFT HAND" if pred == 0 else "🟦 RIGHT HAND"
+        if pred == 0:
+            label = "🟥 LEFT HAND"
+        elif pred == 1:
+            label = "🟦 RIGHT HAND"
+        else:
+            label = "⬜ REST"
         print(f"🤖 Prediction: {label}")
 
         trial_num += 1
@@ -106,5 +121,3 @@ finally:
     board.stop_stream()
     board.release_session()
     print("🔌 Board session closed.")
-
-
