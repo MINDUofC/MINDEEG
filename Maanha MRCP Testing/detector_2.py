@@ -8,7 +8,7 @@ from scipy.signal import detrend
 import os
 
 # ====== Load Trained Models ======
-BASE_DIR = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+BASE_DIR = r"C:\Users\maanh\Desktop\MINDEEG\Maanha MRCP Testing\calibration_data"
 model = joblib.load(os.path.join(BASE_DIR, "trained_model.pkl"))
 csp = joblib.load(os.path.join(BASE_DIR, "trained_csp.pkl"))
 
