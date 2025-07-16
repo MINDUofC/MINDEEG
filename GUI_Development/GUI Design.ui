@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>Taha Malik</author>
  <class>Dialog</class>
  <widget class="QDialog" name="Dialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1327</width>
-    <height>1223</height>
+    <width>1046</width>
+    <height>1008</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -62,6 +63,60 @@ QDialog::window {
    <property name="bottomMargin">
     <number>0</number>
    </property>
+   <item row="8" column="6" alignment="Qt::AlignTop">
+    <widget class="QPushButton" name="stopButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>55</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>250</width>
+       <height>55</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+    background-color: white; /* Default White Background */
+    border: 2px solid black; /* Black Outline */
+    border-radius: 10px; /* Rounded Corners */
+    padding: 5px; /* Inner Padding */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
+    font-size: 14px;
+    color: black;
+    transition: all 0.2s ease-in-out; /* Smooth transition */
+}
+
+/* Hover Effect */
+QPushButton:hover {
+    background-color: #f0f0f0; /* Light Grey on Hover */
+    border: 2px solid #0047B2; /* Change Border to Bold Blue */
+    color: #0047B2; /* Change Text Color */
+}
+
+/* Pressed Effect (Shrinks Button) */
+QPushButton:pressed {
+    background-color: #e0e0e0; /* Darker Grey when Pressed */
+    padding: 5px; /* Reduce padding uniformly to shrink */
+	font-size: 12px;
+    margin: 7px; /* Add equal margin on all sides to maintain size */
+	margin-left: 15px;
+	margin-right: 15px;
+}</string>
+     </property>
+     <property name="text">
+      <string>STOP</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0" colspan="7">
     <widget class="QWidget" name="taskbar" native="true">
      <property name="sizePolicy">
@@ -183,6 +238,12 @@ image:url(:/images/MIND LOGO Transparent.png)}</string>
       </item>
       <item alignment="Qt::AlignLeft|Qt::AlignTop">
        <widget class="QComboBox" name="MenuOptions">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>250</width>
@@ -456,7 +517,276 @@ QPushButton:pressed{
      </layout>
     </widget>
    </item>
-   <item row="2" column="1" rowspan="4" colspan="3" alignment="Qt::AlignTop">
+   <item row="1" column="6" rowspan="2" alignment="Qt::AlignTop">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>200</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="PSDData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>130</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+	padding-right: 2px;
+	
+    }
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Power/PSD Analysis</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="FFTData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>100</y>
+        <width>171</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+	padding-right: 2px;
+	
+    }
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Frequency Analysis (FFT)</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="RawData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>70</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+padding-right: 2px;
+	
+    }
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Raw Data (muV/Time)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>20</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="2" column="1" rowspan="5" colspan="3">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -473,7 +803,7 @@ QPushButton:pressed{
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>500</height>
+       <height>800</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -2061,431 +2391,47 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      </widget>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QWidget" name="verticalWidget_3" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_3"/>
-    </widget>
-   </item>
-   <item row="1" column="5" rowspan="5">
-    <widget class="QGroupBox" name="verticalGroupBox">
+   <item row="1" column="2" alignment="Qt::AlignTop">
+    <widget class="QLabel" name="logo">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>500</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox{ background-color: white; /* White background */
- border: 2px solid black; /* Optional: Black border */
-    border-radius: 5px; /* Optional: Rounded corners */}</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item alignment="Qt::AlignBottom">
-       <widget class="QLabel" name="label_15">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLabel {
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
-
-}
-</string>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="Visualizer">
-        <property name="styleSheet">
-         <string notr="true">QWidget {
-    font-family: &quot;Montserrat SemiBold&quot;;
-    font-size: 11px;
-    padding: 0px; /* No extra padding */
-}
-
-
-/* === QTabWidget Pane (The Area Below Tabs) === */
-QTabWidget::pane {
-    border: 2px solid black; /* Black outline */
-    border-radius: 5px; /* Rounded corners */
-    background-color: white; /* Keep pane background white */
-}
-
-/* === QTabBar (The Row of Tabs) === */
-QTabBar {
-    font-family: &quot;Montserrat SemiBold&quot;;
-    font-size: 11px;
-}
-
-/* === Individual Tabs === */
-QTabBar::tab {
-    width: 80px;
-    padding: 6px 12px;  /* Controls tab height &amp; width */	
-	margin-left:3px;
-    margin-right: 5px;  /* Space between tabs */
-    background-color: white; /* Default tab background */
-    border: 3px solid #ccc; /* Subtle border */
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    transition: all 0.2s ease-in-out; /* Smooth transition */
-}
-
-/* === Hover Effect on Tabs === */
-QTabBar::tab:hover {
-    background-color: #e0e0e0; /* Light grey background on hover */
-    border: 3px solid #0047B2; /* Bold blue border */
-    color: #0047B2; /* Change text color */
-}
-
-/* === Selected Tab (Active) === */
-QTabBar::tab:selected {
-    background-color: #f5f5f5; /* Highlight selected tab */
-    border: 3px solid black;
-    border-bottom: none; /* Merges with the screen below */
-    font-family: &quot;Montserrat Black&quot;;
-}
-
-/* === Pressed Effect (Shrinks Tab Slightly) === */
-QTabBar::tab:pressed {
-    transform: scale(0.95); /* Shrinks tab slightly */
-}
-</string>
-        </property>
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
-        </property>
-        <property name="tabShape">
-         <enum>QTabWidget::Rounded</enum>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="NoPlot">
-         <attribute name="title">
-          <string>No Plot</string>
-         </attribute>
-         <widget class="QLabel" name="label_16">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>20</y>
-            <width>871</width>
-            <height>211</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="muVPlot">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <attribute name="title">
-          <string>Live Plot</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="FFTPlot">
-         <attribute name="title">
-          <string>FFT Plot</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="PSDPlot">
-         <attribute name="title">
-          <string>PSD Plot</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="6" rowspan="2">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>250</width>
-       <height>200</height>
-      </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>100</width>
-       <height>16777215</height>
+       <width>109</width>
+       <height>109</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QGroupBox {
+      <string notr="true">QLabel{
+    background-color: white; /* White background */
     border: 2px solid black; /* Black outline */
     border-radius: 10px; /* Rounded corners */
-    background-color: white; /* No background */
-    padding: 0px; /* No extra padding */
-}</string>
-     </property>
-     <property name="title">
-      <string/>
-     </property>
-     <widget class="QCheckBox" name="PSDData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>130</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-	padding-right: 2px;
-	
-    }
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Power/PSD Analysis</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="FFTData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>100</y>
-        <width>171</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-	padding-right: 2px;
-	
-    }
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Frequency Analysis (FFT)</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="RawData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>70</y>
-        <width>161</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-padding-right: 2px;
-	
-    }
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Raw Data (muV/Time)</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>20</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
+    padding: 5px; /* Padding inside the label */
     font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
     font-size: 14px; /* Adjust size as needed */
     color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
 }
 </string>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
+     </property>
+     <property name="text">
+      <string notr="true"/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
-   <item row="3" column="6">
+   <item row="3" column="6" alignment="Qt::AlignTop">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -2496,13 +2442,13 @@ QCheckBox::indicator:disabled:checked {
      <property name="minimumSize">
       <size>
        <width>250</width>
-       <height>300</height>
+       <height>275</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>100</width>
-       <height>16777215</height>
+       <height>350</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3167,13 +3113,13 @@ QCheckBox::indicator:disabled:checked {
      <property name="minimumSize">
       <size>
        <width>250</width>
-       <height>250</height>
+       <height>200</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>100</width>
-       <height>200</height>
+       <height>1000</height>
       </size>
      </property>
      <property name="styleSheet">
@@ -3530,81 +3476,163 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      </widget>
     </widget>
    </item>
-   <item row="8" column="0" colspan="7">
-    <layout class="QVBoxLayout" name="TimelineVBox">
-     <item>
-      <widget class="QWidget" name="TimelineVisualizer" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>250</width>
-         <height>250</height>
-        </size>
-       </property>
-       <property name="styleSheet">
-        <string notr="true">QWidget#TimelineVisualizer {
-    background-color: white;           /* White background */
-    border: 2px solid black;           /* Black outline */
-    border-top-left-radius: 10px;      /* Rounded top‑left corner */
-    border-top-right-radius: 10px;     /* Rounded top‑right corner */
-    /* (or simply: border-radius: 10px 10px 0 0; ) */
-    padding: 0px;                      /* Padding inside */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
-    font-size: 14px;
-    color: black;
-}
-</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLabel" name="logo">
+   <item row="1" column="4" rowspan="6" colspan="2">
+    <widget class="QGroupBox" name="verticalGroupBox">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>500</width>
+       <height>600</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>109</width>
-       <height>109</height>
+       <width>16777215</width>
+       <height>800</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QLabel{
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
+      <string notr="true">QGroupBox{ background-color: white; /* White background */
+ border: 2px solid black; /* Optional: Black border */
+    border-radius: 5px; /* Optional: Rounded corners */}</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item alignment="Qt::AlignBottom">
+       <widget class="QLabel" name="label_15">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
     font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
     font-size: 14px; /* Adjust size as needed */
     color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+
 }
 </string>
-     </property>
-     <property name="text">
-      <string notr="true"/>
-     </property>
-     <property name="pixmap">
-      <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
-     </property>
-     <property name="scaledContents">
-      <bool>true</bool>
-     </property>
-     <property name="openExternalLinks">
-      <bool>true</bool>
-     </property>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="Visualizer">
+        <property name="styleSheet">
+         <string notr="true">QWidget {
+    font-family: &quot;Montserrat SemiBold&quot;;
+    font-size: 11px;
+    padding: 0px; /* No extra padding */
+}
+
+
+/* === QTabWidget Pane (The Area Below Tabs) === */
+QTabWidget::pane {
+    border: 2px solid black; /* Black outline */
+    border-radius: 5px; /* Rounded corners */
+    background-color: white; /* Keep pane background white */
+}
+
+/* === QTabBar (The Row of Tabs) === */
+QTabBar {
+    font-family: &quot;Montserrat SemiBold&quot;;
+    font-size: 11px;
+}
+
+/* === Individual Tabs === */
+QTabBar::tab {
+    width: 80px;
+    padding: 6px 12px;  /* Controls tab height &amp; width */	
+	margin-left:3px;
+    margin-right: 5px;  /* Space between tabs */
+    background-color: white; /* Default tab background */
+    border: 3px solid #ccc; /* Subtle border */
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    transition: all 0.2s ease-in-out; /* Smooth transition */
+}
+
+/* === Hover Effect on Tabs === */
+QTabBar::tab:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 3px solid #0047B2; /* Bold blue border */
+    color: #0047B2; /* Change text color */
+}
+
+/* === Selected Tab (Active) === */
+QTabBar::tab:selected {
+    background-color: #f5f5f5; /* Highlight selected tab */
+    border: 3px solid black;
+    border-bottom: none; /* Merges with the screen below */
+    font-family: &quot;Montserrat Black&quot;;
+}
+
+/* === Pressed Effect (Shrinks Tab Slightly) === */
+QTabBar::tab:pressed {
+    transform: scale(0.95); /* Shrinks tab slightly */
+}
+</string>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::North</enum>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="NoPlot">
+         <attribute name="title">
+          <string>No Plot</string>
+         </attribute>
+         <widget class="QLabel" name="label_16">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>20</y>
+            <width>871</width>
+            <height>211</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="muVPlot">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <attribute name="title">
+          <string>Live Plot</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="FFTPlot">
+         <attribute name="title">
+          <string>FFT Plot</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="PSDPlot">
+         <attribute name="title">
+          <string>PSD Plot</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="6" column="1" rowspan="2" colspan="3" alignment="Qt::AlignBottom">
+   <item row="7" column="1" rowspan="2" colspan="3" alignment="Qt::AlignBottom">
     <widget class="QPushButton" name="recordButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3652,8 +3680,8 @@ QPushButton:pressed {
      </property>
     </widget>
    </item>
-   <item row="5" column="6" rowspan="3" alignment="Qt::AlignBottom">
-    <widget class="QPushButton" name="stopButton">
+   <item row="8" column="4" colspan="2">
+    <widget class="QLabel" name="StatusBar_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -3668,55 +3696,7 @@ QPushButton:pressed {
      </property>
      <property name="maximumSize">
       <size>
-       <width>250</width>
-       <height>55</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-    background-color: white; /* Default White Background */
-    border: 2px solid black; /* Black Outline */
-    border-radius: 10px; /* Rounded Corners */
-    padding: 5px; /* Inner Padding */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
-    font-size: 14px;
-    color: black;
-    transition: all 0.2s ease-in-out; /* Smooth transition */
-}
-
-/* Hover Effect */
-QPushButton:hover {
-    background-color: #f0f0f0; /* Light Grey on Hover */
-    border: 2px solid #0047B2; /* Change Border to Bold Blue */
-    color: #0047B2; /* Change Text Color */
-}
-
-/* Pressed Effect (Shrinks Button) */
-QPushButton:pressed {
-    background-color: #e0e0e0; /* Darker Grey when Pressed */
-    padding: 5px; /* Reduce padding uniformly to shrink */
-	font-size: 12px;
-    margin: 7px; /* Add equal margin on all sides to maintain size */
-	margin-left: 15px;
-	margin-right: 15px;
-}</string>
-     </property>
-     <property name="text">
-      <string>STOP</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="5" alignment="Qt::AlignTop">
-    <widget class="QLabel" name="StatusBar">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
+       <width>16777215</width>
        <height>55</height>
       </size>
      </property>
@@ -3736,6 +3716,49 @@ QPushButton:pressed {
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
+   </item>
+   <item row="9" column="0" colspan="7">
+    <layout class="QVBoxLayout" name="TimelineVBox">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="TimelineVisualizer" native="true">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>250</width>
+         <height>200</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>250</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QWidget#TimelineVisualizer {
+    background-color: white;           /* White background */
+    border: 2px solid black;           /* Black outline */
+    border-top-left-radius: 10px;      /* Rounded top‑left corner */
+    border-top-right-radius: 10px;     /* Rounded top‑right corner */
+    /* (or simply: border-radius: 10px 10px 0 0; ) */
+    padding: 0px;                      /* Padding inside */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
+    font-size: 14px;
+    color: black;
+}
+</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -3772,7 +3795,6 @@ QPushButton:pressed {
   <tabstop>Port</tabstop>
   <tabstop>NumOfTrials</tabstop>
   <tabstop>TimeBetweenTrials</tabstop>
-  <tabstop>stopButton</tabstop>
   <tabstop>AfterOnset</tabstop>
   <tabstop>ChannelDial</tabstop>
   <tabstop>BeforeOnset</tabstop>
@@ -3781,4 +3803,21 @@ QPushButton:pressed {
   <include location="resources/resources.qrc"/>
  </resources>
  <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>true</bool>
+  </property>
+ </designerdata>
 </ui>
