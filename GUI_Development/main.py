@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
 
 import resources_rc
@@ -29,6 +29,9 @@ from backend_logic.TimerGUI import TimelineWidget
 class MainApp(QDialog):
     def __init__(self):
         super().__init__()
+
+        self.was_fullscreen = self.isFullScreen()
+
 
         # ─── Load and configure the .ui file ─────────────────────────────
         ui_file = os.path.join(os.path.dirname(__file__), "GUI Design.ui")
@@ -298,6 +301,17 @@ class MainApp(QDialog):
             # Uncheck Average when Median is enabled
             self.AverageOnOff.setChecked(False)
 
+    def keyPressEvent(self, event: QKeyEvent):
+        # Intercept Esc to toggle fullscreen instead of closing
+        if event.key() == Qt.Key_Escape:
+            # if you're already fullscreen, go back to normal; otherwise go fullscreen
+            if self.isFullScreen():
+                self.showNormal()
+            else:
+                self.showFullScreen()
+        else:
+            # all other keys behave normally
+            super().keyPressEvent(event)
 
 
 if __name__ == "__main__":
