@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1046</width>
-    <height>1008</height>
+    <width>1462</width>
+    <height>990</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -50,7 +50,10 @@ QDialog::window {
                
 </string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <property name="modal">
+   <bool>false</bool>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0" columnminimumwidth="1,0,1,0,0,0">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -63,730 +66,7 @@ QDialog::window {
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item row="8" column="6" alignment="Qt::AlignTop">
-    <widget class="QPushButton" name="stopButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>55</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>250</width>
-       <height>55</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QPushButton {
-    background-color: white; /* Default White Background */
-    border: 2px solid black; /* Black Outline */
-    border-radius: 10px; /* Rounded Corners */
-    padding: 5px; /* Inner Padding */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
-    font-size: 14px;
-    color: black;
-    transition: all 0.2s ease-in-out; /* Smooth transition */
-}
-
-/* Hover Effect */
-QPushButton:hover {
-    background-color: #f0f0f0; /* Light Grey on Hover */
-    border: 2px solid #0047B2; /* Change Border to Bold Blue */
-    color: #0047B2; /* Change Text Color */
-}
-
-/* Pressed Effect (Shrinks Button) */
-QPushButton:pressed {
-    background-color: #e0e0e0; /* Darker Grey when Pressed */
-    padding: 5px; /* Reduce padding uniformly to shrink */
-	font-size: 12px;
-    margin: 7px; /* Add equal margin on all sides to maintain size */
-	margin-left: 15px;
-	margin-right: 15px;
-}</string>
-     </property>
-     <property name="text">
-      <string>STOP</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="7">
-    <widget class="QWidget" name="taskbar" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>34</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">/* === Custom Taskbar === */
-QWidget#taskbar {
-    background-color: #dadada;
-    border: 2px solid #afafaf; /* Subtle bottom border */
-    border-radius: 5px;
-}
-
-QLabel#ProgramName {
-    font-family: &quot;Montserrat SemiBold&quot;;
-    font-size: 14px;
-    color: black;
-}
-
-
-
-/* === Title Bar Buttons (Minimize, Fullscreen, Close) === */
-QPushButton#minimize_button, 
-QPushButton#fullscreen_button, 
-QPushButton#close_button {
-    font-family: &quot;Montserrat Bold&quot;;
-    font-size: 16px;
-    border: none;
-    width: 40px;
-    height: 30px;
-}
-
-/* === Minimize Button (—) === */
-QPushButton#minimize_button {
-    background-color: #cfcfcf;
-    color: black;
-	border:2px solid;
-	border-color:#717171;
-	
-}
-
-QPushButton#minimize_button:hover {
-    background-color: #bfbfbf; /* Light hover effect */
-}
-
-/* === Fullscreen / Restore Button (⛶) === */
-QPushButton#fullscreen_button {
-    background-color:#cfcfcf;
-    color: black;
-	border:2px solid;
-	border-color:#717171;
-	
-}
-
-QPushButton#fullscreen_button:hover {
-    background-color: #bfbfbf; /* Light hover effect */
-}
-
-/* === Close Button (X) === */
-QPushButton#close_button {
-    background-color: #E74C3C; /* Red background */
-    color: white;
-	border:2px solid;
-	border-color:#882222;
-	
-}
-
-QPushButton#close_button:hover {
-    background-color: #C0392B; /* Darker red on hover */
-}</string>
-     </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="spacing">
-       <number>0</number>
-      </property>
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>2</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item alignment="Qt::AlignLeft|Qt::AlignTop">
-       <widget class="QLabel" name="SmallLogo">
-        <property name="minimumSize">
-         <size>
-          <width>31</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>31</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLabel{
-image:url(:/images/MIND LOGO Transparent.png)}</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignLeft|Qt::AlignTop">
-       <widget class="QComboBox" name="MenuOptions">
-        <property name="minimumSize">
-         <size>
-          <width>110</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>250</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">/* === Taskbar Menu Dropdown === */
-QComboBox#MenuOptions {
-    font-family: 'Montserrat Medium';
-    font-size: 14px;
-    color: black;
-    background-color: #cfcfcf; /* Matches taskbar background */
-    border: 2px solid #afafaf;
-    border-radius: 0px;
-    padding: 3px;
-    min-width: 100px; /* Ensure size consistency */
-	
-
-
-}
-
-/* Set &quot;Menu&quot; as the default display text */
-QComboBox#MenuOptions::before {
-    color: black;
-}
-
-/* Dropdown arrow */
-QComboBox#MenuOptions::drop-down {
-	image:url(:/images/down_arrow.png);
-	padding: 7px;
-    border: none;
-    background: #cfcfcf; 
-    width: 20px;
-    border-left: 2px solid #afafaf; /* Separates dropdown arrow */
-}
-
-
-
-
-QComboBox#MenuOptions::drop-down:on { /* Arrow effect when clicked */
-    image: url(:/images/up_arrow.png);
-}
-
-
-/* Hover effect */
-QComboBox#MenuOptions:hover {
-    background-color: #b0b0b0;
-}
-
-/* Dropdown popup styling */
-QComboBox#MenuOptions QAbstractItemView {
-    background-color: white;
-    border: 1px solid #ccc;
-	border-radius:3px;
-    selection-background-color: #a3c1e1;
-    padding: 5px;
-}
-
-/* Dropdown list items */
-QComboBox#MenuOptions QAbstractItemView::item {
-    font-family: 'Montserrat Medium';
-    font-size: 14px;
-    padding: 5px;
-    color: #333;
-}
-
-/* Highlight dropdown items on hover */
-QComboBox#MenuOptions QAbstractItemView::item:hover {
-    background-color: #e0e0e0;
-    color: black;
-}
-
-/* Highlight when selected */
-QComboBox#MenuOptions QAbstractItemView::item:selected {
-    background-color: #a3c1e1;
-    color: black;
-}
-</string>
-        </property>
-        <property name="currentText">
-         <string>Menu</string>
-        </property>
-        <item>
-         <property name="text">
-          <string>Menu</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>About Us</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>How to Use?</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QLabel" name="ProgramName">
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>500</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;MIND EEG Visualizer &amp;amp; Data Recorder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item alignment="Qt::AlignRight">
-       <widget class="QPushButton" name="minimize_button">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="toolTipDuration">
-         <number>6</number>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton{
-	image: url(:/images/minimize.png);
-	padding:3px;
-	border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-}
-
-QPushButton:pressed{
-	padding:5px
-
-}</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="icon">
-         <iconset theme="close">
-          <normaloff>.</normaloff>.</iconset>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignRight">
-       <widget class="QPushButton" name="fullscreen_button">
-        <property name="minimumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton{
-	image: url(:/images/fullScreen.png);
-	padding:3px;
-	border-top-left-radius: 0px;
-    border-bottom-left-radius: 0px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-}
-
-QPushButton:pressed{
-	padding:5px
-
-}
-
-
-QPushButton:checked {
-    image: url(:/images/smallScreen.png);
-}</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item alignment="Qt::AlignRight">
-       <widget class="QPushButton" name="close_button">
-        <property name="minimumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>61</width>
-          <height>31</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton{
-	image: url(:/images/close.png);
-	padding:3px;
-	border-top-left-radius: 0px;
-    border-bottom-left-radius: 0px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-
-}
-
-QPushButton:pressed{
-	padding:5px
-
-}
-</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="6" rowspan="2" alignment="Qt::AlignTop">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>250</width>
-       <height>200</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox {
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    background-color: white; /* No background */
-    padding: 0px; /* No extra padding */
-}</string>
-     </property>
-     <property name="title">
-      <string/>
-     </property>
-     <widget class="QCheckBox" name="PSDData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>130</y>
-        <width>141</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-	padding-right: 2px;
-	
-    }
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Power/PSD Analysis</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="FFTData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>100</y>
-        <width>171</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-	padding-right: 2px;
-	
-    }
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Frequency Analysis (FFT)</string>
-      </property>
-     </widget>
-     <widget class="QCheckBox" name="RawData">
-      <property name="geometry">
-       <rect>
-        <x>40</x>
-        <y>70</y>
-        <width>161</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* General checkbox styling */
-QCheckBox {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
-    font-size: 11px;
-    color: black;
-    spacing: 8px; /* Space between switch and label */
-}
-
-/* Default (Unchecked) Checkbox */
-QCheckBox::indicator {
-    width: 17px;
-    height: 17px;
-    border: 1px solid #BBC1E1; /* Default border */
-    border-radius: 7px;
-    background: white;
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
-}
-
-/* Hover effect */
-QCheckBox::indicator:hover {
-    border: 1px solid #275EFE; /* Hover border color */
-}
-
-
-QCheckBox::indicator:pressed {
-    background-color: #275EFE;
-    height:13px;
-	width:13px;
-	padding-left: 2px;
-padding-right: 2px;
-	
-    }
-
-/* Checked state */
-QCheckBox::indicator:checked {
-    background: #0047B2;
-    border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
-}
-
-
-/* Disabled state */
-QCheckBox:disabled {
-    color: #A0A0A0;
-}
-
-/* Disabled checkbox */
-QCheckBox::indicator:disabled {
-    background: #F6F8FF;
-    border: 1px solid #E1E6F9;
-}
-
-
-QCheckBox::indicator:disabled:checked {
-    background: #E1E6F9;
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Raw Data (muV/Time)</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label">
-      <property name="geometry">
-       <rect>
-        <x>60</x>
-        <y>20</y>
-        <width>141</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
-}
-</string>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
-    </widget>
-   </item>
-   <item row="2" column="1" rowspan="5" colspan="3">
+   <item row="2" column="1" rowspan="5" colspan="2">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -802,7 +82,7 @@ QCheckBox::indicator:disabled:checked {
      </property>
      <property name="maximumSize">
       <size>
-       <width>16777215</width>
+       <width>100</width>
        <height>800</height>
       </size>
      </property>
@@ -820,8 +100,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QLabel" name="label_9">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>10</y>
+        <x>60</x>
+        <y>30</y>
         <width>141</width>
         <height>31</height>
        </rect>
@@ -843,8 +123,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QCheckBox" name="BandPassOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>70</y>
+        <x>50</x>
+        <y>90</y>
         <width>161</width>
         <height>21</height>
        </rect>
@@ -914,8 +194,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QCheckBox" name="BandStopOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>180</y>
+        <x>50</x>
+        <y>200</y>
         <width>161</width>
         <height>20</height>
        </rect>
@@ -985,8 +265,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QSpinBox" name="NumBandPass">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>100</y>
+        <x>120</x>
+        <y>120</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -1050,8 +330,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QLabel" name="label_10">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>100</y>
+        <x>60</x>
+        <y>120</y>
         <width>61</width>
         <height>21</height>
        </rect>
@@ -1071,8 +351,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QSpinBox" name="NumBandStop">
       <property name="geometry">
        <rect>
-        <x>100</x>
-        <y>210</y>
+        <x>120</x>
+        <y>230</y>
         <width>71</width>
         <height>22</height>
        </rect>
@@ -1130,8 +410,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QLabel" name="label_12">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>210</y>
+        <x>60</x>
+        <y>230</y>
         <width>61</width>
         <height>21</height>
        </rect>
@@ -1151,8 +431,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QCheckBox" name="FastICAOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>330</y>
+        <x>50</x>
+        <y>350</y>
         <width>161</width>
         <height>20</height>
        </rect>
@@ -1222,8 +502,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QCheckBox" name="DetrendOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>300</y>
+        <x>50</x>
+        <y>320</y>
         <width>161</width>
         <height>21</height>
        </rect>
@@ -1293,8 +573,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QCheckBox" name="AverageOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>410</y>
+        <x>50</x>
+        <y>430</y>
         <width>161</width>
         <height>20</height>
        </rect>
@@ -1364,8 +644,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QLabel" name="label_11">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>40</y>
+        <x>50</x>
+        <y>60</y>
         <width>111</width>
         <height>31</height>
        </rect>
@@ -1386,8 +666,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QLabel" name="label_13">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>380</y>
+        <x>50</x>
+        <y>400</y>
         <width>131</width>
         <height>31</height>
        </rect>
@@ -1407,8 +687,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QCheckBox" name="MedianOnOff">
       <property name="geometry">
        <rect>
-        <x>30</x>
-        <y>430</y>
+        <x>50</x>
+        <y>450</y>
         <width>161</width>
         <height>31</height>
        </rect>
@@ -1478,8 +758,8 @@ QCheckBox::indicator:disabled:checked {
      <widget class="QSpinBox" name="Window">
       <property name="geometry">
        <rect>
-        <x>80</x>
-        <y>460</y>
+        <x>100</x>
+        <y>480</y>
         <width>101</width>
         <height>22</height>
        </rect>
@@ -1537,8 +817,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QLabel" name="label_14">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>460</y>
+        <x>40</x>
+        <y>480</y>
         <width>71</width>
         <height>21</height>
        </rect>
@@ -1558,8 +838,8 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
      <widget class="QWidget" name="BandPassSettings" native="true">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>120</y>
+        <x>40</x>
+        <y>140</y>
         <width>171</width>
         <height>61</height>
        </rect>
@@ -1975,8 +1255,8 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      <widget class="QWidget" name="BandStopSettings" native="true">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>230</y>
+        <x>40</x>
+        <y>250</y>
         <width>171</width>
         <height>61</height>
        </rect>
@@ -2391,22 +1671,174 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      </widget>
     </widget>
    </item>
-   <item row="1" column="2" alignment="Qt::AlignTop">
-    <widget class="QLabel" name="logo">
+   <item row="1" column="3" rowspan="6" colspan="2">
+    <widget class="QGroupBox" name="verticalGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>500</width>
+       <height>600</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>109</width>
-       <height>109</height>
+       <width>16777215</width>
+       <height>800</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QLabel{
+      <string notr="true">QGroupBox{ background-color: white; /* White background */
+ border: 2px solid black; /* Optional: Black border */
+    border-radius: 5px; /* Optional: Rounded corners */}</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item alignment="Qt::AlignBottom">
+       <widget class="QLabel" name="label_15">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+
+}
+</string>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QTabWidget" name="Visualizer">
+        <property name="styleSheet">
+         <string notr="true">QWidget {
+    font-family: &quot;Montserrat SemiBold&quot;;
+    font-size: 11px;
+    padding: 0px; /* No extra padding */
+}
+
+
+/* === QTabWidget Pane (The Area Below Tabs) === */
+QTabWidget::pane {
+    border: 2px solid black; /* Black outline */
+    border-radius: 5px; /* Rounded corners */
+    background-color: white; /* Keep pane background white */
+}
+
+/* === QTabBar (The Row of Tabs) === */
+QTabBar {
+    font-family: &quot;Montserrat SemiBold&quot;;
+    font-size: 11px;
+}
+
+/* === Individual Tabs === */
+QTabBar::tab {
+    width: 80px;
+    padding: 6px 12px;  /* Controls tab height &amp; width */	
+	margin-left:3px;
+    margin-right: 5px;  /* Space between tabs */
+    background-color: white; /* Default tab background */
+    border: 3px solid #ccc; /* Subtle border */
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    transition: all 0.2s ease-in-out; /* Smooth transition */
+}
+
+/* === Hover Effect on Tabs === */
+QTabBar::tab:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 3px solid #0047B2; /* Bold blue border */
+    color: #0047B2; /* Change text color */
+}
+
+/* === Selected Tab (Active) === */
+QTabBar::tab:selected {
+    background-color: #f5f5f5; /* Highlight selected tab */
+    border: 3px solid black;
+    border-bottom: none; /* Merges with the screen below */
+    font-family: &quot;Montserrat Black&quot;;
+}
+
+/* === Pressed Effect (Shrinks Tab Slightly) === */
+QTabBar::tab:pressed {
+    transform: scale(0.95); /* Shrinks tab slightly */
+}
+</string>
+        </property>
+        <property name="tabPosition">
+         <enum>QTabWidget::North</enum>
+        </property>
+        <property name="tabShape">
+         <enum>QTabWidget::Rounded</enum>
+        </property>
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <widget class="QWidget" name="NoPlot">
+         <attribute name="title">
+          <string>No Plot</string>
+         </attribute>
+         <widget class="QLabel" name="label_16">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>20</y>
+            <width>871</width>
+            <height>211</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="muVPlot">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+         <attribute name="title">
+          <string>Live Plot</string>
+         </attribute>
+        </widget>
+        <widget class="QWidget" name="FFTPlot">
+         <attribute name="title">
+          <string>FFT Plot</string>
+         </attribute>
+         <widget class="QLabel" name="logo_2">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>140</y>
+            <width>109</width>
+            <height>109</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>109</width>
+            <height>109</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel{
     background-color: white; /* White background */
     border: 2px solid black; /* Black outline */
     border-radius: 10px; /* Rounded corners */
@@ -2416,22 +1848,721 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
     color: black; /* Text color */
 }
 </string>
-     </property>
-     <property name="text">
-      <string notr="true"/>
-     </property>
-     <property name="pixmap">
-      <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
-     </property>
-     <property name="scaledContents">
-      <bool>true</bool>
-     </property>
-     <property name="openExternalLinks">
-      <bool>true</bool>
-     </property>
+          </property>
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QLabel" name="logo_3">
+          <property name="geometry">
+           <rect>
+            <x>190</x>
+            <y>250</y>
+            <width>109</width>
+            <height>109</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>109</width>
+            <height>109</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel{
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+          </property>
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="pixmap">
+           <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
+          </property>
+          <property name="scaledContents">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="PSDPlot">
+         <attribute name="title">
+          <string>PSD Plot</string>
+         </attribute>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item row="3" column="6" alignment="Qt::AlignTop">
+   <item row="1" column="5" rowspan="2" alignment="Qt::AlignTop">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>200</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QCheckBox" name="PSDData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>130</y>
+        <width>141</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+	padding-right: 2px;
+	
+    }
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Power/PSD Analysis</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="FFTData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>100</y>
+        <width>171</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+	padding-right: 2px;
+	
+    }
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Frequency Analysis (FFT)</string>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="RawData">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>70</y>
+        <width>161</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* General checkbox styling */
+QCheckBox {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif;
+    font-size: 11px;
+    color: black;
+    spacing: 8px; /* Space between switch and label */
+}
+
+/* Default (Unchecked) Checkbox */
+QCheckBox::indicator {
+    width: 17px;
+    height: 17px;
+    border: 1px solid #BBC1E1; /* Default border */
+    border-radius: 7px;
+    background: white;
+    transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+
+/* Hover effect */
+QCheckBox::indicator:hover {
+    border: 1px solid #275EFE; /* Hover border color */
+}
+
+
+QCheckBox::indicator:pressed {
+    background-color: #275EFE;
+    height:13px;
+	width:13px;
+	padding-left: 2px;
+padding-right: 2px;
+	
+    }
+
+/* Checked state */
+QCheckBox::indicator:checked {
+    background: #0047B2;
+    border: 1px solid #0047B2;
+    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+}
+
+
+/* Disabled state */
+QCheckBox:disabled {
+    color: #A0A0A0;
+}
+
+/* Disabled checkbox */
+QCheckBox::indicator:disabled {
+    background: #F6F8FF;
+    border: 1px solid #E1E6F9;
+}
+
+
+QCheckBox::indicator:disabled:checked {
+    background: #E1E6F9;
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Raw Data (muV/Time)</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>20</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Data Files&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="4" column="5" alignment="Qt::AlignHCenter|Qt::AlignTop">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>250</width>
+       <height>200</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>100</width>
+       <height>1000</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    background-color: white; /* No background */
+    padding: 0px; /* No extra padding */
+}</string>
+     </property>
+     <property name="title">
+      <string/>
+     </property>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>10</y>
+        <width>171</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+    text-decoration: underline; /* Underline text */
+}
+</string>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Epoch/Timing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="BeforeOnset">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>50</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QSpinBox {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+QSpinBox:up-button{
+	background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+image:url(:/images/up_arrow.png)
+
+}
+
+
+QSpinBox:down-button {
+    background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+	image:url(:/images/down_arrow.png)
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #b0b0b0;
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: #b0b0b0;
+
+    margin: 0px; /* Add equal margin on all sides to maintain size */
+	margin-left: 1px;
+	margin-right: 1px;}</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="AfterOnset">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>80</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QSpinBox {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+QSpinBox:up-button{
+	background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+image:url(:/images/up_arrow.png)
+
+}
+
+
+QSpinBox:down-button {
+    background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+	image:url(:/images/down_arrow.png)
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #b0b0b0;
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: #b0b0b0;
+
+    margin: 0px; /* Add equal margin on all sides to maintain size */
+	margin-left: 1px;
+	margin-right: 1px;}</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>80</y>
+        <width>101</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Time After Onset</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_6">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>50</y>
+        <width>111</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Time Before Onset</string>
+      </property>
+     </widget>
+     <widget class="QSpinBox" name="TimeBetweenTrials">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>110</y>
+        <width>51</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QSpinBox {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+QSpinBox:up-button{
+	background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+image:url(:/images/up_arrow.png)
+
+}
+
+
+QSpinBox:down-button {
+    background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+
+	image:url(:/images/down_arrow.png)
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #b0b0b0;
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: #b0b0b0;
+
+    margin: 0px; /* Add equal margin on all sides to maintain size */
+	margin-left: 1px;
+	margin-right: 1px;}</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_7">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>110</y>
+        <width>121</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+      </property>
+      <property name="text">
+       <string>Time Between Trials</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_8">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>140</y>
+        <width>71</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+      </property>
+      <property name="text">
+       <string># of Trials</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="NumOfTrials">
+      <property name="geometry">
+       <rect>
+        <x>100</x>
+        <y>140</y>
+        <width>113</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">/* === QLineEdit Styling (Base Style) === */
+QLineEdit {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+/* === Hover Effect (Similar to SpinBox) === */
+QLineEdit:hover {
+    background-color: #e0e0e0; /* Light grey background on hover */
+    border: 2px solid #aaa; /* Darker border on hover */
+}
+
+/* === Focus Effect (When User Clicks) === */
+QLineEdit:focus {
+    border: 2px solid #0047B2; /* Blue border when active */
+    background-color: #ffffff; /* White background when typing */
+}
+
+/* === Placeholder Text Styling === */
+QLineEdit::placeholder {
+    color: #808080; /* Grey placeholder text */
+    font-style: italic;
+}
+
+/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
+QLineEdit::up-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/up_arrow.png);
+}
+
+QLineEdit::down-button {
+    background-color: #e0e0e0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 15px;
+    height: 6px;
+    image: url(:/images/down_arrow.png);
+}
+
+QLineEdit::up-button:hover, QLineEdit::down-button:hover {
+    background-color: #b0b0b0;
+}
+</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+   </item>
+   <item row="3" column="5" alignment="Qt::AlignTop">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3102,8 +3233,408 @@ QCheckBox::indicator:disabled:checked {
      </widget>
     </widget>
    </item>
-   <item row="4" column="6" alignment="Qt::AlignHCenter|Qt::AlignTop">
-    <widget class="QGroupBox" name="groupBox_3">
+   <item row="0" column="0" colspan="6">
+    <widget class="QWidget" name="taskbar" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>34</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">/* === Custom Taskbar === */
+QWidget#taskbar {
+    background-color: #dadada;
+    border: 2px solid #afafaf; /* Subtle bottom border */
+    border-radius: 5px;
+}
+
+QLabel#ProgramName {
+    font-family: &quot;Montserrat SemiBold&quot;;
+    font-size: 14px;
+    color: black;
+}
+
+
+
+/* === Title Bar Buttons (Minimize, Fullscreen, Close) === */
+QPushButton#minimize_button, 
+QPushButton#fullscreen_button, 
+QPushButton#close_button {
+    font-family: &quot;Montserrat Bold&quot;;
+    font-size: 16px;
+    border: none;
+    width: 40px;
+    height: 30px;
+}
+
+/* === Minimize Button (—) === */
+QPushButton#minimize_button {
+    background-color: #cfcfcf;
+    color: black;
+	border:2px solid;
+	border-color:#717171;
+	
+}
+
+QPushButton#minimize_button:hover {
+    background-color: #bfbfbf; /* Light hover effect */
+}
+
+/* === Fullscreen / Restore Button (⛶) === */
+QPushButton#fullscreen_button {
+    background-color:#cfcfcf;
+    color: black;
+	border:2px solid;
+	border-color:#717171;
+	
+}
+
+QPushButton#fullscreen_button:hover {
+    background-color: #bfbfbf; /* Light hover effect */
+}
+
+/* === Close Button (X) === */
+QPushButton#close_button {
+    background-color: #E74C3C; /* Red background */
+    color: white;
+	border:2px solid;
+	border-color:#882222;
+	
+}
+
+QPushButton#close_button:hover {
+    background-color: #C0392B; /* Darker red on hover */
+}</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>2</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item alignment="Qt::AlignLeft|Qt::AlignTop">
+       <widget class="QLabel" name="SmallLogo">
+        <property name="minimumSize">
+         <size>
+          <width>31</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>31</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel{
+image:url(:/images/MIND LOGO Transparent.png)}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignLeft|Qt::AlignTop">
+       <widget class="QComboBox" name="MenuOptions">
+        <property name="minimumSize">
+         <size>
+          <width>110</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">/* === Taskbar Menu Dropdown === */
+QComboBox#MenuOptions {
+    font-family: 'Montserrat Medium';
+    font-size: 14px;
+    color: black;
+    background-color: #cfcfcf; /* Matches taskbar background */
+    border: 2px solid #afafaf;
+    border-radius: 0px;
+    padding: 3px;
+    min-width: 100px; /* Ensure size consistency */
+	
+
+
+}
+
+/* Set &quot;Menu&quot; as the default display text */
+QComboBox#MenuOptions::before {
+    color: black;
+}
+
+/* Dropdown arrow */
+QComboBox#MenuOptions::drop-down {
+	image:url(:/images/down_arrow.png);
+	padding: 7px;
+    border: none;
+    background: #cfcfcf; 
+    width: 20px;
+    border-left: 2px solid #afafaf; /* Separates dropdown arrow */
+}
+
+
+
+
+QComboBox#MenuOptions::drop-down:on { /* Arrow effect when clicked */
+    image: url(:/images/up_arrow.png);
+}
+
+
+/* Hover effect */
+QComboBox#MenuOptions:hover {
+    background-color: #b0b0b0;
+}
+
+/* Dropdown popup styling */
+QComboBox#MenuOptions QAbstractItemView {
+    background-color: white;
+    border: 1px solid #ccc;
+	border-radius:3px;
+    selection-background-color: #a3c1e1;
+    padding: 5px;
+}
+
+/* Dropdown list items */
+QComboBox#MenuOptions QAbstractItemView::item {
+    font-family: 'Montserrat Medium';
+    font-size: 14px;
+    padding: 5px;
+    color: #333;
+}
+
+/* Highlight dropdown items on hover */
+QComboBox#MenuOptions QAbstractItemView::item:hover {
+    background-color: #e0e0e0;
+    color: black;
+}
+
+/* Highlight when selected */
+QComboBox#MenuOptions QAbstractItemView::item:selected {
+    background-color: #a3c1e1;
+    color: black;
+}
+</string>
+        </property>
+        <property name="currentText">
+         <string>Menu</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>Menu</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>About Us</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>How to Use?</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="ProgramName">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>500</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;MIND EEG Visualizer &amp;amp; Data Recorder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item alignment="Qt::AlignRight">
+       <widget class="QPushButton" name="minimize_button">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="toolTipDuration">
+         <number>6</number>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	image: url(:/images/minimize.png);
+	padding:3px;
+	border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+QPushButton:pressed{
+	padding:5px
+
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="close">
+          <normaloff>.</normaloff>.</iconset>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignRight">
+       <widget class="QPushButton" name="fullscreen_button">
+        <property name="minimumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	image: url(:/images/fullScreen.png);
+	padding:3px;
+	border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+QPushButton:pressed{
+	padding:5px
+
+}
+
+
+QPushButton:checked {
+    image: url(:/images/smallScreen.png);
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignRight">
+       <widget class="QPushButton" name="close_button">
+        <property name="minimumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>61</width>
+          <height>31</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton{
+	image: url(:/images/close.png);
+	padding:3px;
+	border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+
+}
+
+QPushButton:pressed{
+	padding:5px
+
+}
+</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="8" column="3" colspan="2">
+    <widget class="QLabel" name="StatusBar_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -3112,527 +3643,34 @@ QCheckBox::indicator:disabled:checked {
      </property>
      <property name="minimumSize">
       <size>
-       <width>250</width>
-       <height>200</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>100</width>
-       <height>1000</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QGroupBox {
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    background-color: white; /* No background */
-    padding: 0px; /* No extra padding */
-}</string>
-     </property>
-     <property name="title">
-      <string/>
-     </property>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>10</y>
-        <width>171</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
-}
-</string>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Epoch/Timing&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="BeforeOnset">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>50</y>
-        <width>51</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QSpinBox {
-    font-family: 'Montserrat Medium';
-    font-size: 12px;
-    color: #000000; /* Dark text */
-    background-color: #f5f5f5; /* Light background */
-    border: 2px solid #ccc; /* Modern border */
-    border-radius: 5px;
-    padding: 4px;
-}
-
-QSpinBox:up-button{
-	background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-image:url(:/images/up_arrow.png)
-
-}
-
-
-QSpinBox:down-button {
-    background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-	image:url(:/images/down_arrow.png)
-}
-
-QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: #b0b0b0;
-}
-
-QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
-    background-color: #b0b0b0;
-
-    margin: 0px; /* Add equal margin on all sides to maintain size */
-	margin-left: 1px;
-	margin-right: 1px;}</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="AfterOnset">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>80</y>
-        <width>51</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QSpinBox {
-    font-family: 'Montserrat Medium';
-    font-size: 12px;
-    color: #000000; /* Dark text */
-    background-color: #f5f5f5; /* Light background */
-    border: 2px solid #ccc; /* Modern border */
-    border-radius: 5px;
-    padding: 4px;
-}
-
-QSpinBox:up-button{
-	background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-image:url(:/images/up_arrow.png)
-
-}
-
-
-QSpinBox:down-button {
-    background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-	image:url(:/images/down_arrow.png)
-}
-
-QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: #b0b0b0;
-}
-
-QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
-    background-color: #b0b0b0;
-
-    margin: 0px; /* Add equal margin on all sides to maintain size */
-	margin-left: 1px;
-	margin-right: 1px;}</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_5">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>80</y>
-        <width>101</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    color: black; /* Text color */
-    font-size: 11px
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Time After Onset</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_6">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>50</y>
-        <width>111</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    color: black; /* Text color */
-    font-size: 11px
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Time Before Onset</string>
-      </property>
-     </widget>
-     <widget class="QSpinBox" name="TimeBetweenTrials">
-      <property name="geometry">
-       <rect>
-        <x>160</x>
-        <y>110</y>
-        <width>51</width>
-        <height>21</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QSpinBox {
-    font-family: 'Montserrat Medium';
-    font-size: 12px;
-    color: #000000; /* Dark text */
-    background-color: #f5f5f5; /* Light background */
-    border: 2px solid #ccc; /* Modern border */
-    border-radius: 5px;
-    padding: 4px;
-}
-
-QSpinBox:up-button{
-	background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-image:url(:/images/up_arrow.png)
-
-}
-
-
-QSpinBox:down-button {
-    background-color: #e0e0e0;
-	colour: #fffffff;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-
-	image:url(:/images/down_arrow.png)
-}
-
-QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: #b0b0b0;
-}
-
-QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
-    background-color: #b0b0b0;
-
-    margin: 0px; /* Add equal margin on all sides to maintain size */
-	margin-left: 1px;
-	margin-right: 1px;}</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_7">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>110</y>
-        <width>121</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    color: black; /* Text color */
-    font-size: 11px
-}
-</string>
-      </property>
-      <property name="text">
-       <string>Time Between Trials</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_8">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>140</y>
-        <width>71</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QLabel {
-    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    color: black; /* Text color */
-    font-size: 11px
-}
-</string>
-      </property>
-      <property name="text">
-       <string># of Trials</string>
-      </property>
-     </widget>
-     <widget class="QLineEdit" name="NumOfTrials">
-      <property name="geometry">
-       <rect>
-        <x>100</x>
-        <y>140</y>
-        <width>113</width>
-        <height>22</height>
-       </rect>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">/* === QLineEdit Styling (Base Style) === */
-QLineEdit {
-    font-family: 'Montserrat Medium';
-    font-size: 12px;
-    color: #000000; /* Dark text */
-    background-color: #f5f5f5; /* Light background */
-    border: 2px solid #ccc; /* Modern border */
-    border-radius: 5px;
-    padding: 4px;
-}
-
-/* === Hover Effect (Similar to SpinBox) === */
-QLineEdit:hover {
-    background-color: #e0e0e0; /* Light grey background on hover */
-    border: 2px solid #aaa; /* Darker border on hover */
-}
-
-/* === Focus Effect (When User Clicks) === */
-QLineEdit:focus {
-    border: 2px solid #0047B2; /* Blue border when active */
-    background-color: #ffffff; /* White background when typing */
-}
-
-/* === Placeholder Text Styling === */
-QLineEdit::placeholder {
-    color: #808080; /* Grey placeholder text */
-    font-style: italic;
-}
-
-/* === Up &amp; Down Arrow Effects (If Used in Number Input) === */
-QLineEdit::up-button {
-    background-color: #e0e0e0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-    image: url(:/images/up_arrow.png);
-}
-
-QLineEdit::down-button {
-    background-color: #e0e0e0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    width: 15px;
-    height: 6px;
-    image: url(:/images/down_arrow.png);
-}
-
-QLineEdit::up-button:hover, QLineEdit::down-button:hover {
-    background-color: #b0b0b0;
-}
-</string>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </widget>
-   </item>
-   <item row="1" column="4" rowspan="6" colspan="2">
-    <widget class="QGroupBox" name="verticalGroupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>500</width>
-       <height>600</height>
+       <width>0</width>
+       <height>55</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>800</height>
+       <height>55</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QGroupBox{ background-color: white; /* White background */
- border: 2px solid black; /* Optional: Black border */
-    border-radius: 5px; /* Optional: Rounded corners */}</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item alignment="Qt::AlignBottom">
-       <widget class="QLabel" name="label_15">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLabel {
+      <string notr="true">QLabel {
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
     font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
     font-size: 14px; /* Adjust size as needed */
     color: black; /* Text color */
-    text-decoration: underline; /* Underline text */
-
 }
 </string>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Visualizer&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTabWidget" name="Visualizer">
-        <property name="styleSheet">
-         <string notr="true">QWidget {
-    font-family: &quot;Montserrat SemiBold&quot;;
-    font-size: 11px;
-    padding: 0px; /* No extra padding */
-}
-
-
-/* === QTabWidget Pane (The Area Below Tabs) === */
-QTabWidget::pane {
-    border: 2px solid black; /* Black outline */
-    border-radius: 5px; /* Rounded corners */
-    background-color: white; /* Keep pane background white */
-}
-
-/* === QTabBar (The Row of Tabs) === */
-QTabBar {
-    font-family: &quot;Montserrat SemiBold&quot;;
-    font-size: 11px;
-}
-
-/* === Individual Tabs === */
-QTabBar::tab {
-    width: 80px;
-    padding: 6px 12px;  /* Controls tab height &amp; width */	
-	margin-left:3px;
-    margin-right: 5px;  /* Space between tabs */
-    background-color: white; /* Default tab background */
-    border: 3px solid #ccc; /* Subtle border */
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    transition: all 0.2s ease-in-out; /* Smooth transition */
-}
-
-/* === Hover Effect on Tabs === */
-QTabBar::tab:hover {
-    background-color: #e0e0e0; /* Light grey background on hover */
-    border: 3px solid #0047B2; /* Bold blue border */
-    color: #0047B2; /* Change text color */
-}
-
-/* === Selected Tab (Active) === */
-QTabBar::tab:selected {
-    background-color: #f5f5f5; /* Highlight selected tab */
-    border: 3px solid black;
-    border-bottom: none; /* Merges with the screen below */
-    font-family: &quot;Montserrat Black&quot;;
-}
-
-/* === Pressed Effect (Shrinks Tab Slightly) === */
-QTabBar::tab:pressed {
-    transform: scale(0.95); /* Shrinks tab slightly */
-}
-</string>
-        </property>
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
-        </property>
-        <property name="tabShape">
-         <enum>QTabWidget::Rounded</enum>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="NoPlot">
-         <attribute name="title">
-          <string>No Plot</string>
-         </attribute>
-         <widget class="QLabel" name="label_16">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>20</y>
-            <width>871</width>
-            <height>211</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-         </widget>
-        </widget>
-        <widget class="QWidget" name="muVPlot">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <attribute name="title">
-          <string>Live Plot</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="FFTPlot">
-         <attribute name="title">
-          <string>FFT Plot</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="PSDPlot">
-         <attribute name="title">
-          <string>PSD Plot</string>
-         </attribute>
-        </widget>
-       </widget>
-      </item>
-     </layout>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
     </widget>
    </item>
-   <item row="7" column="1" rowspan="2" colspan="3" alignment="Qt::AlignBottom">
+   <item row="7" column="1" rowspan="2" colspan="2" alignment="Qt::AlignBottom">
     <widget class="QPushButton" name="recordButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3680,8 +3718,8 @@ QPushButton:pressed {
      </property>
     </widget>
    </item>
-   <item row="8" column="4" colspan="2">
-    <widget class="QLabel" name="StatusBar_2">
+   <item row="8" column="5" alignment="Qt::AlignTop">
+    <widget class="QPushButton" name="stopButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -3696,28 +3734,45 @@ QPushButton:pressed {
      </property>
      <property name="maximumSize">
       <size>
-       <width>16777215</width>
+       <width>250</width>
        <height>55</height>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">QLabel {
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
+      <string notr="true">QPushButton {
+    background-color: white; /* Default White Background */
+    border: 2px solid black; /* Black Outline */
+    border-radius: 10px; /* Rounded Corners */
+    padding: 5px; /* Inner Padding */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
+    font-size: 14px;
+    color: black;
+    transition: all 0.2s ease-in-out; /* Smooth transition */
 }
-</string>
+
+/* Hover Effect */
+QPushButton:hover {
+    background-color: #f0f0f0; /* Light Grey on Hover */
+    border: 2px solid #0047B2; /* Change Border to Bold Blue */
+    color: #0047B2; /* Change Text Color */
+}
+
+/* Pressed Effect (Shrinks Button) */
+QPushButton:pressed {
+    background-color: #e0e0e0; /* Darker Grey when Pressed */
+    padding: 5px; /* Reduce padding uniformly to shrink */
+	font-size: 12px;
+    margin: 7px; /* Add equal margin on all sides to maintain size */
+	margin-left: 15px;
+	margin-right: 15px;
+}</string>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Status&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>STOP</string>
      </property>
     </widget>
    </item>
-   <item row="9" column="0" colspan="7">
+   <item row="9" column="0" colspan="6">
     <layout class="QVBoxLayout" name="TimelineVBox">
      <property name="spacing">
       <number>0</number>
@@ -3733,7 +3788,7 @@ QPushButton:pressed {
        <property name="minimumSize">
         <size>
          <width>250</width>
-         <height>200</height>
+         <height>175</height>
         </size>
        </property>
        <property name="maximumSize">
@@ -3759,6 +3814,49 @@ QPushButton:pressed {
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="logo">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>109</width>
+       <height>109</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel{
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+     </property>
+     <property name="text">
+      <string notr="true"/>
+     </property>
+     <property name="pixmap">
+      <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <layout class="QVBoxLayout" name="verticalLayout_3"/>
    </item>
   </layout>
  </widget>
