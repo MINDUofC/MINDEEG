@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>1354</width>
-    <height>938</height>
+    <height>958</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -2470,7 +2470,7 @@ QPushButton:pressed {
     </layout>
    </item>
    <item row="4" column="2" colspan="2">
-    <widget class="QLabel" name="StatusBar_2">
+    <widget class="QLabel" name="StatusBar">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -2509,6 +2509,18 @@ QPushButton:pressed {
    <item row="1" column="4" rowspan="4" alignment="Qt::AlignRight">
     <widget class="QFrame" name="verticalFrame_2">
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="sizePolicy">
