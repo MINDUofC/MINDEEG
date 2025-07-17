@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1462</width>
-    <height>990</height>
+    <width>1181</width>
+    <height>994</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,40 +20,33 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
   <property name="styleSheet">
-   <string notr="true">
-QDialog {
-    background: qlineargradient(spread:pad, 
-                                x1:0, y1:0, x2:1, y2:1,
-                                stop:0 #FFFFFF, /* White - Top Left */
+   <string notr="true">QDialog {
+    background: qlineargradient(spread:pad,
+                                x1:0, y1:1,   /* start at bottom‑left */
+                                x2:1, y2:0,   /* end at top‑right */
+                                stop:0    #FFFFFF, /* White */
                                 stop:0.25 #85C7F2, /* Mind Blue */
-                                stop:0.5 #5C8FFF, /* Flower Blue */
+                                stop:0.5  #5C8FFF, /* Flower Blue */
                                 stop:0.75 #85C7F2, /* Mind Blue */
-                                stop:1 #FFFFFF), /* White - Bottom Right */
-
-                qlineargradient(spread:pad, 
-                                x1:1, y1:0, x2:0, y2:1,
-                                stop:0 #FFFFFF, /* White - Top Right */
-                                stop:0.25 #85C7F2, /* Mind Blue */
-                                stop:0.5 #5C8FFF, /* Flower Blue */
-                                stop:0.75 #85C7F2, /* Mind Blue */
-                                stop:1 #FFFFFF);
-
-	   border-radius: 15px; /* Slightly rounded corners */
-    	border: 2px solid rgba(0, 0, 0, 0.1); /* Light modern border */
+                                stop:1    #FFFFFF  /* White */
+                               );
+    border-radius: 15px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-/* === Adding a Soft Shadow Effect === */
 QDialog::window {
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2); /* Soft outer shadow */
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 }
-               
 </string>
   </property>
   <property name="modal">
    <bool>false</bool>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0" columnminimumwidth="1,0,1,0,0,0">
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0,0,0,0,0" columnminimumwidth="1,1,1,1,0,0,0">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -66,7 +59,7 @@ QDialog::window {
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item row="2" column="1" rowspan="5" colspan="2">
+   <item row="2" column="1" rowspan="5" colspan="3">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1671,7 +1664,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      </widget>
     </widget>
    </item>
-   <item row="1" column="3" rowspan="6" colspan="2">
+   <item row="1" column="4" rowspan="6" colspan="2">
     <widget class="QGroupBox" name="verticalGroupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1786,6 +1779,15 @@ QTabBar::tab:pressed {
         <property name="currentIndex">
          <number>2</number>
         </property>
+        <property name="documentMode">
+         <bool>false</bool>
+        </property>
+        <property name="tabsClosable">
+         <bool>false</bool>
+        </property>
+        <property name="movable">
+         <bool>false</bool>
+        </property>
         <widget class="QWidget" name="NoPlot">
          <attribute name="title">
           <string>No Plot</string>
@@ -1816,98 +1818,6 @@ QTabBar::tab:pressed {
          <attribute name="title">
           <string>FFT Plot</string>
          </attribute>
-         <widget class="QLabel" name="logo_2">
-          <property name="geometry">
-           <rect>
-            <x>190</x>
-            <y>140</y>
-            <width>109</width>
-            <height>109</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>109</width>
-            <height>109</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QLabel{
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-}
-</string>
-          </property>
-          <property name="text">
-           <string notr="true"/>
-          </property>
-          <property name="pixmap">
-           <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
-          </property>
-          <property name="scaledContents">
-           <bool>true</bool>
-          </property>
-          <property name="openExternalLinks">
-           <bool>true</bool>
-          </property>
-         </widget>
-         <widget class="QLabel" name="logo_3">
-          <property name="geometry">
-           <rect>
-            <x>190</x>
-            <y>250</y>
-            <width>109</width>
-            <height>109</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>109</width>
-            <height>109</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">QLabel{
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-}
-</string>
-          </property>
-          <property name="text">
-           <string notr="true"/>
-          </property>
-          <property name="pixmap">
-           <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
-          </property>
-          <property name="scaledContents">
-           <bool>true</bool>
-          </property>
-          <property name="openExternalLinks">
-           <bool>true</bool>
-          </property>
-         </widget>
         </widget>
         <widget class="QWidget" name="PSDPlot">
          <attribute name="title">
@@ -1919,7 +1829,7 @@ QTabBar::tab:pressed {
      </layout>
     </widget>
    </item>
-   <item row="1" column="5" rowspan="2" alignment="Qt::AlignTop">
+   <item row="1" column="6" rowspan="2" alignment="Qt::AlignTop">
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -2188,7 +2098,7 @@ QCheckBox::indicator:disabled:checked {
      </widget>
     </widget>
    </item>
-   <item row="4" column="5" alignment="Qt::AlignHCenter|Qt::AlignTop">
+   <item row="4" column="6" alignment="Qt::AlignHCenter">
     <widget class="QGroupBox" name="groupBox_3">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -2562,7 +2472,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
      </widget>
     </widget>
    </item>
-   <item row="3" column="5" alignment="Qt::AlignTop">
+   <item row="3" column="6" alignment="Qt::AlignTop">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3233,7 +3143,7 @@ QCheckBox::indicator:disabled:checked {
      </widget>
     </widget>
    </item>
-   <item row="0" column="0" colspan="6">
+   <item row="0" column="0" colspan="7">
     <widget class="QWidget" name="taskbar" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3252,7 +3162,7 @@ QCheckBox::indicator:disabled:checked {
 QWidget#taskbar {
     background-color: #dadada;
     border: 2px solid #afafaf; /* Subtle bottom border */
-    border-radius: 5px;
+
 }
 
 QLabel#ProgramName {
@@ -3318,10 +3228,10 @@ QPushButton#close_button:hover {
        <number>0</number>
       </property>
       <property name="leftMargin">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="topMargin">
-       <number>2</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
        <number>0</number>
@@ -3532,8 +3442,8 @@ QComboBox#MenuOptions QAbstractItemView::item:selected {
          <string notr="true">QPushButton{
 	image: url(:/images/minimize.png);
 	padding:3px;
-	border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+	border-top-left-radius: 0px;
+    border-bottom-left-radius: 0px;
     border-top-right-radius: 0px;
     border-bottom-right-radius: 0px;
 }
@@ -3614,8 +3524,8 @@ QPushButton:checked {
 	padding:3px;
 	border-top-left-radius: 0px;
     border-bottom-left-radius: 0px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 0px;
 
 }
 
@@ -3633,7 +3543,7 @@ QPushButton:pressed{
      </layout>
     </widget>
    </item>
-   <item row="8" column="3" colspan="2">
+   <item row="8" column="4" colspan="2">
     <widget class="QLabel" name="StatusBar_2">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3670,7 +3580,7 @@ QPushButton:pressed{
      </property>
     </widget>
    </item>
-   <item row="7" column="1" rowspan="2" colspan="2" alignment="Qt::AlignBottom">
+   <item row="7" column="1" rowspan="2" colspan="3" alignment="Qt::AlignBottom">
     <widget class="QPushButton" name="recordButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3718,7 +3628,7 @@ QPushButton:pressed {
      </property>
     </widget>
    </item>
-   <item row="8" column="5" alignment="Qt::AlignTop">
+   <item row="8" column="6" alignment="Qt::AlignTop">
     <widget class="QPushButton" name="stopButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -3772,7 +3682,7 @@ QPushButton:pressed {
      </property>
     </widget>
    </item>
-   <item row="9" column="0" colspan="6">
+   <item row="9" column="0" colspan="7">
     <layout class="QVBoxLayout" name="TimelineVBox">
      <property name="spacing">
       <number>0</number>
@@ -3816,47 +3726,120 @@ QPushButton:pressed {
     </layout>
    </item>
    <item row="1" column="1">
-    <widget class="QLabel" name="logo">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>109</width>
-       <height>109</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel{
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QLabel" name="label_26">
+       <property name="minimumSize">
+        <size>
+         <width>50</width>
+         <height>50</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>80</width>
+         <height>102</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="resources/resources.qrc">:/images/MINDWhite.png</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignLeft">
+      <widget class="QLabel" name="label_37">
+       <property name="styleSheet">
+        <string notr="true">QLabel {
     font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
     font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
+    color: white; /* Text color */
+ 
 }
 </string>
-     </property>
-     <property name="text">
-      <string notr="true"/>
-     </property>
-     <property name="pixmap">
-      <pixmap resource="resources/resources.qrc">:/images/MIND LOGO Transparent.png</pixmap>
-     </property>
-     <property name="scaledContents">
-      <bool>true</bool>
-     </property>
-     <property name="openExternalLinks">
-      <bool>true</bool>
-     </property>
-    </widget>
+       </property>
+       <property name="text">
+        <string>MINDStream</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
-   <item row="1" column="2">
-    <layout class="QVBoxLayout" name="verticalLayout_3"/>
+   <item row="1" column="3">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetFixedSize</enum>
+     </property>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QPushButton" name="InstaLogo">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton#InstaLogo {
+    background-color: transparent;
+    border: none;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="resources/resources.qrc">
+         <normaloff>:/images/InstagramLogo.png</normaloff>:/images/InstagramLogo.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QPushButton" name="LinkedInLogo">
+       <property name="minimumSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="resources/resources.qrc">
+         <normaloff>:/images/LinkedInLogo.png</normaloff>:/images/LinkedInLogo.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>35</width>
+         <height>35</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

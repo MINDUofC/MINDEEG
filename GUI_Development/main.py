@@ -38,7 +38,7 @@ class MainApp(QDialog):
         uic.loadUi(ui_file, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowTitle("MIND EEG Extraction Interface")
+        self.setWindowTitle("MINDStream EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
 
         # ─── Bind all UI elements to instance variables ──────────────────
