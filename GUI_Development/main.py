@@ -16,7 +16,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
-
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QDesktopServices
 import resources_rc
 import backend_design.backend_design as bed  # Backend window/control helpers
 import backend_logic.backend_eeg as beeg
@@ -49,7 +50,11 @@ class MainApp(QDialog):
         self.fullscreen_button = self.findChild(QPushButton, "fullscreen_button")
 
         # Logo (clickable)
-        self.logo_label = self.findChild(QLabel, "logo")
+        self.MindLogo = self.findChild(QLabel, "MindLogo")
+        self.InstaLogo = self.findChild(QPushButton, "InstaLogo")
+        self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
+
+
 
         # Main tab widget (for µV, FFT, PSD, etc)
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
@@ -134,11 +139,35 @@ class MainApp(QDialog):
         self.findChild(QWidget, "BandStopSettings").setVisible(False)
         self.findChild(QWidget, "BandStopSettings").setEnabled(False)
 
+
+        # ─── Social‑media & site icons ─────────────────────────────────────
+
+        # Instagram
+
+        if self.InstaLogo:
+            self.InstaLogo.setCursor(Qt.PointingHandCursor)
+            self.InstaLogo.clicked.connect(lambda:
+                                           QDesktopServices.openUrl(QUrl("https://www.instagram.com/mind.uofc/"))
+                                           )
+
+        # LinkedIn
+
+        if self.LinkedInLogo:
+            self.LinkedInLogo.setCursor(Qt.PointingHandCursor)
+            self.LinkedInLogo.clicked.connect(lambda:
+                                              QDesktopServices.openUrl(QUrl("https://ca.linkedin.com/company/mind-uofc"))
+                                              )
+
+        # MIND website
+
+        if self.MindLogo:
+            self.MindLogo.setCursor(Qt.PointingHandCursor)
+            self.MindLogo.mousePressEvent = lambda eventParam: QDesktopServices.openUrl(
+                QUrl("https://mind-uofc.ca/")
+            )
+
         # ─── Connect UI interactions ────────────────────────────────────
-        # Logo click
-        if self.logo_label:
-            self.logo_label.setCursor(Qt.PointingHandCursor)
-            self.logo_label.mousePressEvent = bed.open_link
+
         # Window controls
         self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
         self.close_button.clicked.connect(lambda: bed.close_window(self))
