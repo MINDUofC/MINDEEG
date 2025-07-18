@@ -11,7 +11,7 @@ from joblib import dump
 import os
 
 # Always get the real directory of the current script
-script_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+script_dir = r"C:\Users\maanh\Desktop\MINDEEG\Maanha MRCP Testing\calibration_data"
 file_path = os.path.join(script_dir, "three_class_clench_trials_from_pause.npz")
 
 print("🔍 Loading from:", file_path)

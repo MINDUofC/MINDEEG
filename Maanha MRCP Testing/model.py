@@ -9,7 +9,7 @@ import seaborn as sns
 import os
 
 # ====== Load Features ======
-script_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+script_dir = r"C:\Users\maanh\Desktop\MINDEEG\Maanha MRCP Testing\calibration_data"
 file_path = os.path.join(script_dir, "features_ready.npz")
 data = np.load(file_path)
 X = data["X_combined"]    # shape: (n_trials, 8)

@@ -18,7 +18,7 @@ labels = ['left', 'right']
 label_to_class = {'left': 0, 'right': 1, 'rest': 2}
 
 
-output_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+output_dir = r"C:\Users\maanh\Desktop\MINDEEG\Maanha MRCP Testing\calibration_data"
 os.makedirs(output_dir, exist_ok=True)
 
 # ====== INIT BOARD ======
