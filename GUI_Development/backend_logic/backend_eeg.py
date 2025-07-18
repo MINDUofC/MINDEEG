@@ -81,7 +81,7 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
 
         logging.info(f"Board ID: {board_id} | Port: {port} | Channels: {num_channels} | RLD: {common_ref}")
 
-        set_status(status_bar, "Turning on...", error=False)
+
 
         # **Generate configuration commands**
         neuro_pawn_commands = []

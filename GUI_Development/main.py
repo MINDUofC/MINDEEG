@@ -83,7 +83,6 @@ class MainApp(QDialog):
         self.BStop2Start         = self.findChild(QLineEdit,  "BStop2Start")
         self.BStop2End           = self.findChild(QLineEdit,  "BStop2End")
         self.DetrendOnOff        = self.findChild(QCheckBox, "DetrendOnOff")
-        self.BaselineCorrOnOff   = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff        = self.findChild(QCheckBox, "FastICAOnOff")
         self.AverageOnOff        = self.findChild(QCheckBox, "AverageOnOff")
         self.MedianOnOff         = self.findChild(QCheckBox, "MedianOnOff")
@@ -92,7 +91,7 @@ class MainApp(QDialog):
         # Board and data-selection controls
         self.BoardOnOff          = self.findChild(QCheckBox, "BoardOnOff")
         self.BoardID             = self.findChild(QLineEdit,  "BoardID")
-        self.ChannelDial         = self.findChild(QDial,      "ChannelDial")
+        self.ChannelDial         = self.findChild(QDial,"ChannelDial")
         self.CommonReferenceOnOff= self.findChild(QCheckBox, "CommonReferenceOnOff")
         self.Port                = self.findChild(QComboBox,  "Port")
         self.RawData             = self.findChild(QCheckBox, "RawData")
@@ -116,7 +115,6 @@ class MainApp(QDialog):
             "BandPassOnOff":       self.BandPassOnOff,
             "BandStopOnOff":       self.BandStopOnOff,
             "DetrendOnOff":        self.DetrendOnOff,
-            "BaselineCorrection":  self.BaselineCorrOnOff,
             "FastICA":             self.FastICAOnOff,
             "NumberBandPass":      self.NumBandPass,
             "NumberBandStop":      self.NumBandStop,

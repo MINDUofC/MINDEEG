@@ -581,21 +581,33 @@ class TimelineWidget(QWidget):
         # redraw all the second‐markers in the new width
         self.update_markers()
 
-        # — reposition the three QLabel widgets you manually placed —
-        # keep them in the same “relative” offset you hard‑coded before:
+        # ─── reposition the two time‑labels as part of the bar ───────────────
+        label_w, label_h = 250, 35
+        # same vertical offset as the Movement Onset label
+        y_pos = self.timeline_y - label_h - 15  # tweak -15 to match your exact "−50"
 
-        # global time (was x = timeline_x + timeline_width - 292)
+        # left label: its left edge sits on the left marker (-time_before)
         self.global_time_label.setGeometry(
-            self.timeline_x + self.timeline_width - 292,
-            self.global_time_label.y() + 25,
-            250, 35
+            self.timeline_x,
+            y_pos,
+            label_w,
+            label_h
         )
 
-        # trial time (same X offset)
+        # right label: its right edge sits on the right marker (+time_after)
         self.trial_time_label.setGeometry(
-            self.timeline_x + self.timeline_width - 292,
-            self.trial_time_label.y() + 25,
-            250, 35
+            self.timeline_x + self.timeline_width - label_w - 200,
+            y_pos,
+            label_w,
+            label_h
+        )
+
+        # movement‑onset label (unchanged)
+        self.label.setGeometry(
+            self.timeline_x + (self.timeline_width // 2) - (label_w // 2),
+            self.timeline_y - 50,
+            label_w,
+            label_h
         )
 
         # movement‐onset label centered above the bar

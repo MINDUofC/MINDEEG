@@ -50,9 +50,6 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
         if preprocessing["FastICA"].isChecked():
             pass  # TODO: implement ICA
 
-        # 6) Baseline correction
-        if preprocessing["BaselineCorrection"].isChecked():
-            signal = Baseline(signal)
 
         # 7) Smoothing
         window_size = preprocessing["Window"].value()
