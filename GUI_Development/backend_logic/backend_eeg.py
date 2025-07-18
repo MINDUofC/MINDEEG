@@ -1,6 +1,7 @@
 import serial.tools.list_ports as device_ports
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QLineEdit, QComboBox, QDial, QCheckBox, QLabel
+from PyQt5.QtCore import QCoreApplication
 import logging
 import time
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds
@@ -13,6 +14,7 @@ def get_available_ports():
     ports = list(device_ports.comports())
     return [port.device for port in ports]
 
+
 def refresh_ports_on_click(combo_box):
     """Refreshes the QComboBox with available ports when clicked."""
     combo_box.clear()  # Clear previous entries
@@ -24,10 +26,9 @@ def refresh_ports_on_click(combo_box):
         combo_box.addItem("No ports found")
 
 
-
 # This will take in board_config data, validate it, and then
 def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial,
-                     common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
+                  common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
     """
     Initializes the EEG board based on GUI inputs.
 
@@ -72,6 +73,7 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
 
     # Display starting message
     set_status(status_bar, "Turning on...", error=False)
+    QCoreApplication.processEvents()
 
     try:
         board_shim = BoardShim(board_id, params)
@@ -105,6 +107,7 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
 
         # **Display success message**
         set_status(status_bar, "Successful On", error=False)
+        QCoreApplication.processEvents()
         isBoardOn = True
         return board_shim  # Return board object for future control (turn off function)
 
@@ -112,10 +115,11 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
         logging.error("Exception occurred", exc_info=True)
         isBoardOn = False
         set_status(status_bar, f"Error: {str(e)}", error=True)
+        QCoreApplication.processEvents()
 
 
-
-def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial, common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
+def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox, channel_dial: QDial,
+                   common_ref_checkbox: QCheckBox, status_bar: QLabel, isBoardOn: bool):
     """
     Turns off the EEG board, stops streaming, and re-enables GUI elements.
 
@@ -149,9 +153,8 @@ def turn_off_board(board_shim, board_id_input: QLineEdit, port_input: QComboBox,
 
     except Exception as e:
         logging.error("Exception while turning off the board", exc_info=True)
-        isBoardOn = isBoardOn #Remains at its current state
+        isBoardOn = isBoardOn  # Remains at its current state
         set_status(status_bar, f"Error: {str(e)}", error=True)
-
 
 
 def set_status(status_bar: QLabel, message: str, error: bool = False):
@@ -174,7 +177,7 @@ def set_status(status_bar: QLabel, message: str, error: bool = False):
             font-family: "Montserrat ExtraBold", sans-serif; /* Use Montserrat ExtraBold */
             font-size: 14px; /* Adjust size as needed */
             qproperty-alignment: 'AlignCenter';
-            
-        
+
+
     """
-    status_bar.setStyleSheet(existing_style + " color: "+str(text_color)+";}")
+    status_bar.setStyleSheet(existing_style + " color: " + str(text_color) + ";}")
