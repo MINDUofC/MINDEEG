@@ -193,6 +193,10 @@ class TimelineWidget(QWidget):
         self.buffer_fill.setBrush(QBrush(QColor(255, 165, 0)))
         self.scene.addItem(self.buffer_fill)
 
+        # keep track of how “full” each bar is (0.0–1.0)
+        self.progress_frac = 0.0
+        self.buffer_frac = 0.0
+
     # ─── DRAW SECOND‐BY‐SECOND MARKERS ─────────────────────────────────────────
     def update_markers(self):
         # Remove old markers
@@ -330,6 +334,20 @@ class TimelineWidget(QWidget):
                 self.timeline_height
             )
 
+        frac = min(elapsed_trial / self.total_duration, 1.0)
+
+        # ─── remember this fraction for resizing later ─────────────────
+        self.progress_frac = frac
+
+        # update trial bar in pixels (you can leave self.progress if you want)
+        self.progress = frac * self.timeline_width
+        self.fill_rect.setRect(
+            self.timeline_x,
+            self.timeline_y,
+            self.progress,
+            self.timeline_height
+        )
+
     # ─── IMMEDIATE STOP ────────────────────────────────────────────────────────
     def sudden_stop(self, status_bar):
         """Abort current run, clear timers & visuals."""
@@ -464,6 +482,21 @@ class TimelineWidget(QWidget):
             filled_height
         )
 
+        elapsed = (self.global_timer.elapsed() - self.buffer_start_time) / 1000
+
+        # clamp & store fraction
+        frac = min(elapsed / buffer_time, 1.0)
+        self.buffer_frac = frac
+
+        # now adjust the orange bar in pixels
+        filled_height = frac * self.buffer_height
+        self.buffer_fill.setRect(
+            self.buffer_x,
+            self.buffer_y + self.buffer_height - filled_height,
+            self.buffer_width,
+            filled_height
+        )
+
     # ─── START NEXT TRIAL AFTER BUFFER ────────────────────────────────────────
     def start_trial(self):
         """Reset trial bar, start trial_timer again, and resume updates."""
@@ -516,8 +549,8 @@ class TimelineWidget(QWidget):
         super().resizeEvent(event)
         # — recalc the timeline’s position & size based on the new widget size —
         # keep a 50px margin on left/right:
-        self.timeline_x     = 50
-        self.timeline_width = self.width() - 2*self.timeline_x
+        self.timeline_x     = 100
+        self.timeline_width = (self.width() - 2*self.timeline_x)
         # keep the same height & vertical offset you already chose:
         # self.timeline_y, self.timeline_height remain unchanged
 
@@ -554,14 +587,14 @@ class TimelineWidget(QWidget):
         # global time (was x = timeline_x + timeline_width - 292)
         self.global_time_label.setGeometry(
             self.timeline_x + self.timeline_width - 292,
-            self.global_time_label.y(),
+            self.global_time_label.y() + 25,
             250, 35
         )
 
         # trial time (same X offset)
         self.trial_time_label.setGeometry(
             self.timeline_x + self.timeline_width - 292,
-            self.trial_time_label.y(),
+            self.trial_time_label.y() + 25,
             250, 35
         )
 
@@ -577,6 +610,24 @@ class TimelineWidget(QWidget):
             -10,
             self.buffer_label_display.y(),
             250, 35
+        )
+
+        # Recompute trial‑fill bar from the saved fraction
+        fill_w = int(self.timeline_width * self.progress_frac)
+        self.fill_rect.setRect(
+            self.timeline_x,
+            self.timeline_y,
+            fill_w,
+            self.timeline_height
+        )
+
+        # Recompute buffer‑fill bar from the saved fraction
+        buffer_h = int(self.buffer_height * self.buffer_frac)
+        self.buffer_fill.setRect(
+            self.buffer_x,
+            self.buffer_y + self.buffer_height - buffer_h,
+            self.buffer_width,
+            buffer_h
         )
 
         # — finally, shift the vertical buffer bar over to sit just to the right —
