@@ -596,7 +596,7 @@ class TimelineWidget(QWidget):
 
         # right label: its right edge sits on the right marker (+time_after)
         self.trial_time_label.setGeometry(
-            self.timeline_x + self.timeline_width - label_w - 200,
+            self.timeline_x + self.timeline_width - label_w - 180,
             y_pos,
             label_w,
             label_h
