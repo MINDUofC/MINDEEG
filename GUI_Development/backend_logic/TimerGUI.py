@@ -90,6 +90,10 @@ class TimelineWidget(QWidget):
         self.view.setScene(self.scene)
         layout.addWidget(self.view)
 
+        # ─── prevent scrollbars from cutting off content ─────────────────
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
         # Precise update timer for progress & labels
         self.timer = QTimer(self)
         self.timer.setTimerType(Qt.PreciseTimer)
@@ -507,3 +511,90 @@ class TimelineWidget(QWidget):
             0
         )
         logging.debug("Buffer cleared after completion cue.")
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # — recalc the timeline’s position & size based on the new widget size —
+        # keep a 50px margin on left/right:
+        self.timeline_x     = 50
+        self.timeline_width = self.width() - 2*self.timeline_x
+        # keep the same height & vertical offset you already chose:
+        # self.timeline_y, self.timeline_height remain unchanged
+
+        # update the background bar
+        self.background_rect.setRect(
+            self.timeline_x,
+            self.timeline_y,
+            self.timeline_width,
+            self.timeline_height
+        )
+
+        # update the blue fill to whatever progress you had
+        self.fill_rect.setRect(
+            self.timeline_x,
+            self.timeline_y,
+            self.progress,
+            self.timeline_height
+        )
+
+        # move the center line
+        self.center_line.setLine(
+            self.timeline_x,
+            self.timeline_y + self.timeline_height/2,
+            self.timeline_x + self.timeline_width,
+            self.timeline_y + self.timeline_height/2
+        )
+
+        # redraw all the second‐markers in the new width
+        self.update_markers()
+
+        # — reposition the three QLabel widgets you manually placed —
+        # keep them in the same “relative” offset you hard‑coded before:
+
+        # global time (was x = timeline_x + timeline_width - 292)
+        self.global_time_label.setGeometry(
+            self.timeline_x + self.timeline_width - 292,
+            self.global_time_label.y(),
+            250, 35
+        )
+
+        # trial time (same X offset)
+        self.trial_time_label.setGeometry(
+            self.timeline_x + self.timeline_width - 292,
+            self.trial_time_label.y(),
+            250, 35
+        )
+
+        # movement‐onset label centered above the bar
+        self.label.setGeometry(
+            self.timeline_x + (self.timeline_width//2) - 125,
+            self.timeline_y - 50,
+            250, 35
+        )
+
+        # buffer countdown label (left of timeline, keep your old Y offset)
+        self.buffer_label_display.setGeometry(
+            -10,
+            self.buffer_label_display.y(),
+            250, 35
+        )
+
+        # — finally, shift the vertical buffer bar over to sit just to the right —
+        self.buffer_x = self.timeline_x + self.timeline_width + 50
+        self.buffer_background.setRect(
+            self.buffer_x,
+            self.buffer_y,
+            self.buffer_width,
+            self.buffer_height
+        )
+        # preserve whatever fill‐height you’d already animated:
+        current_fill_h = self.buffer_fill.rect().height()
+        self.buffer_fill.setRect(
+            self.buffer_x,
+            self.buffer_y + self.buffer_height - current_fill_h,
+            self.buffer_width,
+            current_fill_h
+        )
+        self.scene.setSceneRect(self.scene.itemsBoundingRect())
+        # ─── ensure the view itself fills the widget (no clipping) ───────────
+        self.view.setGeometry(0, 0, self.width(), self.height())
