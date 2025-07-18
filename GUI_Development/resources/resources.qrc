@@ -12,5 +12,6 @@
         <file>fullScreen.png</file>
         <file>InstagramLogo.png</file>
         <file>LinkedInLogo.png</file>
+        <file>FolderIcon.jpg</file>
     </qresource>
 </RCC>

@@ -97,6 +97,8 @@ class MainApp(QDialog):
         self.RawData             = self.findChild(QCheckBox, "RawData")
         self.FFTData             = self.findChild(QCheckBox, "FFTData")
         self.PSDData             = self.findChild(QCheckBox, "PSDData")
+        self.FileType            = self.findChild(QComboBox, "FileType")
+        self.ExportDestination   = self.findChild(QPushButton, "ExportDestination")
 
         # Epoch/timing controls
         self.BeforeOnset         = self.findChild(QSpinBox, "BeforeOnset")
