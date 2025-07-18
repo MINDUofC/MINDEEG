@@ -42,6 +42,14 @@ class MainApp(QDialog):
         self.setWindowTitle("MINDStream EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
 
+        # ─── Custom frameless‐resize state ────────────────────────────
+        self._resizing = False
+        self._resize_dir = None
+        self._resize_margin = 8  # how many pixels from the edge count as “grab” zone
+        self._drag_pos = None
+        self._orig_geom = None
+
+
         # ─── Bind all UI elements to instance variables ──────────────────
         # Taskbar controls for dragging/minimize/close/fullscreen
         self.taskbar           = self.findChild(QWidget, "taskbar")
@@ -53,8 +61,6 @@ class MainApp(QDialog):
         self.MindLogo = self.findChild(QLabel, "MindLogo")
         self.InstaLogo = self.findChild(QPushButton, "InstaLogo")
         self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
-
-
 
         # Main tab widget (for µV, FFT, PSD, etc)
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
@@ -341,6 +347,77 @@ class MainApp(QDialog):
         else:
             # all other keys behave normally
             super().keyPressEvent(event)
+
+    def mousePressEvent(self, event):
+        # look for clicks near the edges
+        if event.button() == Qt.LeftButton:
+            d = self._get_resize_direction(event.pos())
+            if d:
+                self._resizing   = True
+                self._resize_dir = d
+                self._drag_pos   = event.globalPos()
+                self._orig_geom  = self.geometry()
+                return  # start resizing
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        pos = event.pos()
+        if self._resizing:
+            # perform the resize
+            self._perform_resize(event.globalPos())
+        else:
+            # update the cursor shape when hovering edges
+            d = self._get_resize_direction(pos)
+            cursors = {
+                'left': Qt.SizeHorCursor, 'right': Qt.SizeHorCursor,
+                'top': Qt.SizeVerCursor, 'bottom': Qt.SizeVerCursor,
+                'top-left': Qt.SizeFDiagCursor, 'bottom-right': Qt.SizeFDiagCursor,
+                'top-right': Qt.SizeBDiagCursor, 'bottom-left': Qt.SizeBDiagCursor,
+            }
+            self.setCursor(cursors.get(d, Qt.ArrowCursor))
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._resizing:
+            self._resizing   = False
+            self._resize_dir = None
+            return
+        super().mouseReleaseEvent(event)
+
+    def _get_resize_direction(self, pos):
+        """Return one of: 'left','right','top','bottom','top-left',… or None."""
+        m = self._resize_margin
+        r = self.rect()
+        dirs = []
+        if pos.x() <= r.left()   + m: dirs.append('left')
+        elif pos.x() >= r.right() - m: dirs.append('right')
+        if pos.y() <= r.top()    + m: dirs.append('top')
+        elif pos.y() >= r.bottom() - m: dirs.append('bottom')
+        if len(dirs) == 2:
+            return f"{dirs[0]}-{dirs[1]}"
+        return dirs[0] if dirs else None
+
+    def _perform_resize(self, global_pos):
+        """Resize the window based on drag delta and direction."""
+        delta_x = global_pos.x() - self._drag_pos.x()
+        delta_y = global_pos.y() - self._drag_pos.y()
+        x, y, w, h = (self._orig_geom.x(), self._orig_geom.y(),
+                      self._orig_geom.width(), self._orig_geom.height())
+        new_x, new_y, new_w, new_h = x, y, w, h
+
+        d = self._resize_dir
+        if 'right' in d:
+            new_w = max(self.minimumWidth(), w + delta_x)
+        if 'bottom' in d:
+            new_h = max(self.minimumHeight(), h + delta_y)
+        if 'left' in d:
+            new_x = x + delta_x
+            new_w = max(self.minimumWidth(), w - delta_x)
+        if 'top' in d:
+            new_y = y + delta_y
+            new_h = max(self.minimumHeight(), h - delta_y)
+
+        self.setGeometry(new_x, new_y, new_w, new_h)
 
 
 if __name__ == "__main__":
