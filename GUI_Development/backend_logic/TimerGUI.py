@@ -146,6 +146,9 @@ class TimelineWidget(QWidget):
         self.buffer_label_display.setMinimumHeight(30)
         layout.addWidget(self.buffer_label_display)
 
+        # ensure buffer_timer always exists
+        self.buffer_timer = None
+
         # Manually position all labels (unchanged logic)
         label_width  = 250
         label_height = 35
@@ -365,7 +368,7 @@ class TimelineWidget(QWidget):
 
         # Stop all timers
         self.timer.stop()
-        if hasattr(self, 'buffer_timer') and self.buffer_timer.isActive():
+        if self.buffer_timer is not None and self.buffer_timer.isActive():
             self.buffer_timer.stop()
 
         # Block pending signals briefly
