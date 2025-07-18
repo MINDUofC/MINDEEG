@@ -661,6 +661,24 @@ class TimelineWidget(QWidget):
             self.buffer_width,
             current_fill_h
         )
+        self.buffer_frac = 0.0
+        self.progress_frac = 0.0
         self.scene.setSceneRect(self.scene.itemsBoundingRect())
         # ─── ensure the view itself fills the widget (no clipping) ───────────
         self.view.setGeometry(0, 0, self.width(), self.height())
+
+        # ─── if we've already stopped, force both bars to stay empty ────────
+        if not self.in_trial:
+            self.fill_rect.setRect(
+                self.timeline_x,
+                self.timeline_y,
+                0,
+                self.timeline_height
+            )
+            self.buffer_fill.setRect(
+                self.buffer_x,
+                self.buffer_y + self.buffer_height,
+                self.buffer_width,
+                0
+            )
+
