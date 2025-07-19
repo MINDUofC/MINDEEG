@@ -14,9 +14,10 @@ from PyQt5.QtWidgets import (
     QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
-
+from PyQt5.QtCore import QUrl
+from PyQt5.QtGui import QDesktopServices
 import resources_rc
 import backend_design.backend_design as bed  # Backend window/control helpers
 import backend_logic.backend_eeg as beeg
@@ -30,13 +31,24 @@ class MainApp(QDialog):
     def __init__(self):
         super().__init__()
 
+        self.was_fullscreen = self.isFullScreen()
+
+
         # ─── Load and configure the .ui file ─────────────────────────────
         ui_file = os.path.join(os.path.dirname(__file__), "GUI Design.ui")
         uic.loadUi(ui_file, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setWindowTitle("MIND EEG Extraction Interface")
+        self.setWindowTitle("MINDStream EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
+
+        # ─── Custom frameless‐resize state ────────────────────────────
+        self._resizing = False
+        self._resize_dir = None
+        self._resize_margin = 8  # how many pixels from the edge count as “grab” zone
+        self._drag_pos = None
+        self._orig_geom = None
+
 
         # ─── Bind all UI elements to instance variables ──────────────────
         # Taskbar controls for dragging/minimize/close/fullscreen
@@ -46,7 +58,9 @@ class MainApp(QDialog):
         self.fullscreen_button = self.findChild(QPushButton, "fullscreen_button")
 
         # Logo (clickable)
-        self.logo_label = self.findChild(QLabel, "logo")
+        self.MindLogo = self.findChild(QLabel, "MindLogo")
+        self.InstaLogo = self.findChild(QPushButton, "InstaLogo")
+        self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
 
         # Main tab widget (for µV, FFT, PSD, etc)
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
@@ -69,7 +83,6 @@ class MainApp(QDialog):
         self.BStop2Start         = self.findChild(QLineEdit,  "BStop2Start")
         self.BStop2End           = self.findChild(QLineEdit,  "BStop2End")
         self.DetrendOnOff        = self.findChild(QCheckBox, "DetrendOnOff")
-        self.BaselineCorrOnOff   = self.findChild(QCheckBox, "BaselineCorrOnOff")
         self.FastICAOnOff        = self.findChild(QCheckBox, "FastICAOnOff")
         self.AverageOnOff        = self.findChild(QCheckBox, "AverageOnOff")
         self.MedianOnOff         = self.findChild(QCheckBox, "MedianOnOff")
@@ -78,12 +91,14 @@ class MainApp(QDialog):
         # Board and data-selection controls
         self.BoardOnOff          = self.findChild(QCheckBox, "BoardOnOff")
         self.BoardID             = self.findChild(QLineEdit,  "BoardID")
-        self.ChannelDial         = self.findChild(QDial,      "ChannelDial")
+        self.ChannelDial         = self.findChild(QDial,"ChannelDial")
         self.CommonReferenceOnOff= self.findChild(QCheckBox, "CommonReferenceOnOff")
         self.Port                = self.findChild(QComboBox,  "Port")
         self.RawData             = self.findChild(QCheckBox, "RawData")
         self.FFTData             = self.findChild(QCheckBox, "FFTData")
         self.PSDData             = self.findChild(QCheckBox, "PSDData")
+        self.FileType            = self.findChild(QComboBox, "FileType")
+        self.ExportDestination   = self.findChild(QPushButton, "ExportDestination")
 
         # Epoch/timing controls
         self.BeforeOnset         = self.findChild(QSpinBox, "BeforeOnset")
@@ -102,7 +117,6 @@ class MainApp(QDialog):
             "BandPassOnOff":       self.BandPassOnOff,
             "BandStopOnOff":       self.BandStopOnOff,
             "DetrendOnOff":        self.DetrendOnOff,
-            "BaselineCorrection":  self.BaselineCorrOnOff,
             "FastICA":             self.FastICAOnOff,
             "NumberBandPass":      self.NumBandPass,
             "NumberBandStop":      self.NumBandStop,
@@ -131,11 +145,35 @@ class MainApp(QDialog):
         self.findChild(QWidget, "BandStopSettings").setVisible(False)
         self.findChild(QWidget, "BandStopSettings").setEnabled(False)
 
+
+        # ─── Social‑media & site icons ─────────────────────────────────────
+
+        # Instagram
+
+        if self.InstaLogo:
+            self.InstaLogo.setCursor(Qt.PointingHandCursor)
+            self.InstaLogo.clicked.connect(lambda:
+                                           QDesktopServices.openUrl(QUrl("https://www.instagram.com/mind.uofc/"))
+                                           )
+
+        # LinkedIn
+
+        if self.LinkedInLogo:
+            self.LinkedInLogo.setCursor(Qt.PointingHandCursor)
+            self.LinkedInLogo.clicked.connect(lambda:
+                                              QDesktopServices.openUrl(QUrl("https://ca.linkedin.com/company/mind-uofc"))
+                                              )
+
+        # MIND website
+
+        if self.MindLogo:
+            self.MindLogo.setCursor(Qt.PointingHandCursor)
+            self.MindLogo.mousePressEvent = lambda eventParam: QDesktopServices.openUrl(
+                QUrl("https://mind-uofc.ca/")
+            )
+
         # ─── Connect UI interactions ────────────────────────────────────
-        # Logo click
-        if self.logo_label:
-            self.logo_label.setCursor(Qt.PointingHandCursor)
-            self.logo_label.mousePressEvent = bed.open_link
+
         # Window controls
         self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
         self.close_button.clicked.connect(lambda: bed.close_window(self))
@@ -298,6 +336,88 @@ class MainApp(QDialog):
             # Uncheck Average when Median is enabled
             self.AverageOnOff.setChecked(False)
 
+    def keyPressEvent(self, event: QKeyEvent):
+        # Intercept Esc to toggle fullscreen instead of closing
+        if event.key() == Qt.Key_Escape:
+            # if you're already fullscreen, go back to normal; otherwise go fullscreen
+            if self.isFullScreen():
+                self.showNormal()
+            else:
+                self.showFullScreen()
+        else:
+            # all other keys behave normally
+            super().keyPressEvent(event)
+
+    def mousePressEvent(self, event):
+        # look for clicks near the edges
+        if event.button() == Qt.LeftButton:
+            d = self._get_resize_direction(event.pos())
+            if d:
+                self._resizing   = True
+                self._resize_dir = d
+                self._drag_pos   = event.globalPos()
+                self._orig_geom  = self.geometry()
+                return  # start resizing
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        pos = event.pos()
+        if self._resizing:
+            # perform the resize
+            self._perform_resize(event.globalPos())
+        else:
+            # update the cursor shape when hovering edges
+            d = self._get_resize_direction(pos)
+            cursors = {
+                'left': Qt.SizeHorCursor, 'right': Qt.SizeHorCursor,
+                'top': Qt.SizeVerCursor, 'bottom': Qt.SizeVerCursor,
+                'top-left': Qt.SizeFDiagCursor, 'bottom-right': Qt.SizeFDiagCursor,
+                'top-right': Qt.SizeBDiagCursor, 'bottom-left': Qt.SizeBDiagCursor,
+            }
+            self.setCursor(cursors.get(d, Qt.ArrowCursor))
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if self._resizing:
+            self._resizing   = False
+            self._resize_dir = None
+            return
+        super().mouseReleaseEvent(event)
+
+    def _get_resize_direction(self, pos):
+        """Return one of: 'left','right','top','bottom','top-left',… or None."""
+        m = self._resize_margin
+        r = self.rect()
+        dirs = []
+        if pos.x() <= r.left()   + m: dirs.append('left')
+        elif pos.x() >= r.right() - m: dirs.append('right')
+        if pos.y() <= r.top()    + m: dirs.append('top')
+        elif pos.y() >= r.bottom() - m: dirs.append('bottom')
+        if len(dirs) == 2:
+            return f"{dirs[0]}-{dirs[1]}"
+        return dirs[0] if dirs else None
+
+    def _perform_resize(self, global_pos):
+        """Resize the window based on drag delta and direction."""
+        delta_x = global_pos.x() - self._drag_pos.x()
+        delta_y = global_pos.y() - self._drag_pos.y()
+        x, y, w, h = (self._orig_geom.x(), self._orig_geom.y(),
+                      self._orig_geom.width(), self._orig_geom.height())
+        new_x, new_y, new_w, new_h = x, y, w, h
+
+        d = self._resize_dir
+        if 'right' in d:
+            new_w = max(self.minimumWidth(), w + delta_x)
+        if 'bottom' in d:
+            new_h = max(self.minimumHeight(), h + delta_y)
+        if 'left' in d:
+            new_x = x + delta_x
+            new_w = max(self.minimumWidth(), w - delta_x)
+        if 'top' in d:
+            new_y = y + delta_y
+            new_h = max(self.minimumHeight(), h - delta_y)
+
+        self.setGeometry(new_x, new_y, new_w, new_h)
 
 
 if __name__ == "__main__":

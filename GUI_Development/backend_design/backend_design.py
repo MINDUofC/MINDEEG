@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QGradient
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtCore import Qt, QUrl
+from PyQt5.QtCore import Qt, QUrl, QPointF
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
 
 
@@ -58,21 +58,20 @@ def paintEvent(self, event):
     painter = QPainter(self)
     painter.setRenderHint(QPainter.Antialiasing)
 
-    gradient = QLinearGradient(0, 0, self.width(), self.height())
-    gradient.setColorAt(0.00, QColor("#FFFFFF"))  # White - Top Left
-    gradient.setColorAt(0.25, QColor("#85C7F2"))  # Mind Blue
-    gradient.setColorAt(0.50, QColor("#5C8FFF"))  # Flower Blue
-    gradient.setColorAt(0.75, QColor("#85C7F2"))  # Mind Blue
-    gradient.setColorAt(1.00, QColor("#FFFFFF"))  # White - Bottom Right
+    # Define gradient in relative coords (0,1) → (1,0)
+    gradient = QLinearGradient(QPointF(0, 1), QPointF(1, 0))
+    gradient.setCoordinateMode(QGradient.ObjectBoundingMode)
+    gradient.setColorAt(0.00, QColor("#FFFFFF"))
+    gradient.setColorAt(0.25, QColor("#85C7F2"))
+    gradient.setColorAt(0.50, QColor("#5C8FFF"))
+    gradient.setColorAt(0.75, QColor("#85C7F2"))
+    gradient.setColorAt(1.00, QColor("#FFFFFF"))
 
-    brush = QBrush(gradient)
-    painter.setBrush(brush)
+    painter.setBrush(QBrush(gradient))
+    painter.setPen(QPen(QColor("#0047B2"), 3))
 
-    border_color = QColor("#0047B2")  # Updated Deep Blue Border
-    border_pen = QPen(border_color, 3)
-
-    painter.setPen(border_pen)
-    painter.drawRoundedRect(self.rect().adjusted(1, 1, -1, -1), 15, 15)
+    # Draw the full widget rect
+    painter.drawRect(self.rect().adjusted(1, 1, -1, -1))
 
 def toggle_settings_visibility(self):
     """Toggles visibility of BandPassSettings & BandStopSettings based on spinbox values."""
