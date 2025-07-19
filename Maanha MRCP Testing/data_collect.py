@@ -12,7 +12,7 @@ samples_per_trial = fs * window_sec
 pre_clench_sec = 2
 post_clench_sec = 2
 pause_rest_sec = 4
-trials_per_class = 20
+trials_per_class = 14
 labels = ['left', 'right']
 
 label_to_class = {'left': 0, 'right': 1, 'rest': 2}
