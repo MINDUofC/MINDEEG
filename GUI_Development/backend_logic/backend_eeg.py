@@ -177,7 +177,30 @@ def set_status(status_bar: QLabel, message: str, error: bool = False):
             font-family: "Montserrat ExtraBold", sans-serif; /* Use Montserrat ExtraBold */
             font-size: 14px; /* Adjust size as needed */
             qproperty-alignment: 'AlignCenter';
-
-
+        }
     """
-    status_bar.setStyleSheet(existing_style + " color: " + str(text_color) + ";}")
+    status_bar.setStyleSheet(existing_style + " color: " + str(text_color) + ";")
+
+
+def get_eeg_channels(board_id: int) -> list:
+    """
+    Get the EEG channels for a given board ID.
+    
+    :param board_id: The BrainFlow board ID
+    :return: List of EEG channel indices
+    """
+    # Default EEG channels for most boards (channels 0-7)
+    # This can be customized based on specific board requirements
+    return list(range(8))
+
+
+def get_sampling_rate(board_id: int) -> int:
+    """
+    Get the sampling rate for a given board ID.
+    
+    :param board_id: The BrainFlow board ID
+    :return: Sampling rate in Hz
+    """
+    # Default sampling rate for most boards
+    # This can be customized based on specific board requirements
+    return 125
