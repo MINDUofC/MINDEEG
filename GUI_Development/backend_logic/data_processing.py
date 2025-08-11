@@ -46,19 +46,25 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
                 order=4
             )
 
-        # 5) (Placeholder) FastICA
-        if preprocessing["FastICA"].isChecked():
-            pass  # TODO: implement ICA
-
-
-        # 7) Smoothing
-        window_size = preprocessing["Window"].value()
-        if preprocessing["Average"].isChecked():
-            signal = mean_smoothing(signal, window_size)
-        if preprocessing["Median"].isChecked():
-            signal = median_smoothing(signal, window_size)
-
         processed_data[channel] = signal
+
+    # 5) FastICA processing (applied to all channels together)
+    if preprocessing["FastICA"].isChecked():
+        # ICA processing will be handled by the ICA manager
+        # This is just a placeholder - the actual ICA processing
+        # happens in the ICA manager when data is passed through
+        pass
+
+    # 6) Smoothing (applied to each channel individually)
+    for channel in eeg_channels:
+        if channel in processed_data:
+            signal = processed_data[channel]
+            window_size = preprocessing["Window"].value()
+            if preprocessing["Average"].isChecked():
+                signal = mean_smoothing(signal, window_size)
+            if preprocessing["Median"].isChecked():
+                signal = median_smoothing(signal, window_size)
+            processed_data[channel] = signal
 
     return processed_data
 
@@ -201,8 +207,24 @@ def detrend_signal(signal):
     return signal
 
 
-def ICA(signal):
-    pass
+def get_filtered_data_with_ica(board_shim, num_points, eeg_channels, preprocessing, ica_manager=None):
+    """
+    Retrieves raw EEG data and applies preprocessing steps including ICA if enabled.
+    This function integrates with the ICA manager for real-time ICA processing.
+    """
+    # Get preprocessed data without ICA
+    processed_data = get_filtered_data(board_shim, num_points, eeg_channels, preprocessing)
+    
+    # Apply ICA if enabled and manager is provided
+    if preprocessing["FastICA"].isChecked() and ica_manager is not None:
+        try:
+            # Process through ICA manager
+            processed_data = ica_manager.process_data(processed_data)
+        except Exception as e:
+            print(f"ICA processing failed: {e}")
+            # Continue with non-ICA data if ICA fails
+    
+    return processed_data
 
 def Baseline(signal):
     """

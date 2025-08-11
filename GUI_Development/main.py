@@ -25,6 +25,7 @@ from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
+from backend_logic.ica_manager import ICAManager
 
 
 class MainApp(QDialog):
@@ -45,7 +46,7 @@ class MainApp(QDialog):
         # ─── Custom frameless‐resize state ────────────────────────────
         self._resizing = False
         self._resize_dir = None
-        self._resize_margin = 8  # how many pixels from the edge count as “grab” zone
+        self._resize_margin = 8  # how many pixels from the edge count as "grab" zone
         self._drag_pos = None
         self._orig_geom = None
 
@@ -84,6 +85,7 @@ class MainApp(QDialog):
         self.BStop2End           = self.findChild(QLineEdit,  "BStop2End")
         self.DetrendOnOff        = self.findChild(QCheckBox, "DetrendOnOff")
         self.FastICAOnOff        = self.findChild(QCheckBox, "FastICAOnOff")
+        self.ICACalibSecs        = self.findChild(QSpinBox,  "ICACalibSecs")
         self.AverageOnOff        = self.findChild(QCheckBox, "AverageOnOff")
         self.MedianOnOff         = self.findChild(QCheckBox, "MedianOnOff")
         self.Window              = self.findChild(QSpinBox,  "Window")
@@ -118,6 +120,7 @@ class MainApp(QDialog):
             "BandStopOnOff":       self.BandStopOnOff,
             "DetrendOnOff":        self.DetrendOnOff,
             "FastICA":             self.FastICAOnOff,
+            "ICACalibSecs":        self.ICACalibSecs,
             "NumberBandPass":      self.NumBandPass,
             "NumberBandStop":      self.NumBandStop,
             "BP1Start":            self.BP1Start,
@@ -145,6 +148,10 @@ class MainApp(QDialog):
         self.findChild(QWidget, "BandStopSettings").setVisible(False)
         self.findChild(QWidget, "BandStopSettings").setEnabled(False)
 
+        # ─── Initialize FastICA checkbox state ──────────────────────────
+        # Start with FastICA disabled by default
+        self.FastICAOnOff.setChecked(False)
+        self.FastICAOnOff.setEnabled(False)
 
         # ─── Social‑media & site icons ─────────────────────────────────────
 
@@ -188,6 +195,10 @@ class MainApp(QDialog):
         self.Port.installEventFilter(self)
         # Board on/off
         self.BoardOnOff.clicked.connect(self.toggle_board)
+        # Channel dial changes - update FastICA state
+        self.ChannelDial.valueChanged.connect(self._on_channel_dial_changed)
+        # FastICA checkbox manual toggle
+        self.FastICAOnOff.toggled.connect(self._on_fastica_manual_toggle)
 
         # ─── Enforce integer-only where appropriate ─────────────────────
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -208,6 +219,9 @@ class MainApp(QDialog):
         )
         tl_layout.addWidget(self.timeline_widget)
 
+        # Initialize ICA manager
+        self.ica_manager = ICAManager(self.StatusBar, self.FastICAOnOff, self.ICACalibSecs, self.ChannelDial)
+        
         # ─── Ensure µV tab is selected on start & hook tab changes ─────
         self.Visualizer.setCurrentIndex(0)
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)
@@ -219,19 +233,19 @@ class MainApp(QDialog):
     def setup_muV_live_plot(self):
         """Lazy-create and embed the µV live plot into its tab."""
         layout = QVBoxLayout(self.muVPlot)
-        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
         layout.addWidget(self.muVGraph)
 
     def setup_FFT_live_plot(self):
         """Lazy-create and embed the FFT live plot into its tab."""
         layout = QVBoxLayout(self.FFTPlot)
-        self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
         layout.addWidget(self.FFTGraph)
 
     def setup_PSDGraph(self):
         """Lazy-create and embed the PSD live plot into its tab."""
         layout = QVBoxLayout(self.PSDPlot)
-        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls)
+        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
         layout.addWidget(self.PSDGraph)
 
     def handle_tab_change_on_Visualizer(self, index):
@@ -274,7 +288,7 @@ class MainApp(QDialog):
     def toggle_board(self):
         """
         Turn the board on or off. When turning on, attach the shim to each
-        graph and start the current tab’s timer. When turning off, stop all.
+        graph and start the current tab's timer. When turning off, stop all.
         """
         if self.BoardOnOff.isChecked():
             self.board_shim = beeg.turn_on_board(
@@ -286,10 +300,16 @@ class MainApp(QDialog):
                 self.BoardOnOff.setChecked(False)
                 return
 
-            # Update each graph’s board_shim reference if they exist
+            # Update each graph's board_shim reference if they exist
             if self.muVGraph: self.muVGraph.board_shim = self.board_shim
             if self.FFTGraph: self.FFTGraph.board_shim = self.board_shim
             if self.PSDGraph: self.PSDGraph.board_shim = self.board_shim
+            
+            # Update ICA manager's board shim reference
+            self.ica_manager.set_board_shim(self.board_shim)
+
+            # Automatically enable FastICA if we have 2+ channels
+            self._update_fastica_state()
 
             # Start the timer on whichever tab is active now
             self.handle_tab_change_on_Visualizer(self.Visualizer.currentIndex())
@@ -300,10 +320,68 @@ class MainApp(QDialog):
                 self.board_shim, self.BoardID, self.Port,
                 self.ChannelDial, self.CommonReferenceOnOff, self.StatusBar, False
             )
+            # Clear ICA manager's board reference
+            self.ica_manager.clear_board_shim()
+            
+            # Automatically disable FastICA when board is turned off
+            self._disable_fastica()
+            
             for graph in (self.muVGraph, self.FFTGraph, self.PSDGraph):
                 if graph:
                     graph.board_shim = None
                     graph.timer.stop()
+
+    def _update_fastica_state(self):
+        """
+        Automatically enable/disable FastICA checkbox based on current channel count.
+        Called when board is turned on or channel count changes.
+        """
+        if not self.board_shim:
+            self._disable_fastica()
+            return
+        
+        try:
+            # Get current channel count from the dial
+            channel_count = self.ChannelDial.value()
+            
+            if channel_count >= 2:
+                # Enable FastICA checkbox
+                self.FastICAOnOff.setEnabled(True)
+                # Keep it unchecked initially - user must manually enable it
+                self.FastICAOnOff.setChecked(False)
+            else:
+                # Disable FastICA checkbox if insufficient channels
+                self._disable_fastica()
+                
+        except Exception as e:
+            # If there's any error, disable FastICA for safety
+            self._disable_fastica()
+    
+    def _disable_fastica(self):
+        """
+        Disable FastICA checkbox and uncheck it.
+        Called when board is turned off or when there are insufficient channels.
+        """
+        self.FastICAOnOff.setEnabled(False)
+        self.FastICAOnOff.setChecked(False)
+
+    def _on_channel_dial_changed(self, value):
+        """
+        Handle channel dial value changes to automatically update FastICA state.
+        Only affects FastICA if the board is currently on.
+        """
+        if self.BoardOnOff.isChecked() and self.board_shim:
+            self._update_fastica_state()
+
+    def _on_fastica_manual_toggle(self, checked: bool):
+        """
+        Handle manual toggling of the FastICA checkbox.
+        Updates the ICA manager's state accordingly.
+        """
+        if checked:
+            self.ica_manager.enable_ica_manually()
+        else:
+            self.ica_manager.disable_ica_manually()
 
     def eventFilter(self, obj, event):
         """Refresh serial ports list when the Port combobox is clicked."""

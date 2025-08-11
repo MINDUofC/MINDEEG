@@ -1,20 +1,21 @@
-import numpy as np
 import pyqtgraph as pg
+import numpy as np
 from joblib.numpy_pickle_utils import xrange
 from scipy.signal import windows
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.data_processing import get_filtered_data
+from GUI_Development.backend_logic.data_processing import get_filtered_data_with_ica
 
 
 class FFTGraph(QWidget):
-    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, parent=None):
+    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, parent=None):
         super().__init__(parent)
 
         self.board_shim = board_shim
         self.BoardOnCheckBox = BoardOnCheckBox
         self.preprocessing_controls = preprocessing_controls
+        self.ica_manager = ica_manager
 
         self.eeg_channels = None
         self.sampling_rate = None
@@ -74,7 +75,13 @@ class FFTGraph(QWidget):
             self.num_points = int(6 * self.sampling_rate)
             print(f"FFT Init: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
-        data = get_filtered_data(self.board_shim, self.num_points, self.eeg_channels, self.preprocessing_controls)
+        data = get_filtered_data_with_ica(
+            self.board_shim, 
+            self.num_points, 
+            self.eeg_channels, 
+            self.preprocessing_controls,
+            self.ica_manager
+        )
 
         freqs = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
 

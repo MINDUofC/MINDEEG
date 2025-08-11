@@ -1175,7 +1175,7 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
          <rect>
           <x>50</x>
           <y>330</y>
-          <width>161</width>
+          <width>121</width>
           <height>20</height>
          </rect>
         </property>
@@ -1238,7 +1238,7 @@ QCheckBox::indicator:disabled:checked {
 </string>
         </property>
         <property name="text">
-         <string>FastICA</string>
+         <string>FastICA (Beta)</string>
         </property>
        </widget>
        <widget class="QCheckBox" name="DetrendOnOff">
@@ -1500,7 +1500,7 @@ QCheckBox::indicator:disabled:checked {
        <widget class="QSpinBox" name="Window">
         <property name="geometry">
          <rect>
-          <x>100</x>
+          <x>130</x>
           <y>460</y>
           <width>101</width>
           <height>22</height>
@@ -1559,9 +1559,9 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
        <widget class="QLabel" name="label_14">
         <property name="geometry">
          <rect>
-          <x>40</x>
+          <x>20</x>
           <y>460</y>
-          <width>71</width>
+          <width>111</width>
           <height>21</height>
          </rect>
         </property>
@@ -1574,7 +1574,7 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
 </string>
         </property>
         <property name="text">
-         <string>  Window:</string>
+         <string>  Sample Window:</string>
         </property>
        </widget>
        <widget class="QWidget" name="BandPassSettings" native="true">
@@ -2410,6 +2410,89 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
           <string>2.</string>
          </property>
         </widget>
+       </widget>
+       <widget class="QSpinBox" name="ICACalibSecs">
+        <property name="geometry">
+         <rect>
+          <x>130</x>
+          <y>360</y>
+          <width>101</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QSpinBox {
+    font-family: 'Montserrat Medium';
+    font-size: 12px;
+    color: #000000; /* Dark text */
+    background-color: #f5f5f5; /* Light background */
+    border: 2px solid #ccc; /* Modern border */
+    border-radius: 5px;
+    padding: 4px;
+}
+
+QSpinBox:up-button{
+	background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 20px;
+    height: 12px;
+	subcontrol-position:left;
+image:url(:/images/up_arrow.png)
+
+}
+
+
+QSpinBox:down-button {
+    background-color: #e0e0e0;
+	colour: #fffffff;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 20px;
+    height: 12px;
+	subcontrol-position:right;
+	image:url(:/images/down_arrow.png)
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: #b0b0b0;
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: #b0b0b0;
+
+    margin: 4px; /* Add equal margin on all sides to maintain size */
+	margin-left: 2px;
+	margin-right: 2px;}</string>
+        </property>
+        <property name="maximum">
+         <number>500</number>
+        </property>
+       </widget>
+       <widget class="QLabel" name="ICACalibSecsLabel">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>360</y>
+          <width>111</width>
+          <height>21</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+        </property>
+        <property name="text">
+         <string> Calibration Time:</string>
+        </property>
        </widget>
       </widget>
      </item>
