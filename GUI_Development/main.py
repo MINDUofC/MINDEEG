@@ -326,6 +326,9 @@ class MainApp(QDialog):
             # Automatically disable FastICA when board is turned off
             self._disable_fastica()
             
+            # Clear the board_shim reference to ensure fresh instance on next turn on
+            self.board_shim = None
+            
             for graph in (self.muVGraph, self.FFTGraph, self.PSDGraph):
                 if graph:
                     graph.board_shim = None

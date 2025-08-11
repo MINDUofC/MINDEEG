@@ -48,14 +48,8 @@ def get_filtered_data(board_shim, num_points, eeg_channels, preprocessing):
 
         processed_data[channel] = signal
 
-    # 5) FastICA processing (applied to all channels together)
-    if preprocessing["FastICA"].isChecked():
-        # ICA processing will be handled by the ICA manager
-        # This is just a placeholder - the actual ICA processing
-        # happens in the ICA manager when data is passed through
-        pass
 
-    # 6) Smoothing (applied to each channel individually)
+    # 5) Smoothing (applied to each channel individually)
     for channel in eeg_channels:
         if channel in processed_data:
             signal = processed_data[channel]
