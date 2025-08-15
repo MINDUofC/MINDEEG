@@ -1,0 +1,152 @@
+Index: Usama MRCP Testing/data_collect.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import os\r\nimport time\r\nimport numpy as np\r\nfrom brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds\r\nfrom brainflow.data_filter import DataFilter, FilterTypes\r\n\r\n# ====== CONFIG ======\r\nfs = 125\r\nwindow_sec = 3               # Total trial window: 2s before + 1s after\r\nsamples_per_trial = fs * window_sec\r\npre_clench_sec = 2\r\npost_clench_sec = 1\r\npause_between_trials = 2     # Pause after each trial\r\ntrials_per_class = 50\r\nlabels = ['left', 'right']\r\noutput_dir = \"calibration_data\"\r\nos.makedirs(output_dir, exist_ok=True)\r\n\r\n# ====== INIT BOARD ======\r\nBoardShim.enable_dev_board_logger()\r\nparams = BrainFlowInputParams()\r\nparams.serial_port = \"COM3\"\r\nboard_id = 57\r\nboard = BoardShim(board_id, params)\r\n\r\nprint(\"Preparing session...\")\r\nboard.prepare_session()\r\nboard.start_stream()\r\ntime.sleep(2)\r\n\r\n# ====== CONFIGURE EEG CHANNELS ======\r\ncommands = [\r\n    \"chon_1_12\", \"rldadd_1\", \"chon_2_12\", \"rldadd_2\",\r\n    \"chon_3_12\", \"rldadd_3\", \"chon_4_12\", \"rldadd_4\",\r\n    \"chon_5_12\", \"rldadd_5\", \"chon_6_12\", \"rldadd_6\",\r\n    \"chon_7_12\", \"rldadd_7\", \"chon_8_12\", \"rldadd_8\"\r\n]\r\nfor cmd in commands:\r\n    board.config_board(cmd)\r\n    time.sleep(1)\r\n\r\neeg_channels = board.get_eeg_channels(board_id)\r\nprint(\"EEG Channels:\", eeg_channels)\r\n\r\n# ====== COLLECT TRIALS ======\r\ntrials = []\r\n\r\ntotal_trials = trials_per_class * len(labels)\r\ntrial_counter = 1\r\nstart_time = time.time()\r\n\r\nfor label in labels:\r\n    print(f\"\\n========== STARTING {label.upper()} HAND TRIALS ==========\")\r\n    time.sleep(2)\r\n\r\n    for i in range(trials_per_class):\r\n        print(f\"\\nTrial {trial_counter}/{total_trials} — {label.upper()} HAND\")\r\n\r\n        # Optional: inter-trial pause\r\n        print(f\"Reset... Next trial in:\")\r\n        for t in reversed(range(1, 4)):\r\n            print(f\"{t}...\")\r\n            time.sleep(1)\r\n\r\n        # Pre-clench baseline collection (this is included in EEG window)\r\n        print(\"\uD83E\uDDD8\u200D♂\uFE0F Relax and stay still...\")\r\n        time.sleep(pre_clench_sec)\r\n\r\n        print(\"✊ CLENCH NOW!\")\r\n        time.sleep(post_clench_sec)\r\n\r\n        # Collect EEG (whole 3-second window: 2s before + 1s after)\r\n        data = board.get_current_board_data(samples_per_trial)\r\n        eeg = data[eeg_channels]\r\n\r\n        trials.append({\r\n            \"label\": label,\r\n            \"raw_eeg\": eeg\r\n        })\r\n\r\n        print(f\"✔\uFE0F {label} hand trial {i+1} recorded\")\r\n\r\n        # Optional pause\r\n        print(\"...pausing before next trial...\")\r\n        time.sleep(pause_between_trials)\r\n        trial_counter += 1\r\n\r\n# ====== CLEANUP ======\r\nboard.stop_stream()\r\nboard.release_session()\r\n\r\n# ====== FILTER & SAVE ======\r\nfiltered_data = {\r\n    \"labels\": [],\r\n    \"mrcp\": [],\r\n    \"csp\": []\r\n}\r\n\r\nfor trial in trials:\r\n    label = trial[\"label\"]\r\n    raw = np.copy(trial[\"raw_eeg\"])\r\n    mrcp_filtered = np.copy(raw)\r\n    csp_filtered = np.copy(raw)\r\n\r\n    for ch in range(raw.shape[0]):\r\n        # MRCP: 0.05–5 Hz\r\n        DataFilter.perform_bandpass(mrcp_filtered[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n        # CSP/ERD: 8–30 Hz\r\n        DataFilter.perform_bandpass(csp_filtered[ch], fs, 8.0, 30.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n\r\n    filtered_data[\"labels\"].append(0 if label == \"left\" else 1)\r\n    filtered_data[\"mrcp\"].append(mrcp_filtered)\r\n    filtered_data[\"csp\"].append(csp_filtered)\r\n\r\nfiltered_data[\"labels\"] = np.array(filtered_data[\"labels\"])\r\nfiltered_data[\"mrcp\"] = np.array(filtered_data[\"mrcp\"])  # shape: (n_trials, n_channels, 375)\r\nfiltered_data[\"csp\"] = np.array(filtered_data[\"csp\"])    # shape: (n_trials, n_channels, 375)\r\n\r\nfilename = os.path.join(output_dir, \"single_clench_trials.npz\")\r\nnp.savez(filename, **filtered_data)\r\nprint(f\"✅ Saved EEG data to: {filename}\")\r\n\r\n# Print total time\r\nelapsed = time.time() - start_time\r\nprint(f\"\\n\uD83D\uDD52 Calibration complete in {elapsed:.1f} seconds (~{elapsed/60:.1f} min)\")\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/data_collect.py b/Usama MRCP Testing/data_collect.py
+--- a/Usama MRCP Testing/data_collect.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/data_collect.py	(date 1742927074260)
+@@ -13,7 +13,7 @@
+ pause_between_trials = 2     # Pause after each trial
+ trials_per_class = 50
+ labels = ['left', 'right']
+-output_dir = "calibration_data"
++output_dir = "../calibration_data"
+ os.makedirs(output_dir, exist_ok=True)
+ 
+ # ====== INIT BOARD ======
+Index: Usama MRCP Testing/model_1.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import numpy as np\r\nfrom sklearn.linear_model import LogisticRegression\r\nimport joblib\r\n\r\n# ====== Load Features ======\r\ndata = np.load(\"calibration_data/features_ready.npz\")\r\nX = data[\"X_combined\"]    # shape: (n_trials, 8)\r\ny = data[\"labels\"]        # shape: (n_trials,)\r\n\r\n# ====== Train Classifier on ALL Data ======\r\nclf = LogisticRegression()\r\nclf.fit(X, y)\r\n\r\n# ====== Save Model ======\r\njoblib.dump(clf, \"trained_model_1.pkl\")\r\nprint(\"\uD83D\uDCBE Model trained and saved to 'trained_model.pkl'\")\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/model_1.py b/Usama MRCP Testing/model_1.py
+--- a/Usama MRCP Testing/model_1.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/model_1.py	(date 1742927074213)
+@@ -3,7 +3,7 @@
+ import joblib
+ 
+ # ====== Load Features ======
+-data = np.load("calibration_data/features_ready.npz")
++data = np.load("../calibration_data/features_ready.npz")
+ X = data["X_combined"]    # shape: (n_trials, 8)
+ y = data["labels"]        # shape: (n_trials,)
+ 
+Index: Usama MRCP Testing/detector.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import time\r\nimport numpy as np\r\nimport joblib\r\nfrom brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds\r\nfrom brainflow.data_filter import DataFilter, FilterTypes\r\nfrom scipy.signal import detrend\r\n\r\n# ====== Load Trained Models ======\r\nmodel = joblib.load(\"trained_model_1.pkl\")\r\ncsp = joblib.load(\"calibration_data/trained_csp.pkl\")\r\n\r\n# ====== Config ======\r\nfs = 125\r\nwindow_sec = 3\r\nsamples = fs * window_sec\r\nC3_idx, C4_idx, Cz_idx = 0, 1, 2\r\nserial_port = \"COM3\"\r\nboard_id = 57\r\n\r\nparams = BrainFlowInputParams()\r\nparams.serial_port = serial_port\r\nboard = BoardShim(board_id, params)\r\n\r\nprint(\"\uD83D\uDD0C Preparing board...\")\r\nboard.prepare_session()\r\nboard.start_stream()\r\ntime.sleep(2)\r\n\r\n# ====== CONFIGURE EEG CHANNELS ======\r\ncommands = [\r\n    \"chon_1_12\", \"rldadd_1\", \"chon_2_12\", \"rldadd_2\",\r\n    \"chon_3_12\", \"rldadd_3\", \"chon_4_12\", \"rldadd_4\",\r\n    \"chon_5_12\", \"rldadd_5\", \"chon_6_12\", \"rldadd_6\",\r\n    \"chon_7_12\", \"rldadd_7\", \"chon_8_12\", \"rldadd_8\"\r\n]\r\nfor cmd in commands:\r\n    board.config_board(cmd)\r\n    time.sleep(1)\r\n\r\nprint(\"✅ Starting guided prediction loop... Press Ctrl+C to stop.\")\r\n\r\ntry:\r\n    trial_num = 1\r\n    while True:\r\n        print(f\"\\n\uD83E\uDDE0 Trial {trial_num}\")\r\n        print(\"⏳ Get ready...\")\r\n\r\n        for t in reversed(range(1, 4)):\r\n            print(f\"  Clench in {t}...\")\r\n            time.sleep(1)\r\n\r\n        print(\"⏳ Get ready...\")\r\n        time.sleep(1.5)  # pre-movement period\r\n\r\n        print(\"✊ CLENCH NOW!\")\r\n        time.sleep(1.5)  # collect post-movement EEG\r\n\r\n        # Ensure enough data is in the buffer\r\n        while board.get_board_data_count() < samples:\r\n            time.sleep(0.1)\r\n\r\n        data = board.get_current_board_data(samples)\r\n        eeg_channels = board.get_eeg_channels(board_id)\r\n        raw = data[eeg_channels]\r\n\r\n        # ====== Filter EEG ======\r\n        csp_input = np.copy(raw)\r\n        mrcp_input = np.copy(raw)\r\n\r\n        for ch in range(raw.shape[0]):\r\n            DataFilter.perform_bandpass(csp_input[ch], fs, 8, 30, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n            DataFilter.perform_bandpass(mrcp_input[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n\r\n        # ====== Extract Features ======\r\n        csp_input = detrend(csp_input, axis=1)\r\n        X_csp = csp.transform(csp_input[np.newaxis, :, :])[0]\r\n\r\n        c3, c4, cz = mrcp_input[C3_idx], mrcp_input[C4_idx], mrcp_input[Cz_idx]\r\n        avg_signal = (c3 + c4 + cz) / 3.0\r\n\r\n        min_val = np.min(avg_signal)\r\n        min_idx = np.argmin(avg_signal)\r\n        time_to_peak = min_idx / fs\r\n        slope = (avg_signal[min_idx] - avg_signal[0]) / (min_idx + 1e-5)\r\n        auc = np.trapezoid(avg_signal)\r\n\r\n        X_mrcp = [min_val, time_to_peak, slope, auc]\r\n        scaler_csp = joblib.load(\"calibration_data/scaler_csp.pkl\")\r\n        scaler_mrcp = joblib.load(\"calibration_data/scaler_mrcp.pkl\")\r\n\r\n        # Combine features and predict\r\n        X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))\r\n        X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))\r\n        X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)\r\n        pred = model.predict(X_live)[0]\r\n        label = \"\uD83D\uDFE5 LEFT HAND\" if pred == 0 else \"\uD83D\uDFE6 RIGHT HAND\"\r\n        print(f\"\uD83E\uDD16 Prediction: {label}\")\r\n\r\n        trial_num += 1\r\n        time.sleep(2)  # short pause before next trial\r\n\r\nexcept KeyboardInterrupt:\r\n    print(\"\\n\uD83D\uDED1 Stopped by user.\")\r\n\r\nfinally:\r\n    board.stop_stream()\r\n    board.release_session()\r\n    print(\"\uD83D\uDD0C Board session closed.\")\r\n\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/detector.py b/Usama MRCP Testing/detector.py
+--- a/Usama MRCP Testing/detector.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/detector.py	(date 1742927074182)
+@@ -7,7 +7,7 @@
+ 
+ # ====== Load Trained Models ======
+ model = joblib.load("trained_model_1.pkl")
+-csp = joblib.load("calibration_data/trained_csp.pkl")
++csp = joblib.load("../calibration_data/trained_csp.pkl")
+ 
+ # ====== Config ======
+ fs = 125
+Index: Usama MRCP Testing/feature_extraction.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import numpy as np\r\nfrom mne.decoding import CSP\r\nfrom scipy.signal import detrend\r\nfrom sklearn.preprocessing import StandardScaler\r\nfrom joblib import dump\r\n\r\n# ====== Load Preprocessed EEG ======\r\ndata = np.load(\"calibration_data/single_clench_trials.npz\")\r\ncsp_data = data[\"csp\"]        # shape: (n_trials, 8, 375)\r\nmrcp_data = data[\"mrcp\"]      # shape: (n_trials, 8, 375)\r\nlabels = data[\"labels\"]       # shape: (n_trials,)\r\n\r\n# ====== CSP Feature Extraction ======\r\nprint(\"Extracting CSP features...\")\r\n\r\n# Optional: detrend CSP input to remove DC offset\r\ncsp_input = np.array([detrend(trial, axis=1) for trial in csp_data])\r\n\r\n# Fit CSP\r\ncsp = CSP(n_components=4, log=True)\r\nX_csp = csp.fit_transform(csp_input, labels)  # Output: (n_trials, 4)\r\n\r\n# Save CSP model for live use\r\ndump(csp, \"calibration_data/trained_csp.pkl\")\r\nprint(\"\uD83D\uDCBE Trained CSP saved to calibration_data/trained_csp.pkl\")\r\n\r\n# ====== MRCP Feature Extraction ======\r\nprint(\"Extracting MRCP features...\")\r\n\r\nC3_idx, C4_idx, Cz_idx = 0, 1, 2\r\nfs = 125  # Sampling rate\r\n\r\nX_mrcp = []\r\nfor trial in mrcp_data:\r\n    c3 = trial[C3_idx]\r\n    c4 = trial[C4_idx]\r\n    cz = trial[Cz_idx]\r\n    avg_signal = (c3 + c4 + cz) / 3.0\r\n\r\n    # Feature 1: Peak negativity\r\n    min_val = np.min(avg_signal)\r\n\r\n    # Feature 2: Time to peak (sec)\r\n    min_idx = np.argmin(avg_signal)\r\n    time_to_peak = min_idx / fs\r\n\r\n    # Feature 3: Slope to peak\r\n    slope = (avg_signal[min_idx] - avg_signal[0]) / (min_idx + 1e-5)\r\n\r\n    # Feature 4: Area under curve (AUC)\r\n    auc = np.trapz(avg_signal)\r\n\r\n    X_mrcp.append([min_val, time_to_peak, slope, auc])\r\n\r\nX_mrcp = np.array(X_mrcp)  # shape: (n_trials, 4)\r\n\r\n# ====== Normalize Features (Recommended) ======\r\nscaler_csp = StandardScaler()\r\nscaler_mrcp = StandardScaler()\r\n\r\nX_csp = scaler_csp.fit_transform(X_csp)\r\nX_mrcp = scaler_mrcp.fit_transform(X_mrcp)\r\n\r\ndump(scaler_csp, \"calibration_data/scaler_csp.pkl\")\r\ndump(scaler_mrcp, \"calibration_data/scaler_mrcp.pkl\")\r\n\r\n# ====== Combine CSP + MRCP Features ======\r\nX_combined = np.hstack((X_csp, X_mrcp))  # shape: (n_trials, 8)\r\n\r\n# ====== Final Output ======\r\nprint(\"✅ Features ready!\")\r\nprint(\"X_csp shape:\", X_csp.shape)\r\nprint(\"X_mrcp shape:\", X_mrcp.shape)\r\nprint(\"X_combined shape:\", X_combined.shape)\r\nprint(\"Labels shape:\", labels.shape)\r\n\r\n# Optional: save for training\r\nnp.savez(\"calibration_data/features_ready.npz\", X_csp=X_csp, X_mrcp=X_mrcp, X_combined=X_combined, labels=labels)\r\nprint(\"\uD83D\uDCBE Saved features to calibration_data/features_ready.npz\")\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/feature_extraction.py b/Usama MRCP Testing/feature_extraction.py
+--- a/Usama MRCP Testing/feature_extraction.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/feature_extraction.py	(date 1742927074197)
+@@ -5,7 +5,7 @@
+ from joblib import dump
+ 
+ # ====== Load Preprocessed EEG ======
+-data = np.load("calibration_data/single_clench_trials.npz")
++data = np.load("../calibration_data/single_clench_trials.npz")
+ csp_data = data["csp"]        # shape: (n_trials, 8, 375)
+ mrcp_data = data["mrcp"]      # shape: (n_trials, 8, 375)
+ labels = data["labels"]       # shape: (n_trials,)
+@@ -21,7 +21,7 @@
+ X_csp = csp.fit_transform(csp_input, labels)  # Output: (n_trials, 4)
+ 
+ # Save CSP model for live use
+-dump(csp, "calibration_data/trained_csp.pkl")
++dump(csp, "../calibration_data/trained_csp.pkl")
+ print("💾 Trained CSP saved to calibration_data/trained_csp.pkl")
+ 
+ # ====== MRCP Feature Extraction ======
+@@ -61,8 +61,8 @@
+ X_csp = scaler_csp.fit_transform(X_csp)
+ X_mrcp = scaler_mrcp.fit_transform(X_mrcp)
+ 
+-dump(scaler_csp, "calibration_data/scaler_csp.pkl")
+-dump(scaler_mrcp, "calibration_data/scaler_mrcp.pkl")
++dump(scaler_csp, "../calibration_data/scaler_csp.pkl")
++dump(scaler_mrcp, "../calibration_data/scaler_mrcp.pkl")
+ 
+ # ====== Combine CSP + MRCP Features ======
+ X_combined = np.hstack((X_csp, X_mrcp))  # shape: (n_trials, 8)
+@@ -75,5 +75,5 @@
+ print("Labels shape:", labels.shape)
+ 
+ # Optional: save for training
+-np.savez("calibration_data/features_ready.npz", X_csp=X_csp, X_mrcp=X_mrcp, X_combined=X_combined, labels=labels)
++np.savez("../calibration_data/features_ready.npz", X_csp=X_csp, X_mrcp=X_mrcp, X_combined=X_combined, labels=labels)
+ print("💾 Saved features to calibration_data/features_ready.npz")
+Index: Usama MRCP Testing/detector_2.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import time\r\nimport numpy as np\r\nimport joblib\r\nfrom brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds\r\nfrom brainflow.data_filter import DataFilter, FilterTypes\r\nfrom scipy.signal import detrend\r\n\r\n# ====== Load Trained Models ======\r\nmodel = joblib.load(\"trained_model.pkl\")\r\ncsp = joblib.load(\"calibration_data/trained_csp.pkl\")\r\n\r\n# ====== Config ======\r\nfs = 125\r\nwindow_sec = 3\r\nsamples = fs * window_sec\r\nC3_idx, C4_idx, Cz_idx = 0, 1, 2\r\nserial_port = \"COM3\"\r\nboard_id = 57\r\n\r\nparams = BrainFlowInputParams()\r\nparams.serial_port = serial_port\r\nboard = BoardShim(board_id, params)\r\n\r\nprint(\"\uD83D\uDD0C Preparing board...\")\r\nboard.prepare_session()\r\nboard.start_stream()\r\ntime.sleep(2)\r\n\r\n# ====== CONFIGURE EEG CHANNELS ======\r\ncommands = [\r\n    \"chon_1_12\", \"rldadd_1\", \"chon_2_12\", \"rldadd_2\",\r\n    \"chon_3_12\", \"rldadd_3\", \"chon_4_12\", \"rldadd_4\",\r\n    \"chon_5_12\", \"rldadd_5\", \"chon_6_12\", \"rldadd_6\",\r\n    \"chon_7_12\", \"rldadd_7\", \"chon_8_12\", \"rldadd_8\"\r\n]\r\nfor cmd in commands:\r\n    board.config_board(cmd)\r\n    time.sleep(1)\r\n\r\nprint(\"✅ Real-time continuous detection started. Ctrl+C to stop.\")\r\nprint(\"\uD83D\uDC49 Keep clenching left or right hand — predictions will show below every few seconds.\")\r\n\r\ntry:\r\n    trial_num = 1\r\n    while True:\r\n        # Make sure buffer has enough data\r\n        while board.get_board_data_count() < samples:\r\n            time.sleep(0.1)\r\n\r\n        data = board.get_current_board_data(samples)\r\n        eeg_channels = board.get_eeg_channels(board_id)\r\n        raw = data[eeg_channels]  # shape: (n_channels, n_samples)\r\n\r\n        # ====== Filter EEG ======\r\n        csp_input = np.copy(raw)\r\n        mrcp_input = np.copy(raw)\r\n\r\n        for ch in range(raw.shape[0]):\r\n            DataFilter.perform_bandpass(csp_input[ch], fs, 8, 30, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n            DataFilter.perform_bandpass(mrcp_input[ch], fs, 0.05, 5.0, 4, FilterTypes.BUTTERWORTH_ZERO_PHASE, 0)\r\n\r\n        # ====== Extract Features ======\r\n        csp_input = detrend(csp_input, axis=1)\r\n        X_csp = csp.transform(csp_input[np.newaxis, :, :])[0]\r\n\r\n        c3, c4, cz = mrcp_input[C3_idx], mrcp_input[C4_idx], mrcp_input[Cz_idx]\r\n        avg_signal = (c3 + c4 + cz) / 3.0\r\n\r\n        min_val = np.min(avg_signal)\r\n        min_idx = np.argmin(avg_signal)\r\n        time_to_peak = min_idx / fs\r\n        slope = (avg_signal[min_idx] - avg_signal[0]) / (min_idx + 1e-5)\r\n        auc = np.trapezoid(avg_signal)\r\n\r\n        X_mrcp = [min_val, time_to_peak, slope, auc]\r\n\r\n        scaler_csp = joblib.load(\"calibration_data/scaler_csp.pkl\")\r\n        scaler_mrcp = joblib.load(\"calibration_data/scaler_mrcp.pkl\")\r\n\r\n\r\n        # ====== Predict ======\r\n        # Standardize live features\r\n        X_csp_scaled = scaler_csp.transform(X_csp.reshape(1, -1))\r\n        X_mrcp_scaled = scaler_mrcp.transform(np.array(X_mrcp).reshape(1, -1))\r\n        X_live = np.hstack((X_csp_scaled, X_mrcp_scaled)).reshape(1, -1)\r\n        pred = model.predict(X_live)[0]\r\n        label = \"\uD83D\uDFE5 LEFT HAND\" if pred == 0 else \"\uD83D\uDFE6 RIGHT HAND\"\r\n        print(f\"Trial {trial_num} → \uD83E\uDD16 Prediction: {label}\")\r\n        trial_num += 1\r\n\r\n        # Wait before next window to avoid overlap (optional: tune this)\r\n        time.sleep(1.0)  # controls detection rate (every ~1s)\r\n\r\nexcept KeyboardInterrupt:\r\n    print(\"\\n\uD83D\uDED1 Stopped by user.\")\r\n\r\nfinally:\r\n    board.stop_stream()\r\n    board.release_session()\r\n    print(\"\uD83D\uDD0C Board session closed.\")\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/detector_2.py b/Usama MRCP Testing/detector_2.py
+--- a/Usama MRCP Testing/detector_2.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/detector_2.py	(date 1742927074228)
+@@ -7,7 +7,7 @@
+ 
+ # ====== Load Trained Models ======
+ model = joblib.load("trained_model.pkl")
+-csp = joblib.load("calibration_data/trained_csp.pkl")
++csp = joblib.load("../calibration_data/trained_csp.pkl")
+ 
+ # ====== Config ======
+ fs = 125
+@@ -74,8 +74,8 @@
+ 
+         X_mrcp = [min_val, time_to_peak, slope, auc]
+ 
+-        scaler_csp = joblib.load("calibration_data/scaler_csp.pkl")
+-        scaler_mrcp = joblib.load("calibration_data/scaler_mrcp.pkl")
++        scaler_csp = joblib.load("../calibration_data/scaler_csp.pkl")
++        scaler_mrcp = joblib.load("../calibration_data/scaler_mrcp.pkl")
+ 
+ 
+         # ====== Predict ======
+Index: Usama MRCP Testing/model.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import numpy as np\r\nfrom sklearn.model_selection import train_test_split\r\nfrom sklearn.linear_model import LogisticRegression\r\nfrom sklearn.metrics import accuracy_score, confusion_matrix, classification_report\r\nimport joblib\r\nimport matplotlib.pyplot as plt\r\nimport seaborn as sns\r\n\r\n# ====== Load Features ======\r\ndata = np.load(\"calibration_data/features_ready.npz\")\r\nX = data[\"X_combined\"]    # shape: (n_trials, 8)\r\ny = data[\"labels\"]        # shape: (n_trials,)\r\n\r\n# ====== Split Data (80% train, 20% test) ======\r\nX_train, X_test, y_train, y_test = train_test_split(\r\n    X, y, test_size=0.2, random_state=42, stratify=y\r\n)\r\n\r\n# ====== Train Classifier ======\r\nclf = LogisticRegression()\r\nclf.fit(X_train, y_train)\r\n\r\n# ====== Evaluate ======\r\ny_pred = clf.predict(X_test)\r\nacc = accuracy_score(y_test, y_pred)\r\nprint(f\"✅ Accuracy: {acc * 100:.2f}%\\n\")\r\n\r\nprint(\"\uD83D\uDCCA Classification Report:\")\r\nprint(classification_report(y_test, y_pred, target_names=[\"Left\", \"Right\"]))\r\n\r\n# ====== Confusion Matrix ======\r\ncm = confusion_matrix(y_test, y_pred)\r\nplt.figure(figsize=(5,4))\r\nsns.heatmap(cm, annot=True, fmt=\"d\", cmap=\"Blues\", xticklabels=[\"Left\", \"Right\"], yticklabels=[\"Left\", \"Right\"])\r\nplt.title(\"Confusion Matrix\")\r\nplt.xlabel(\"Predicted\")\r\nplt.ylabel(\"Actual\")\r\nplt.tight_layout()\r\nplt.show()\r\n\r\n# ====== Save Model ======\r\njoblib.dump(clf, \"trained_model.pkl\")\r\nprint(\"\uD83D\uDCBE Trained model saved to 'trained_model.pkl'\")\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Usama MRCP Testing/model.py b/Usama MRCP Testing/model.py
+--- a/Usama MRCP Testing/model.py	(revision b594709a1553dab7206389658ac489654e20acf8)
++++ b/Usama MRCP Testing/model.py	(date 1742927074244)
+@@ -7,7 +7,7 @@
+ import seaborn as sns
+ 
+ # ====== Load Features ======
+-data = np.load("calibration_data/features_ready.npz")
++data = np.load("../calibration_data/features_ready.npz")
+ X = data["X_combined"]    # shape: (n_trials, 8)
+ y = data["labels"]        # shape: (n_trials,)
+ 
