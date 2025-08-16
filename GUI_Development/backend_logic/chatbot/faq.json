@@ -1,0 +1,238 @@
+[
+  {
+    "q": "What is the MINDEEG application?",
+    "a": "MINDEEG is a comprehensive EEG signal processing and visualization platform developed for real-time brain signal analysis. It provides tools for signal filtering, frequency analysis, artifact removal, and brain-computer interface applications."
+  },
+  {
+    "q": "What does bandpass filtering do for EEG?",
+    "a": "Bandpass filtering removes unwanted low and high frequencies. For EEG, 0.5–40 Hz is common to isolate brainwave activity, while 8-30 Hz is used for motor imagery tasks."
+  },
+  {
+    "q": "When should I use ICA?",
+    "a": "Use ICA to separate and remove artifacts like eye blinks or muscle noise. Best with many channels (minimum 2, recommended 4+) and long recordings for proper calibration."
+  },
+  {
+    "q": "What is PSD?",
+    "a": "Power Spectral Density shows how power in a signal is distributed across frequencies, often used to analyze brain rhythms like alpha or beta waves."
+  },
+  {
+    "q": "What are alpha waves and when do they occur?",
+    "a": "Alpha waves (8-12 Hz) are associated with relaxed wakefulness, especially when eyes are closed. They're strongest over occipital regions and indicate a calm, meditative state."
+  },
+  {
+    "q": "What is the alpha rhythm?",
+    "a": "Alpha rhythm is the dominant 8-12 Hz oscillation in the EEG when a person is awake but relaxed with eyes closed. It's most prominent in posterior brain regions."
+  },
+  {
+    "q": "What are beta waves?",
+    "a": "Beta waves (13-30 Hz) are associated with active concentration, alertness, and cognitive processing. Higher beta activity indicates mental engagement or stress."
+  },
+  {
+    "q": "What are theta waves?",
+    "a": "Theta waves (4-8 Hz) occur during deep relaxation, meditation, light sleep, and creative states. They're also associated with memory formation and emotional processing."
+  },
+  {
+    "q": "What are delta waves?",
+    "a": "Delta waves (0.5-4 Hz) are the slowest brainwaves, occurring during deep sleep. High delta activity in awake states may indicate brain injury or neurological issues."
+  },
+  {
+    "q": "What are gamma waves?",
+    "a": "Gamma waves (30-100 Hz) are associated with high-level cognitive processing, consciousness, and binding of sensory information. They indicate intense mental activity."
+  },
+  {
+    "q": "What is mu rhythm?",
+    "a": "Mu rhythm (8-12 Hz) occurs over sensorimotor cortex (C3, C4) and is suppressed during movement or motor imagery. It's distinct from alpha rhythm and used in BCI applications."
+  },
+  {
+    "q": "What is MRCP?",
+    "a": "Movement-Related Cortical Potential is a slow negative shift in EEG that occurs before voluntary movement. It's detectable 1-2 seconds before movement onset and used for motor intention detection."
+  },
+  {
+    "q": "What is CSP?",
+    "a": "Common Spatial Patterns is a feature extraction method that finds spatial filters to maximize variance differences between classes, commonly used for motor imagery classification."
+  },
+  {
+    "q": "What is the 10-20 electrode system?",
+    "a": "The international 10-20 system is a standardized method for electrode placement on the scalp, with positions named by brain region (F=frontal, C=central, P=parietal, O=occipital) and hemisphere (odd=left, even=right)."
+  },
+  {
+    "q": "What does detrending do?",
+    "a": "Detrending removes linear trends and DC offsets from EEG signals, eliminating slow drifts that can interfere with frequency analysis and artifact detection."
+  },
+  {
+    "q": "What is environmental noise filtering?",
+    "a": "Environmental noise filtering removes powerline interference (50/60 Hz) and other electrical noise from the environment that contaminates EEG recordings."
+  },
+  {
+    "q": "What is the optimal sampling rate for EEG?",
+    "a": "125-250 Hz is typically sufficient for most EEG applications. The Nyquist theorem requires sampling at least twice the highest frequency of interest (e.g., 125 Hz for 0.5-40 Hz EEG)."
+  },
+  {
+    "q": "What electrodes are best for motor imagery?",
+    "a": "C3 and C4 (central electrodes) are optimal for motor imagery as they're positioned over the primary motor cortex. Additional channels like Cz, FC3, FC4 can improve classification."
+  },
+  {
+    "q": "What electrodes are best for alpha rhythm detection?",
+    "a": "Occipital electrodes (O1, O2, Oz) and parietal electrodes (P3, P4, Pz) are best for alpha rhythm detection as alpha waves are strongest in posterior brain regions."
+  },
+  {
+    "q": "What electrodes are best for eye blink detection?",
+    "a": "Frontal electrodes (Fp1, Fp2) or channels positioned near the eyes are optimal for eye blink detection as they capture the strongest EOG artifacts."
+  },
+  {
+    "q": "What is FFT in EEG analysis?",
+    "a": "Fast Fourier Transform converts time-domain EEG signals to frequency domain, revealing the power at different frequencies and enabling analysis of brain rhythms."
+  },
+  {
+    "q": "What is the Welch method?",
+    "a": "Welch's method is an improved approach to power spectral density estimation that uses overlapping windows and averaging to reduce noise and improve frequency resolution."
+  },
+  {
+    "q": "What is a Hamming window?",
+    "a": "A Hamming window is a tapered function applied to EEG data before FFT to reduce spectral leakage and improve frequency analysis accuracy."
+  },
+  {
+    "q": "What causes artifacts in EEG?",
+    "a": "Common EEG artifacts include eye movements (EOG), muscle activity (EMG), heart beats (ECG), electrode movement, and environmental electrical interference."
+  },
+  {
+    "q": "How does the application handle eye blink artifacts?",
+    "a": "The application uses ICA (Independent Component Analysis) to identify and remove eye blink artifacts by separating independent signal sources and filtering out high-kurtosis components."
+  },
+  {
+    "q": "What is kurtosis in artifact detection?",
+    "a": "Kurtosis measures the 'peakedness' of a signal distribution. High kurtosis indicates spiky artifacts like eye blinks, which ICA can identify and remove automatically."
+  },
+  {
+    "q": "What is baseline correction?",
+    "a": "Baseline correction removes the mean value from EEG signals to center them around zero, eliminating DC offsets and improving signal quality for analysis."
+  },
+  {
+    "q": "What smoothing methods are available?",
+    "a": "The application offers moving average smoothing and cubic spline interpolation to reduce noise while preserving important signal characteristics."
+  },
+  {
+    "q": "What is the difference between bandpass and bandstop filters?",
+    "a": "Bandpass filters allow frequencies within a specific range to pass through, while bandstop (notch) filters remove specific frequency ranges, typically used to eliminate powerline noise."
+  },
+  {
+    "q": "What filter order should I use?",
+    "a": "4th order Butterworth filters are commonly used as they provide good frequency selectivity while maintaining phase characteristics. Higher orders increase sharpness but may introduce artifacts."
+  },
+  {
+    "q": "What is zero-phase filtering?",
+    "a": "Zero-phase filtering applies the filter both forward and backward to eliminate phase distortion, preserving the temporal relationships in EEG signals."
+  },
+  {
+    "q": "How do I optimize electrode impedance?",
+    "a": "Keep electrode impedance below 5kΩ by properly cleaning the scalp, using conductive gel, and ensuring good skin contact. Lower impedance improves signal quality and reduces noise."
+  },
+  {
+    "q": "What is common mode rejection?",
+    "a": "Common mode rejection eliminates noise that appears equally on all electrodes by referencing signals to a common reference, improving signal-to-noise ratio."
+  },
+  {
+    "q": "What is the purpose of the reference electrode?",
+    "a": "The reference electrode provides a baseline for measuring potential differences. Common references include linked earlobes, average reference, or Cz electrode."
+  },
+  {
+    "q": "What hardware does the application support?",
+    "a": "The application is designed for NeuroPawn EEG devices (Board ID 57) connected via serial port, supporting up to 8 EEG channels with 125 Hz sampling rate."
+  },
+  {
+    "q": "How do I connect the EEG hardware?",
+    "a": "Connect the NeuroPawn device via USB/serial port (typically COM3), ensure proper electrode placement, and configure channels using the board setup commands in the application."
+  },
+  {
+    "q": "What games are available in the platform?",
+    "a": "The platform includes Alpha Rhythm Tug-of-War games, eye blink detection games, and motor imagery applications for brain-computer interface training and entertainment."
+  },
+  {
+    "q": "How does the Alpha Rhythm game work?",
+    "a": "Players control game elements by modulating their alpha waves (8-12 Hz). Relaxing with eyes closed increases alpha power, while opening eyes or concentrating decreases it."
+  },
+  {
+    "q": "How does eye blink detection work?",
+    "a": "Eye blinks create large amplitude artifacts in frontal EEG channels. The system detects when signal amplitude exceeds a threshold (typically 200 µV) to register blinks."
+  },
+  {
+    "q": "What is motor imagery classification?",
+    "a": "Motor imagery classification uses machine learning to distinguish between imagined left/right hand movements based on mu rhythm suppression patterns over motor cortex."
+  },
+  {
+    "q": "How accurate is the motor imagery detection?",
+    "a": "Accuracy depends on training data quality and individual differences. Typical accuracies range from 70-90% with proper calibration and sufficient training trials."
+  },
+  {
+    "q": "What visualization modes are available?",
+    "a": "The application provides time-domain (µV) plotting, frequency-domain (FFT) analysis, power spectral density (PSD) visualization, and real-time topographic mapping."
+  },
+  {
+    "q": "How do I calibrate the system?",
+    "a": "Calibration involves recording baseline data during rest and task conditions. For alpha rhythm, record 20 seconds with eyes closed. For motor imagery, collect 20+ trials per class."
+  },
+  {
+    "q": "What is the purpose of the timeline widget?",
+    "a": "The timeline widget helps coordinate data collection sessions, providing visual cues for different phases of experiments or calibration procedures."
+  },
+  {
+    "q": "How do I troubleshoot poor signal quality?",
+    "a": "Check electrode impedance, ensure proper gel application, verify electrode placement, check for loose connections, and minimize movement and electrical interference."
+  },
+  {
+    "q": "What does 'Board ID 57' mean?",
+    "a": "Board ID 57 identifies the NeuroPawn EEG device type in the BrainFlow library, which determines the appropriate drivers and communication protocols."
+  },
+  {
+    "q": "How do I change the COM port?",
+    "a": "Find your device's COM port in Windows Device Manager under 'Ports', then update the serial_port parameter in the configuration to match your device's port."
+  },
+  {
+    "q": "What is the difference between EEG, EMG, and ECG?",
+    "a": "EEG measures brain electrical activity, EMG measures muscle electrical activity, and ECG measures heart electrical activity. Each has different frequency ranges and amplitudes."
+  },
+  {
+    "q": "Can I use this system for medical diagnosis?",
+    "a": "No, this system is designed for research and educational purposes only. It should not be used for medical diagnosis or clinical decision-making."
+  },
+  {
+    "q": "How do I export data for analysis?",
+    "a": "The system can save preprocessed data in various formats. Use the data collection modules to record trials and export them as .npz files for further analysis."
+  },
+  {
+    "q": "What machine learning models are used?",
+    "a": "The system uses Common Spatial Patterns (CSP) for feature extraction and various classifiers (SVM, Random Forest) for motor imagery and MRCP classification."
+  },
+  {
+    "q": "How long should calibration take?",
+    "a": "ICA calibration takes 3-30 seconds depending on settings. Alpha rhythm calibration needs 20 seconds. Motor imagery requires 20+ trials per class (10-15 minutes total)."
+  },
+  {
+    "q": "What is real-time processing latency?",
+    "a": "The system updates every 30ms for visualization and can process signals in near real-time (< 100ms delay) for most applications, suitable for interactive BCI."
+  },
+  {
+    "q": "How do I optimize system performance?",
+    "a": "Use appropriate filter settings, minimize unnecessary processing, ensure stable hardware connections, and close other applications to reduce computational load."
+  },
+  {
+    "q": "What Python packages are required?",
+    "a": "Key packages include BrainFlow (5.16.0), PyQt6 (6.8.0), NumPy (2.2.1), PyQtGraph (0.13.7), SciPy, scikit-learn, and Vispy for visualization."
+  },
+  {
+    "q": "Can I add custom signal processing algorithms?",
+    "a": "Yes, the modular architecture allows adding custom filters, feature extractors, and classifiers through the data processing pipeline and plugin system."
+  },
+  {
+    "q": "What is the maximum number of channels supported?",
+    "a": "The current implementation supports up to 8 EEG channels, which is the maximum for the NeuroPawn device. The software can be extended for higher-density systems."
+  },
+  {
+    "q": "How do I interpret PSD plots?",
+    "a": "PSD plots show power (y-axis) vs frequency (x-axis). Peaks indicate dominant rhythms - alpha peaks around 10 Hz, beta around 20 Hz. Higher power indicates stronger activity."
+  },
+  {
+    "q": "What is the purpose of log scaling in PSD?",
+    "a": "Log scaling (ln(1+power)) compresses the dynamic range, making it easier to visualize both strong and weak frequency components in the same plot."
+  }
+]
