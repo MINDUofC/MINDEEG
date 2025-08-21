@@ -63,6 +63,10 @@ class MainApp(QDialog):
         self.InstaLogo = self.findChild(QPushButton, "InstaLogo")
         self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
 
+        # Chatbot controls
+        self.chatbot = ChatbotFE()
+
+
         # Main tab widget (for µV, FFT, PSD, etc)
         self.Visualizer = self.findChild(QTabWidget, "Visualizer")
         self.muVPlot    = self.findChild(QWidget,  "muVPlot")
@@ -446,6 +450,7 @@ class MainApp(QDialog):
         if self._resizing:
             # perform the resize
             self._perform_resize(event.globalPos())
+            self.chatBotGeometryChanged(self.chatbot)
         else:
             # update the cursor shape when hovering edges
             d = self._get_resize_direction(pos)
@@ -462,6 +467,7 @@ class MainApp(QDialog):
         if self._resizing:
             self._resizing   = False
             self._resize_dir = None
+            self.chatBotGeometryChanged(self.chatbot)
             return
         super().mouseReleaseEvent(event)
 
@@ -499,7 +505,18 @@ class MainApp(QDialog):
             new_h = max(self.minimumHeight(), h - delta_y)
 
         self.setGeometry(new_x, new_y, new_w, new_h)
+        self.chatBotGeometryChanged(self.chatbot)
 
+
+    def chatBotGeometryChanged(self, QWidget):
+        dialog_position = self.pos()
+        dialog_size = self.size()
+        # Have to make sure the ChatBot is always aligned both in a collapsed and expanded state
+
+        new_x = dialog_position.x() + dialog_size.width() - QWidget.width() - (0.05 * dialog_size.width())
+        new_y = dialog_position.y() + dialog_size.height() - QWidget.height() - (0.05 * dialog_size.height())
+        
+        QWidget.move(QPoint(new_x, new_y))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

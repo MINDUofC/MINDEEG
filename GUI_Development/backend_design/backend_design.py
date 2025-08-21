@@ -20,8 +20,11 @@ def restore_window(self):
     self.setWindowState(Qt.WindowNoState)  # Ensure window is restored
     if self.was_fullscreen:  # Restore fullscreen if it was previously fullscreen
         self.showFullScreen()
+        
     else:
         self.showNormal()
+    self.chatBotGeometryChanged(self.chatbot)
+
 
 
 def close_window(self):
@@ -37,6 +40,7 @@ def toggle_fullscreen(self):
         self.showFullScreen()
 
     self.was_fullscreen = self.isFullScreen()  # Update state
+    self.chatBotGeometryChanged(self.chatbot)
 
 
 def start_drag(self, event):
@@ -51,6 +55,8 @@ def move_window(self, event):
         delta = event.globalPos() - self.old_pos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.old_pos = event.globalPos()
+        self.chatBotGeometryChanged(self.chatbot)
+
 
 
 def paintEvent(self, event):
