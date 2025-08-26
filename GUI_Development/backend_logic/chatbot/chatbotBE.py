@@ -1,4 +1,5 @@
-from gpt4all import GPT4All
+from pathlib import Path
+import gpt4all
 from typing import Optional
 import json
 from rapidfuzz import process, fuzz
@@ -8,14 +9,40 @@ class ChatbotBE:
 
     def __init__(self):
         super().__init__()
-        self.model = gpt4all.GPT4All("Meta-Llama-3-8B-Instruct.Q4_0.gguf")
+        self.model_name = "Meta-Llama-3-8B-Instruct.Q4_0.gguf"
+        self.model = gpt4all.GPT4All(self.model_name)
         self.chat_history = []
-        self.max_length = 1024
+        # Separate controls for context size and generation length
+        self.max_history_chars = 2048
+        self.max_tokens = 256
+        
+        # Resolve paths relative to this file for robustness
+        self.file_dir = Path(__file__).resolve().parent
 
-        with open("faq.json", "r", encoding="utf-8") as f:
-            self.faq_data = json.load(f)  # [{"q": "...", "a": "..."}]
 
-        self.questions = [item["q"] for item in self.faq_data]
+        # Load FAQ data
+        faq_path = self.file_dir / "faq.json"
+        try:
+            with open(faq_path, "r", encoding="utf-8") as f:
+                self.faq_data = json.load(f)  # [{"q": "...", "a": "..."}]
+        except Exception:
+            self.faq_data = []
+
+        self.questions = [item.get("q", "") for item in self.faq_data]
+
+
+        # Load system prompt (optional)
+        system_prompt_path = self.file_dir / "SystemPrompt.txt"
+        try:
+            with open(system_prompt_path, "r", encoding="utf-8") as f:
+                self.system_prompt = f.read().strip()
+        except Exception:
+            self.system_prompt = ""
+
+
+        # FAQ fuzzy match configuration
+        self.faq_threshold = 90  # default threshold; tune as needed
+        self.faq_scorer = fuzz.token_set_ratio  # robust default yet flexible scorer
 
 
     def handle_LLM_cycle(self, user_input: str) -> str:
@@ -32,8 +59,9 @@ class ChatbotBE:
         with self.model.chat_session():
 
             clean_up_user_input = self.clean_user_input(user_input)
+            prompt = f"{self.system_prompt}\n\n{clean_up_user_input}".strip()
 
-            LLM_output = self.model.generate(clean_up_user_input, max_tokens=self.max_length)
+            LLM_output = self.model.generate(prompt, max_tokens=self.max_tokens)
             
         self.update_chat_history(user_input, LLM_output)
         
@@ -46,11 +74,11 @@ class ChatbotBE:
         self.chat_history.append(f"USER: {user_input}")
         self.chat_history.append(f"ASSISTANT: {LLM_FAQ_output}")
 
-    def parse_FAQ(self, user_input: str) -> str:
+    def parse_FAQ(self, user_input: str) -> Optional[str]:
         # Fuzzy match against FAQ
-        best = process.extractOne(user_input, self.questions, scorer=fuzz.token_sort_ratio)
+        best = process.extractOne(user_input, self.questions, scorer=self.faq_scorer)
 
-        if best and (best[1] >= threshold):
+        if best and (best[1] >= self.faq_threshold):
             match_idx = self.questions.index(best[0])
             return self.faq_data[match_idx]["a"]
         return None
@@ -77,8 +105,8 @@ class ChatbotBE:
         combined = f"{historical_text}\n\nLATEST USER INPUT: {user_input}"
 
         # If too long, truncate from the left (oldest first)
-        if len(combined) > self.max_length:
-            overflow = len(combined) - self.max_length
+        if len(combined) > self.max_history_chars:
+            overflow = len(combined) - self.max_history_chars
             historical_text = historical_text[overflow:]  # drop oldest chars
             combined = f"{historical_text}\n\nLATEST USER INPUT: {user_input}"
 
