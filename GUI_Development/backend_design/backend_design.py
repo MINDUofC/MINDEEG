@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIntValidator, QGradient
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtCore import Qt, QUrl, QPointF
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
-
+from backend_design.chatbotFE import ChatbotFE
 
 def open_link(event):
     """Opens the MIND website when the logo is clicked."""
@@ -15,7 +15,7 @@ def minimize_window(self):
     self.setWindowState(Qt.WindowMinimized)
 
 
-def restore_window(self):
+def restore_window(self, chatbox: ChatbotFE):
     """Restores the GUI to its previous state before minimization."""
     self.setWindowState(Qt.WindowNoState)  # Ensure window is restored
     if self.was_fullscreen:  # Restore fullscreen if it was previously fullscreen
@@ -23,7 +23,7 @@ def restore_window(self):
         
     else:
         self.showNormal()
-    self.chatBotGeometryChanged(self.chatbot)
+    chatbox.reposition()
 
 
 
@@ -32,7 +32,7 @@ def close_window(self):
     self.close()
 
 
-def toggle_fullscreen(self):
+def toggle_fullscreen(self, chatbot: ChatbotFE):
     """Toggles between fullscreen and normal window mode, keeping minimize state in sync."""
     if self.isFullScreen():
         self.showNormal()
@@ -40,7 +40,7 @@ def toggle_fullscreen(self):
         self.showFullScreen()
 
     self.was_fullscreen = self.isFullScreen()  # Update state
-    self.chatBotGeometryChanged(self.chatbot)
+    chatbot.reposition()
 
 
 def start_drag(self, event):
@@ -49,13 +49,13 @@ def start_drag(self, event):
         self.old_pos = event.globalPos()
 
 
-def move_window(self, event):
+def move_window(self, event, chatbox: ChatbotFE):
     """Moves the window when dragging the taskbar."""
     if self.old_pos and not self.isFullScreen():
         delta = event.globalPos() - self.old_pos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.old_pos = event.globalPos()
-        self.chatBotGeometryChanged(self.chatbot)
+        chatbox.reposition()
 
 
 

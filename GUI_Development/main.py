@@ -26,7 +26,7 @@ from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 from backend_logic.ica_manager import ICAManager
-
+from backend_design.chatbotFE import ChatbotFE
 
 class MainApp(QDialog):
     def __init__(self):
@@ -64,7 +64,8 @@ class MainApp(QDialog):
         self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
 
         # Chatbot controls
-        self.chatbot = ChatbotFE()
+        self.chatbot = ChatbotFE(self)
+        self.chatbot.raise_()
 
 
         # Main tab widget (for µV, FFT, PSD, etc)
@@ -180,7 +181,7 @@ class MainApp(QDialog):
         if self.MindLogo:
             self.MindLogo.setCursor(Qt.PointingHandCursor)
             self.MindLogo.mousePressEvent = lambda eventParam: QDesktopServices.openUrl(
-                QUrl("https://mind-uofc.ca/")
+                QUrl("https://minduofc.ca/")
             )
 
         # ─── Connect UI interactions ────────────────────────────────────
@@ -188,10 +189,10 @@ class MainApp(QDialog):
         # Window controls
         self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
         self.close_button.clicked.connect(lambda: bed.close_window(self))
-        self.fullscreen_button.clicked.connect(lambda: bed.toggle_fullscreen(self))
+        self.fullscreen_button.clicked.connect(lambda: bed.toggle_fullscreen(self, self.chatbot))
         # Dragging
         self.taskbar.mousePressEvent = lambda e: bed.start_drag(self, e)
-        self.taskbar.mouseMoveEvent  = lambda e: bed.move_window (self, e)
+        self.taskbar.mouseMoveEvent  = lambda e: bed.move_window (self, e, self.chatbot)
         # Show/hide band settings when counts change
         self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
         self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
@@ -399,7 +400,7 @@ class MainApp(QDialog):
     def showEvent(self, event):
         """Restore window state (fullscreen/normal) when the dialog is shown."""
         super().showEvent(event)
-        bed.restore_window(self)
+        bed.restore_window(self, self.chatbot)
 
     def paintEvent(self, event):
         """Custom painting (rounded corners, shadows) via backend helper."""
@@ -450,7 +451,7 @@ class MainApp(QDialog):
         if self._resizing:
             # perform the resize
             self._perform_resize(event.globalPos())
-            self.chatBotGeometryChanged(self.chatbot)
+            self.chatbot.reposition()
         else:
             # update the cursor shape when hovering edges
             d = self._get_resize_direction(pos)
@@ -467,7 +468,7 @@ class MainApp(QDialog):
         if self._resizing:
             self._resizing   = False
             self._resize_dir = None
-            self.chatBotGeometryChanged(self.chatbot)
+            self.chatbot.reposition()
             return
         super().mouseReleaseEvent(event)
 
@@ -505,18 +506,8 @@ class MainApp(QDialog):
             new_h = max(self.minimumHeight(), h - delta_y)
 
         self.setGeometry(new_x, new_y, new_w, new_h)
-        self.chatBotGeometryChanged(self.chatbot)
+        self.chatbot.reposition()
 
-
-    def chatBotGeometryChanged(self, QWidget):
-        dialog_position = self.pos()
-        dialog_size = self.size()
-        # Have to make sure the ChatBot is always aligned both in a collapsed and expanded state
-
-        new_x = dialog_position.x() + dialog_size.width() - QWidget.width() - (0.05 * dialog_size.width())
-        new_y = dialog_position.y() + dialog_size.height() - QWidget.height() - (0.05 * dialog_size.height())
-        
-        QWidget.move(QPoint(new_x, new_y))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
