@@ -6,10 +6,10 @@ from PyQt5 import uic
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtGui import QIntValidator, QGradient
-from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect
+from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect, QMessageBox
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
-
+from backend_logic.chatbot.chatbotBE import ChatbotBE
 
 class ChatbotFE(QWidget):
     def __init__(self, parent: QDialog):
@@ -139,6 +139,60 @@ QPushButton:pressed {
                 self._finish_collapse()
 
         elif self.expanded == False:
+            # Prompt if local LLM is not installed yet (~4.66GB)
+            try:
+                if not ChatbotBE.is_model_installed():
+                    msg = QMessageBox(self)
+                    msg.setStyleSheet(
+                        """
+QMessageBox {
+  background-color: #F5F9FF;
+  border-radius: 12px;
+}
+QLabel {
+  font-family: 'Montserrat SemiBold';
+  color: #0A1F44;
+  border: none;
+}
+QPushButton {
+  font-family: 'Montserrat SemiBold';
+  color: #0A1F44;
+  background-color: #FFFFFF;
+  border: 2px solid #0047B2;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 22px; /* circular */
+  padding: 0;
+}
+QPushButton:hover {
+  background-color: #F5F9FF;
+  border-color: #1E63D0;
+}
+QPushButton:pressed {
+  background-color: #EAF4FF;
+}
+QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
+  background: transparent;
+  border: none;
+}
+                        """
+                    )
+                    msg.setIcon(QMessageBox.Question)
+                    msg.setWindowTitle("Install Local LLM?")
+                    msg.setText("This feature can run a Local LLM on your device.")
+                    msg.setInformativeText("Download size is approximately 4.66 GB. Do you want to install it now to run the chatbot locally?")
+                    msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                    msg.setDefaultButton(QMessageBox.No)
+                    result = msg.exec_()
+                    if result != QMessageBox.Yes:
+                        # Keep hidden and abort expansion
+                        self.expanded = False
+                        return
+                    # TODO: Initialize local LLM backend here (model install/setup)
+            except Exception:
+                # If the check or dialog fails, proceed safely without blocking UI
+                pass
+
             # Expand
             self.expanded = True
             self.resize(int(0.25*self.parentWidget().width()),int(0.30*self.parentWidget().height()))
