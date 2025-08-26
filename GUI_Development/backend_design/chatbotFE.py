@@ -118,6 +118,7 @@ QPushButton:pressed {
         # Show the widget
         self.show()
 
+
     def toggle_chatbot(self):
         if self.expanded:
             # Collapse
@@ -188,7 +189,11 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
                         # Keep hidden and abort expansion
                         self.expanded = False
                         return
+
+
                     # TODO: Initialize local LLM backend here (model install/setup)
+
+
             except Exception:
                 # If the check or dialog fails, proceed safely without blocking UI
                 pass
@@ -212,6 +217,7 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
             self.reposition()  # Reposition after resize
             self.toggle_button.raise_()
 
+
     def _finish_collapse(self):
         """Hide chat box and then resize/reposition cleanly after fade-out."""
         try:
@@ -226,6 +232,7 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
         self.reposition()
         self.toggle_button.raise_()
             
+
     def reposition(self):
         """Repositions the chatbot with comprehensive error handling and state validation."""
         if self._repositioning:
@@ -314,10 +321,12 @@ QPushButton:pressed {{
         finally:
             self._repositioning = False
             
+
     def _delayed_reposition(self):
         """Delayed repositioning to handle rapid resize events smoothly."""
         self.reposition()
         
+
     def eventFilter(self, obj, event):
         """Filter events from parent widget to catch resize events."""
         if obj == self.parentWidget():
@@ -333,27 +342,44 @@ QPushButton:pressed {{
                 
         return super().eventFilter(obj, event)
         
+
     def showEvent(self, event):
         """Handle show events to ensure proper positioning."""
         super().showEvent(event)
         # Delay repositioning to ensure parent is fully rendered
         self.reposition_timer.start(100)
         
+
     def resizeEvent(self, event):
         """Handle resize events for the chatbot itself."""
         super().resizeEvent(event)
         if hasattr(self, 'chat_box') and self.chat_box and self.expanded:
             # Ensure chat box fills the widget properly
             self.chat_box.resize(self.width(), self.height())
-            
+
+
     def closeEvent(self, event):
         """Clean up event filter when closing."""
         if self.parentWidget():
             self.parentWidget().removeEventFilter(self)
         super().closeEvent(event)
 
-    def new_conversation(self):
-        pass
 
     def handle_user_input(self):
+
+        # TODO: Implement this, should have checks for empty input and other edge cases and proper error handling and validation.
+        
+        # TODO: Invoke BE.handle_LLM_cycle()
+
+        # TODO Invoke update_chatbot_history_FE somewhere here
+        pass
+
+
+    def update_chatbot_history_FE(self, chatbot_history: list):
+        # TODO: Implement this
+        pass
+
+
+    def new_conversation(self):
+        # TODO: Implement this
         pass
