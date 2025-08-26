@@ -10,6 +10,28 @@ class ChatbotBE:
         self.model = gpt4all.GPT4All("Meta-Llama-3-8B-Instruct.Q4_0.gguf")
 
 
+    def handle_user_input(self, user_input: str) -> str:
+        # TODO: Flow: User Input -> Add chat history -> Parse FAQs for easy answers -> Handle LLM output -> Update chat history -> Return LLM output
+
+        pass
+
+    def handle_LLM_output(self, system_input: str) -> str:
+            # TODO: Implement this
+        pass
+
+    
+    def update_chat_history(self, user_input: str, LLM_output: str):
+        # TODO: Implement this
+        pass
+
+    def parse_FAQ(self, user_input: str) -> str:
+        # TODO: Implement this
+        pass
+
+
+    def handle_new_conversation(self):
+        # TODO: Implement this
+        pass
 
 
     @staticmethod
