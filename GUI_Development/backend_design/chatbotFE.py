@@ -1,12 +1,12 @@
 import sys
 import os
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtGui import QIntValidator, QGradient
-from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog
+from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
 
@@ -33,7 +33,26 @@ class ChatbotFE(QWidget):
         
         self.toggle_button = QPushButton("💬", self)
         self.toggle_button.resize(int(0.03*self.parentWidget().width()),int(0.03*self.parentWidget().height()))
-        self.toggle_button.setStyleSheet(f"border-radius: 50px; background-color: #85C7F2; font-size: {int(0.025*self.parentWidget().width())}px;")
+        self.toggle_button.setStyleSheet(
+            f"""
+QPushButton {{
+  border-radius: 50px;
+  background-color: #85C7F2;
+  font-size: {int(0.025*self.parentWidget().width())}px;
+  border: 2px solid #0047B2;
+  padding: 6px;
+}}
+QPushButton:hover {{
+  background-color: #6DBAF0;
+  border-color: #0047B2;
+}}
+QPushButton:pressed {{
+  background-color: #4FA7E8;
+  padding-top: 7px;
+  padding-bottom: 5px;
+}}
+            """
+        )
         self.toggle_button.clicked.connect(self.toggle_chatbot)
 
         
@@ -43,19 +62,51 @@ class ChatbotFE(QWidget):
         self.chat_layout = QVBoxLayout(self.chat_box)
         self.chat_layout.setContentsMargins(5, 5, 5, 45)  # Leave space at bottom for toggle button
         self.chat_layout.setSpacing(5)
+
         self.chat_history = QTextEdit()
         self.chat_history.setReadOnly(True)
         self.chat_history.setStyleSheet("background-color: #FFFFFF; border-radius: 15px; border: 2px solid #0047B2; font-family: 'Montserrat SemiBold';")
+
         self.input_box = QLineEdit()
         self.input_box.setStyleSheet("background-color: #FFFFFF; border-radius: 10px; border: 2px solid #0047B2; font-family: 'Montserrat SemiBold';")
         self.input_box.setPlaceholderText("Enter your message here...")
         self.input_box.returnPressed.connect(self.handle_user_input)
+
         self.new_conversation_button = QPushButton("New Conversation", self)
-        self.new_conversation_button.setStyleSheet("background-color: #FFFFFF; border-radius: 10px; border: 2px solid #0047B2; font-family: 'Montserrat SemiBold';")
+        self.new_conversation_button.setStyleSheet(
+            """
+QPushButton {
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  border: 2px solid #0047B2;
+  font-family: 'Montserrat SemiBold';
+  color: #0A1F44;
+  padding: 6px 12px;
+}
+QPushButton:hover {
+  background-color: #F5F9FF;
+  border-color: #1E63D0;
+}
+QPushButton:pressed {
+  background-color: #EAF4FF;
+  padding-top: 7px;
+  padding-bottom: 5px;
+}
+            """
+        )
         self.new_conversation_button.clicked.connect(self.new_conversation)
+    
         self.chat_layout.addWidget(self.new_conversation_button)
         self.chat_layout.addWidget(self.chat_history)
         self.chat_layout.addWidget(self.input_box)
+
+        # Opacity effect + animation (non-intrusive, keeps your styling)
+        self.chat_opacity = QGraphicsOpacityEffect(self.chat_box)
+        self.chat_box.setGraphicsEffect(self.chat_opacity)
+        self.chat_opacity.setOpacity(0.0)
+        self.fade = QPropertyAnimation(self.chat_opacity, b"opacity", self)
+        self.fade.setDuration(100)  # 50–100ms
+        self.fade.setEasingCurve(QEasingCurve.InOutQuad)
 
         self.chat_box.hide()
         
@@ -71,18 +122,55 @@ class ChatbotFE(QWidget):
         if self.expanded:
             # Collapse
             self.expanded = False
-            self.resize(int(0.05*self.parentWidget().width()),int(0.05*self.parentWidget().height()))
-            self.chat_box.hide()
-            self.reposition()  # Reposition after resize
+            # fade out first to avoid visual artifact, then resize/hide in callback
             self.toggle_button.raise_()
+            try:
+                self.fade.stop()
+                self.fade.setStartValue(self.chat_opacity.opacity())
+                self.fade.setEndValue(0.0)
+                # disconnect previous connections safely
+                try:
+                    self.fade.finished.disconnect()
+                except TypeError:
+                    pass
+                self.fade.finished.connect(self._finish_collapse)
+                self.fade.start()
+            except Exception:
+                self._finish_collapse()
 
         elif self.expanded == False:
             # Expand
             self.expanded = True
             self.resize(int(0.25*self.parentWidget().width()),int(0.30*self.parentWidget().height()))
-            self.chat_box.show()
+            # show then fade in
+            try:
+                self.chat_box.show()
+                self.fade.stop()
+                self.fade.setStartValue(self.chat_opacity.opacity())
+                self.fade.setEndValue(1.0)
+                try:
+                    self.fade.finished.disconnect()
+                except TypeError:
+                    pass
+                self.fade.start()
+            except Exception:
+                self.chat_box.show()
             self.reposition()  # Reposition after resize
             self.toggle_button.raise_()
+
+    def _finish_collapse(self):
+        """Hide chat box and then resize/reposition cleanly after fade-out."""
+        try:
+            self.chat_box.hide()
+        except Exception:
+            pass
+        # Now resize to collapsed size and reposition
+        try:
+            self.resize(int(0.05*self.parentWidget().width()),int(0.05*self.parentWidget().height()))
+        except Exception:
+            pass
+        self.reposition()
+        self.toggle_button.raise_()
             
     def reposition(self):
         """Repositions the chatbot with comprehensive error handling and state validation."""
@@ -131,9 +219,24 @@ class ChatbotFE(QWidget):
             self.toggle_button.resize(button_size, button_size)
             font_size = max(12, int(0.02 * min(p.width(), p.height())))
             self.toggle_button.setStyleSheet(
-                f"border-radius: {button_size//2}px; "
-                f"background-color: #85C7F2; "
-                f"font-size: {font_size}px;"
+                f"""
+QPushButton {{
+  border-radius: {button_size//2}px;
+  background-color: #85C7F2;
+  font-size: {font_size}px;
+  border: 2px solid #0047B2;
+  padding: 6px;
+}}
+QPushButton:hover {{
+  background-color: #6DBAF0;
+  border-color: #0047B2;
+}}
+QPushButton:pressed {{
+  background-color: #4FA7E8;
+  padding-top: 7px;
+  padding-bottom: 5px;
+}}
+                """
             )
             
             if self.expanded:
