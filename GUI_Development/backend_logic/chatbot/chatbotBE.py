@@ -25,6 +25,7 @@ class ChatbotBE:
         try:
             with open(faq_path, "r", encoding="utf-8") as f:
                 self.faq_data = json.load(f)  # [{"q": "...", "a": "..."}]
+                print(self.faq_data) #DEBUG
         except Exception:
             self.faq_data = []
 
@@ -36,12 +37,13 @@ class ChatbotBE:
         try:
             with open(system_prompt_path, "r", encoding="utf-8") as f:
                 self.system_prompt = f.read().strip()
+                print(self.system_prompt) #DEBUG
         except Exception:
             self.system_prompt = ""
 
 
         # FAQ fuzzy match configuration
-        self.faq_threshold = 90  # default threshold; tune as needed
+        self.faq_threshold = 80  # default threshold; tune as needed
         self.faq_scorer = fuzz.token_set_ratio  # robust default yet flexible scorer
 
 
