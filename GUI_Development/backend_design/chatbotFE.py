@@ -252,13 +252,16 @@ class ChatbotFE(QWidget):
                     loading_msg.setStyleSheet(
                        """
                             QMessageBox {
-                            background-color: #F5F9FF;
-                            border-radius: 12px;
+                            
+                            border-radius: 0;
+                            
                             }
                             QLabel {
                             font-family: 'Montserrat SemiBold';
                             color: #0A1F44;
                             border: none;
+                            selection-background-color: rgba(0,0,0,0);
+                            selection-color: #0A1F44;
                             }
                         """
                     )
@@ -497,13 +500,20 @@ class ChatbotFE(QWidget):
 
         self.chat_history_layout.addWidget(row)
         self._fit_bubble_to_content(bubble)
-        # Re-fit once the layout has finalized to ensure correct size on right/left alignments
-        QTimer.singleShot(0, lambda b=bubble: self._fit_bubble_to_content(b))
+        # Re-fit once the layout has finalized and then scroll to the latest
+        QTimer.singleShot(0, lambda b=bubble: (self._fit_bubble_to_content(b), self._auto_scroll_to_bottom()))
 
     def _auto_scroll_to_bottom(self) -> None:
         try:
             bar = self.chat_history_scroll.verticalScrollBar()
-            bar.setValue(bar.maximum())
+            # Defer scrolling to after layout/size updates to avoid stopping one item early
+            def do_scroll():
+                try:
+                    bar.setValue(bar.maximum())
+                except Exception:
+                    pass
+            QTimer.singleShot(0, do_scroll)
+            QTimer.singleShot(30, do_scroll)
         except Exception:
             pass
 
