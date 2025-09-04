@@ -8,7 +8,7 @@ from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtGui import QIntValidator, QGradient
 from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect, QMessageBox, QScrollArea, QHBoxLayout, QFrame, QSizePolicy
 from PyQt5.QtCore import Qt, QUrl, QPoint
-from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
+from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen, QTextOption
 from backend_logic.chatbot.chatbotBE import ChatbotBE
 
 class ChatbotFE(QWidget):
@@ -35,22 +35,22 @@ class ChatbotFE(QWidget):
         self.toggle_button.resize(int(0.03*self.parentWidget().width()),int(0.03*self.parentWidget().height()))
         self.toggle_button.setStyleSheet(
             f"""
-QPushButton {{
-  border-radius: 50px;
-  background-color: #85C7F2;
-  font-size: {int(0.025*self.parentWidget().width())}px;
-  border: 2px solid #0047B2;
-  padding: 6px;
-}}
-QPushButton:hover {{
-  background-color: #6DBAF0;
-  border-color: #0047B2;
-}}
-QPushButton:pressed {{
-  background-color: #4FA7E8;
-  padding-top: 7px;
-  padding-bottom: 5px;
-}}
+                QPushButton {{
+                border-radius: 50px;
+                background-color: #85C7F2;
+                font-size: {int(0.025*self.parentWidget().width())}px;
+                border: 2px solid #0047B2;
+                padding: 6px;
+                }}
+                QPushButton:hover {{
+                background-color: #6DBAF0;
+                border-color: #0047B2;
+                }}
+                QPushButton:pressed {{
+                background-color: #4FA7E8;
+                padding-top: 7px;
+                padding-bottom: 5px;
+                }}
             """
         )
         self.toggle_button.clicked.connect(self.toggle_chatbot)
@@ -67,17 +67,22 @@ QPushButton:pressed {{
         self.chat_history_scroll = QScrollArea()
         self.chat_history_scroll.setWidgetResizable(True)
         self.chat_history_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.chat_history_scroll.setStyleSheet("QScrollArea { background-color: #FFFFFF; border-radius: 15px; border: 2px solid #0047B2; }")
+        self.chat_history_scroll.setFrameShape(QFrame.NoFrame)
+        self.chat_history_scroll.setStyleSheet(
+            """
+            QScrollArea { border-radius: 5px; border: 2px solid #0047B2; background: #FFFFFF; }
+            QScrollArea > QWidget { background: transparent; }
+            QScrollArea > QWidget > QWidget { background: transparent; }
+            QScrollArea.viewport { background-color: #FFFFFF; }
+            """
+        )
 
         self.chat_history_container = QWidget()
-        self.chat_history_container.setStyleSheet("background-color: transparent; font-family: 'Montserrat SemiBold';")
+        self.chat_history_container.setStyleSheet("background-color: transparent; font-family: 'Montserrat SemiBold';border: 0px")
         self.chat_history_layout = QVBoxLayout(self.chat_history_container)
-        self.chat_history_layout.setContentsMargins(8, 8, 8, 8)
-        self.chat_history_layout.setSpacing(6)
-        # spacer to keep messages pinned to top, new ones insert before this
-        self._bottom_spacer = QWidget()
-        self._bottom_spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.chat_history_layout.addWidget(self._bottom_spacer)
+        # Remove extra whitespace
+        self.chat_history_layout.setContentsMargins(0, 0, 0, 0)
+        self.chat_history_layout.setSpacing(0)
 
         self.chat_history_scroll.setWidget(self.chat_history_container)
         
@@ -85,28 +90,28 @@ QPushButton:pressed {{
         self.input_box = QLineEdit()
         self.input_box.setStyleSheet("background-color: #FFFFFF; border-radius: 10px; border: 2px solid #0047B2; font-family: 'Montserrat SemiBold';")
         self.input_box.setPlaceholderText("Enter your message here...")
-        self.input_box.returnPressed.connect(self.handle_user_input(self.input_box.text()))
+        self.input_box.returnPressed.connect(self.handle_user_input)
 
         self.new_conversation_button = QPushButton("New Conversation", self)
         self.new_conversation_button.setStyleSheet(
             """
-QPushButton {
-  background-color: #FFFFFF;
-  border-radius: 10px;
-  border: 2px solid #0047B2;
-  font-family: 'Montserrat SemiBold';
-  color: #0A1F44;
-  padding: 6px 12px;
-}
-QPushButton:hover {
-  background-color: #F5F9FF;
-  border-color: #1E63D0;
-}
-QPushButton:pressed {
-  background-color: #EAF4FF;
-  padding-top: 7px;
-  padding-bottom: 5px;
-}
+                QPushButton {
+                background-color: #FFFFFF;
+                border-radius: 10px;
+                border: 2px solid #0047B2;
+                font-family: 'Montserrat SemiBold';
+                color: #0A1F44;
+                padding: 6px 12px;
+                }
+                QPushButton:hover {
+                background-color: #F5F9FF;
+                border-color: #1E63D0;
+                }
+                QPushButton:pressed {
+                background-color: #EAF4FF;
+                padding-top: 7px;
+                padding-bottom: 5px;
+                }
             """
         )
         self.new_conversation_button.clicked.connect(self.new_conversation)
@@ -161,42 +166,42 @@ QPushButton:pressed {
                     msg = QMessageBox(self)
                     msg.setStyleSheet(
                         """
-QMessageBox {
-  background-color: #F5F9FF;
-  border-radius: 12px;
-}
-QLabel {
-  font-family: 'Montserrat SemiBold';
-  color: #0A1F44;
-  border: none;
-}
-QPushButton {
-  font-family: 'Montserrat SemiBold';
-  color: #0A1F44;
-  background-color: #FFFFFF;
-  border: 2px solid #0047B2;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: 22px; /* circular */
-  padding: 0;
-}
-QPushButton:hover {
-  background-color: #F5F9FF;
-  border-color: #1E63D0;
-}
-QPushButton:pressed {
-  background-color: #EAF4FF;
-}
-QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
-  background: transparent;
-  border: none;
-}
+                            QMessageBox {
+                            background-color: #F5F9FF;
+                            border-radius: 12px;
+                            }
+                            QLabel {
+                            font-family: 'Montserrat SemiBold';
+                            color: #0A1F44;
+                            border: none;
+                            }
+                            QPushButton {
+                            font-family: 'Montserrat SemiBold';
+                            color: #0A1F44;
+                            background-color: #FFFFFF;
+                            border: 2px solid #0047B2;
+                            min-width: 44px;
+                            min-height: 44px;
+                            border-radius: 22px; /* circular */
+                            padding: 0;
+                            }
+                            QPushButton:hover {
+                            background-color: #F5F9FF;
+                            border-color: #1E63D0;
+                            }
+                            QPushButton:pressed {
+                            background-color: #EAF4FF;
+                            }
+                            QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
+                            background: transparent;
+                            border: none;
+                            }
                         """
                     )
                     msg.setIcon(QMessageBox.Question)
                     msg.setWindowTitle("Install Local LLM?")
                     msg.setText("This feature can run a Local LLM on your device.")
-                    msg.setInformativeText("Download size is approximately 4.66 GB. Do you want to install it now to run the chatbot locally?")
+                    msg.setInformativeText("Download size is approximately 4.66 GB. Do you want to install it now to run the chatbot locally? (Also note, having NVIDIA CUDA installed is HIGHLY recommended for faster processing, CPUs are not recommended.)")
                     msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                     msg.setDefaultButton(QMessageBox.No)
                     result = msg.exec_()
@@ -205,8 +210,7 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
                         self.expanded = False
                         return
 
-
-                    # TODO: Initialize local LLM backend here (model install/setup)
+                    # Init ChatbotBE
                     self.chatbot_be = ChatbotBE()
                     pass
 
@@ -233,6 +237,13 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
                 self.chat_box.show()
             self.reposition()  # Reposition after resize
             self.toggle_button.raise_()
+            
+            # Ensure backend is initialized after expand
+            if not hasattr(self, 'chatbot_be'):
+                try:
+                    self.chatbot_be = ChatbotBE()
+                except Exception:
+                    pass
 
 
     def _finish_collapse(self):
@@ -384,16 +395,24 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
         super().closeEvent(event)
 
 
-    def handle_user_input(self, user_input: str):
+    def handle_user_input(self):
+        text = self.input_box.text().strip()
+        if not text:
+            return
 
-        format_new_human_message(user_input, self.chat_history_container)
+        if not hasattr(self, 'chatbot_be'):
+            try:
+                self.chatbot_be = ChatbotBE()
+            except Exception:
+                return
+                
+        self.format_new_human_message(text, self.chat_history_container)
         self.input_box.clear()
-
-        self.format_new_chatbot_message("Thinking...", self.chat_history_container)
-
-        time.sleep(3)
-        chatbot_response = self.chatbot_be.handle_LLM_cycle(user_input)
-
+        
+        try:
+            chatbot_response = self.chatbot_be.handle_LLM_cycle(text)
+        except Exception:
+            chatbot_response = "Sorry, something went wrong."
         self.format_new_chatbot_message(chatbot_response, self.chat_history_container)
 
 
@@ -408,56 +427,122 @@ QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
         self._append_message_row(bubble, align_left=False)
         self._auto_scroll_to_bottom()
 
-    def update_all_bubble_widths(self):
-        for i in range(self.chat_history_layout.count()):
-            item = self.chat_history_layout.itemAt(i)
-            w = item.widget()
-            if w is not None:
-                w.setFixedWidth(self.chat_history_scroll.width() - 10)
+    def _create_message_bubble(self, message: str, is_assistant: bool) -> QWidget:
+        text = QTextEdit(message)
+        text.setReadOnly(True)
+        text.setFrameStyle(QFrame.NoFrame)
+        text.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        text.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        text.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        text.setLineWrapMode(QTextEdit.WidgetWidth)
+        text.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
 
-    def create_message_bubble(self, message: str, is_assistant: bool):
-        bubble = QFrame()
-        bubble.setStyleSheet(
-            """
-            QFrame {
-                background-color: #FFFFFF;
-                border-radius: 15px;
-                border: 2px solid #0047B2;
-                font-family: 'Montserrat SemiBold';
-            """
-        )
         if is_assistant:
-            bubble.setTextAlignment(Qt.AlignLeft)
-            bubble.setStyleSheet(
-                """
-                QFrame {
-                    background-color: #d7d7d7;
-                    border-radius: 15px;
-                    border: 2px solid #0047B2;
-                    font-family: 'Montserrat SemiBold';
-                """
+            # Chatbot bubble: light grey
+            text.setStyleSheet(
+                "background-color: #D7D7D7; border-radius: 12px; border: 1px solid #0047B2; padding: 8px; color: #0A1F44; font-family: 'Montserrat SemiBold';"
             )
         else:
-            bubble.setTextAlignment(Qt.AlignRight)
-        return bubble
+            # Human bubble: light blue
+            text.setStyleSheet(
+                "background-color: #D0E7FF; border-radius: 12px; border: 1px solid #0047B2; padding: 8px; color: #0A1F44; font-family: 'Montserrat SemiBold';"
+            )
 
+        # Auto-grow when content changes (e.g., if updated incrementally)
+        self._enable_auto_grow(text)
+        self._fit_bubble_to_content(text)
+        return text
 
-    def append_message_row(self, bubble: QFrame, align_left: bool):
+    def _append_message_row(self, bubble: QWidget, align_left: bool) -> None:
+        row = QWidget(self.chat_history_container)
+        row_layout = QHBoxLayout(row)
+        row_layout.setContentsMargins(0, 2, 0, 2)
+        row_layout.setSpacing(0)
+
         if align_left:
-            self.chat_history_layout.insertWidget(0, bubble)
-            bubble.setAlignment(Qt.AlignLeft)
+            row_layout.addWidget(bubble, 0, Qt.AlignLeft)
+            row_layout.addStretch(1)
         else:
-            self.chat_history_layout.addWidget(bubble)
-            bubble.setAlignment(Qt.AlignRight)
+            row_layout.addStretch(1)
+            row_layout.addWidget(bubble, 0, Qt.AlignRight)
 
+        self.chat_history_layout.addWidget(row)
+        self._fit_bubble_to_content(bubble)
 
-    def auto_scroll_to_bottom(self):
-        total_scroll_length = self.chat_history_scroll.verticalScrollBar().maximum()
-        self.chat_history_scroll.verticalScrollBar().setValue(total_scroll_length)
+    def _auto_scroll_to_bottom(self) -> None:
+        try:
+            bar = self.chat_history_scroll.verticalScrollBar()
+            bar.setValue(bar.maximum())
+        except Exception:
+            pass
+
+    def _set_bubble_max_width(self, widget: QWidget) -> None:
+        # Deprecated: kept for backward compatibility
+        self._fit_bubble_to_content(widget)
+
+    def _fit_bubble_to_content(self, widget: QTextEdit) -> None:
+        try:
+            viewport_width = max(50, self.chat_history_scroll.viewport().width())
+            cap_width = int(viewport_width * 0.72)
+
+            doc = widget.document()
+            # Reset to unconstrained to measure ideal width (no wrap)
+            doc.setTextWidth(-1)
+            ideal = int(doc.idealWidth())
+            # Add some padding to account for bubble padding and rounding
+            ideal_with_padding = ideal + 16
+            width = min(cap_width, max(80, ideal_with_padding))
+
+            # Now set text width to the final bubble width minus inner padding for correct height
+            doc.setTextWidth(width - 16)
+            content_height = int(doc.size().height())
+            height = content_height + 16
+
+            widget.setFixedWidth(width)
+            widget.setFixedHeight(height)
+            widget.updateGeometry()
+        except Exception:
+            pass
+
+    def _enable_auto_grow(self, widget: QTextEdit) -> None:
+        try:
+            # Recompute size when content changes (programmatic updates)
+            widget.document().contentsChanged.connect(lambda: self._fit_bubble_to_content(widget))
+        except Exception:
+            pass
+
+    def _update_all_bubble_widths(self) -> None:
+        try:
+            for i in range(self.chat_history_layout.count()):
+                item = self.chat_history_layout.itemAt(i)
+                row_widget = item.widget()
+                if not isinstance(row_widget, QWidget):
+                    continue
+                row_layout = row_widget.layout()
+                if not isinstance(row_layout, QHBoxLayout):
+                    continue
+                for j in range(row_layout.count()):
+                    sub_item = row_layout.itemAt(j)
+                    bubble = sub_item.widget()
+                    if isinstance(bubble, QTextEdit):
+                        self._fit_bubble_to_content(bubble)
+        except Exception:
+            pass
 
 
 
     def new_conversation(self):
-        self.chat_history_layout.clear()
-        self.chatbot_be.handle_new_conversation()
+        try:
+            for i in reversed(range(self.chat_history_layout.count())):
+                item = self.chat_history_layout.itemAt(i)
+                w = item.widget()
+                if w is not None:
+                    w.setParent(None)
+        except Exception:
+            pass
+        if hasattr(self, 'chatbot_be'):
+            try:
+                self.chatbot_be.handle_new_conversation()
+            except Exception:
+                pass
     

@@ -11,7 +11,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget,
-    QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout
+    QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout,
+    QTextEdit, QPlainTextEdit
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QKeyEvent
@@ -33,6 +34,7 @@ class MainApp(QDialog):
         super().__init__()
 
         self.was_fullscreen = self.isFullScreen()
+        self.old_pos = None
 
 
         # ─── Load and configure the .ui file ─────────────────────────────
@@ -183,6 +185,8 @@ class MainApp(QDialog):
             self.MindLogo.mousePressEvent = lambda eventParam: QDesktopServices.openUrl(
                 QUrl("https://minduofc.ca/")
             )
+
+        # Note: We no longer install a global event filter for Enter/Return.
 
         # ─── Connect UI interactions ────────────────────────────────────
 
@@ -430,6 +434,11 @@ class MainApp(QDialog):
                 self.showNormal()
             else:
                 self.showFullScreen()
+        elif event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            # Always consume Enter/Return at the dialog level so it never triggers accept/close
+            # Child widgets (inputs) already received the key first and handled submission/newlines
+            event.accept()
+            return
         else:
             # all other keys behave normally
             super().keyPressEvent(event)

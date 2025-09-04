@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+import re
 import gpt4all
 from typing import Optional
 import json
@@ -12,9 +14,9 @@ class ChatbotBE:
         self.model_name = "Meta-Llama-3-8B-Instruct.Q4_0.gguf"
         self.model = gpt4all.GPT4All(self.model_name)
         self.chat_history = []
-        # Separate controls for context size and generation length
-        self.max_history_chars = 2048
-        self.max_tokens = 256
+        # Separate controls for context size and generation length (tuned for average PCs)
+        self.max_history_chars = 1200
+        self.max_tokens = 192
         
         # Resolve paths relative to this file for robustness
         self.file_dir = Path(__file__).resolve().parent
@@ -25,11 +27,11 @@ class ChatbotBE:
         try:
             with open(faq_path, "r", encoding="utf-8") as f:
                 self.faq_data = json.load(f)  # [{"q": "...", "a": "..."}]
-                print(self.faq_data) #DEBUG
         except Exception:
             self.faq_data = []
 
-        self.questions = [item.get("q", "") for item in self.faq_data]
+        # Pre-normalize questions for robust fuzzy matching
+        self.questions = [self._normalize_text(item.get("q", "")) for item in self.faq_data]
 
 
         # Load system prompt (optional)
@@ -37,14 +39,13 @@ class ChatbotBE:
         try:
             with open(system_prompt_path, "r", encoding="utf-8") as f:
                 self.system_prompt = f.read().strip()
-                print(self.system_prompt) #DEBUG
         except Exception:
             self.system_prompt = ""
 
 
-        # FAQ fuzzy match configuration
-        self.faq_threshold = 80  # default threshold; tune as needed
-        self.faq_scorer = fuzz.token_set_ratio  # robust default yet flexible scorer
+        # FAQ fuzzy match configuration (more tolerant to typos and extra words)
+        self.faq_threshold = 70
+        self.faq_scorer = fuzz.token_set_ratio
 
 
     def handle_LLM_cycle(self, user_input: str) -> str:
@@ -77,12 +78,19 @@ class ChatbotBE:
         self.chat_history.append(f"ASSISTANT: {LLM_FAQ_output}")
 
     def parse_FAQ(self, user_input: str) -> Optional[str]:
-        # Fuzzy match against FAQ
-        best = process.extractOne(user_input, self.questions, scorer=self.faq_scorer)
+        # Fuzzy match against FAQ with composite scoring
+        query = self._normalize_text(user_input)
+        prelim = process.extract(query, self.questions, scorer=fuzz.WRatio, limit=5)
+        best_idx = None
+        best_score = -1.0
+        for choice, _score, idx in prelim:
+            score = self._composite_score(query, choice)
+            if score > best_score:
+                best_score = score
+                best_idx = idx
 
-        if best and (best[1] >= self.faq_threshold):
-            match_idx = self.questions.index(best[0])
-            return self.faq_data[match_idx]["a"]
+        if best_idx is not None and best_score >= self.faq_threshold:
+            return self.faq_data[best_idx]["a"]
         return None
 
 
@@ -113,6 +121,22 @@ class ChatbotBE:
             combined = f"{historical_text}\n\nLATEST USER INPUT: {user_input}"
 
         return combined
+
+    @staticmethod
+    def _normalize_text(text: str) -> str:
+        # Lowercase, strip punctuation (keep alphanumerics and spaces), collapse whitespace
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9\s]", " ", text)
+        text = " ".join(text.split())
+        return text
+
+    @staticmethod
+    def _composite_score(a: str, b: str) -> float:
+        # Blend multiple scorers to tolerate typos and extra words
+        s1 = fuzz.token_set_ratio(a, b)
+        s2 = fuzz.partial_ratio(a, b)
+        s3 = fuzz.QRatio(a, b)
+        return 0.45 * s1 + 0.35 * s2 + 0.20 * s3
 
 
 
