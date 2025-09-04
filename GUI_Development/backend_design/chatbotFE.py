@@ -6,7 +6,7 @@ from PyQt5 import uic
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtGui import QIntValidator, QGradient
-from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect, QMessageBox, QScrollArea, QHBoxLayout, QFrame, QSizePolicy
+from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLayout, QDialog, QGraphicsOpacityEffect, QMessageBox, QScrollArea, QHBoxLayout, QFrame, QSizePolicy, QApplication
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen, QTextOption
 from backend_logic.chatbot.chatbotBE import ChatbotBE
@@ -219,7 +219,9 @@ class ChatbotFE(QWidget):
                 # If the check or dialog fails, proceed safely without blocking UI
                 pass
 
+
             # Expand
+            
             self.expanded = True
             self.resize(int(0.25*self.parentWidget().width()),int(0.30*self.parentWidget().height()))
             # show then fade in
@@ -241,7 +243,34 @@ class ChatbotFE(QWidget):
             # Ensure backend is initialized after expand
             if not hasattr(self, 'chatbot_be'):
                 try:
+                    # Minimal, non-blocking loading message sized to content
+                    loading_msg = QMessageBox(self)
+                    loading_msg.setIcon(QMessageBox.NoIcon)
+                    loading_msg.setWindowTitle("Loading")
+                    loading_msg.setText("Loading chatbot backend…")
+                    loading_msg.setStandardButtons(QMessageBox.NoButton)
+                    loading_msg.setStyleSheet(
+                       """
+                            QMessageBox {
+                            background-color: #F5F9FF;
+                            border-radius: 12px;
+                            }
+                            QLabel {
+                            font-family: 'Montserrat SemiBold';
+                            color: #0A1F44;
+                            border: none;
+                            }
+                        """
+                    )
+                    loading_msg.adjustSize()
+                    loading_msg.setFixedSize(loading_msg.sizeHint())
+                    loading_msg.show()
+                    QApplication.processEvents()
+
                     self.chatbot_be = ChatbotBE()
+                    loading_msg.hide()
+                    loading_msg.close()
+
                 except Exception:
                     pass
 
@@ -468,6 +497,8 @@ class ChatbotFE(QWidget):
 
         self.chat_history_layout.addWidget(row)
         self._fit_bubble_to_content(bubble)
+        # Re-fit once the layout has finalized to ensure correct size on right/left alignments
+        QTimer.singleShot(0, lambda b=bubble: self._fit_bubble_to_content(b))
 
     def _auto_scroll_to_bottom(self) -> None:
         try:
@@ -528,8 +559,6 @@ class ChatbotFE(QWidget):
                         self._fit_bubble_to_content(bubble)
         except Exception:
             pass
-
-
 
     def new_conversation(self):
         try:

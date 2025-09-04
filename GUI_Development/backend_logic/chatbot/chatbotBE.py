@@ -43,8 +43,8 @@ class ChatbotBE:
             self.system_prompt = ""
 
 
-        # FAQ fuzzy match configuration (more tolerant to typos and extra words)
-        self.faq_threshold = 70
+        # FAQ fuzzy match configuration (stricter to avoid false positives)
+        self.faq_threshold = 85
         self.faq_scorer = fuzz.token_set_ratio
 
 
@@ -90,7 +90,12 @@ class ChatbotBE:
                 best_idx = idx
 
         if best_idx is not None and best_score >= self.faq_threshold:
-            return self.faq_data[best_idx]["a"]
+            # Additional strictness: ensure reasonable token overlap and strong token_set score
+            cand = self.questions[best_idx]
+            overlap = self._token_overlap(query, cand)
+            strong_token_set = fuzz.token_set_ratio(query, cand)
+            if overlap >= 0.5 and strong_token_set >= (self.faq_threshold - 2):
+                return self.faq_data[best_idx]["a"]
         return None
 
 
@@ -132,11 +137,21 @@ class ChatbotBE:
 
     @staticmethod
     def _composite_score(a: str, b: str) -> float:
-        # Blend multiple scorers to tolerate typos and extra words
+        # Blend multiple scorers; emphasize token_set for stricter matching
         s1 = fuzz.token_set_ratio(a, b)
         s2 = fuzz.partial_ratio(a, b)
         s3 = fuzz.QRatio(a, b)
-        return 0.45 * s1 + 0.35 * s2 + 0.20 * s3
+        return 0.60 * s1 + 0.15 * s2 + 0.25 * s3
+
+    @staticmethod
+    def _token_overlap(a: str, b: str) -> float:
+        a_tokens = set(a.split())
+        b_tokens = set(b.split())
+        if not a_tokens or not b_tokens:
+            return 0.0
+        inter = len(a_tokens & b_tokens)
+        denom = max(1, min(len(a_tokens), len(b_tokens)))
+        return inter / denom
 
 
 
