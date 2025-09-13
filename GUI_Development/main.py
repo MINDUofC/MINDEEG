@@ -20,22 +20,26 @@ from PyQt5 import uic
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 import resources_rc
-import backend_design.backend_design as bed  # Backend window/control helpers
+import frontend.frontend_design as bed  # Backend window/control helpers
 import backend_logic.backend_eeg as beeg
 from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 from backend_logic.ica_manager import ICAManager
-from backend_design.chatbotFE import ChatbotFE
+from backend_logic.data_collector import DataCollector
+from frontend.chatbotFE import ChatbotFE
+
+
+
 
 class MainApp(QDialog):
     def __init__(self):
         super().__init__()
 
+        # ─── Window Variables ──────────────────────────────────────────────
         self.was_fullscreen = self.isFullScreen()
         self.old_pos = None
-
 
         # ─── Load and configure the .ui file ─────────────────────────────
         ui_file = os.path.join(os.path.dirname(__file__), "GUI Design.ui")
@@ -205,9 +209,9 @@ class MainApp(QDialog):
         # Board on/off
         self.BoardOnOff.clicked.connect(self.toggle_board)
         # Channel dial changes - update FastICA state
-        self.ChannelDial.valueChanged.connect(self._on_channel_dial_changed)
+        self.ChannelDial.valueChanged.connect(self.on_channel_dial_changed)
         # FastICA checkbox manual toggle
-        self.FastICAOnOff.toggled.connect(self._on_fastica_manual_toggle)
+        self.FastICAOnOff.toggled.connect(self.on_fastica_manual_toggle)
 
         # ─── Enforce integer-only where appropriate ─────────────────────
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -231,13 +235,18 @@ class MainApp(QDialog):
         # Initialize ICA manager
         self.ica_manager = ICAManager(self.StatusBar, self.FastICAOnOff, self.ICACalibSecs, self.ChannelDial)
         
+        # Initialize data collector and associated variables
+        self.data_collector = None
+        self.first_time_collecting = True
+
+
         # ─── Ensure µV tab is selected on start & hook tab changes ─────
         self.Visualizer.setCurrentIndex(0)
         self.Visualizer.currentChanged.connect(self.handle_tab_change_on_Visualizer)
 
         # ─── Enforce mutual exclusivity between Average and Median ──────
-        self.AverageOnOff.clicked.connect(self._on_average_toggled)
-        self.MedianOnOff.clicked.connect(self._on_median_toggled)
+        self.AverageOnOff.clicked.connect(self.on_average_toggled)
+        self.MedianOnOff.clicked.connect(self.on_median_toggled)
 
     def setup_muV_live_plot(self):
         """Lazy-create and embed the µV live plot into its tab."""
@@ -309,6 +318,14 @@ class MainApp(QDialog):
                 self.BoardOnOff.setChecked(False)
                 return
 
+
+            if self.first_time_collecting:
+                # self.data_collector = DataCollector(self.board_shim, , self.preprocessing_controls, self.ica_manager)
+                pass
+    
+
+
+
             # Update each graph's board_shim reference if they exist
             if self.muVGraph: self.muVGraph.board_shim = self.board_shim
             if self.FFTGraph: self.FFTGraph.board_shim = self.board_shim
@@ -318,10 +335,13 @@ class MainApp(QDialog):
             self.ica_manager.set_board_shim(self.board_shim)
 
             # Automatically enable FastICA if we have 2+ channels
-            self._update_fastica_state()
+            self.update_fastica_state()
 
             # Start the timer on whichever tab is active now
             self.handle_tab_change_on_Visualizer(self.Visualizer.currentIndex())
+
+            # Set first_time_collecting to False since next time we turn on the board its no longer the first time
+            self.first_time_collecting = False
 
         else:
             # Power off the board and stop all timers
@@ -333,7 +353,7 @@ class MainApp(QDialog):
             self.ica_manager.clear_board_shim()
             
             # Automatically disable FastICA when board is turned off
-            self._disable_fastica()
+            self.disable_fastica()
             
             # Clear the board_shim reference to ensure fresh instance on next turn on
             self.board_shim = None
@@ -343,13 +363,13 @@ class MainApp(QDialog):
                     graph.board_shim = None
                     graph.timer.stop()
 
-    def _update_fastica_state(self):
+    def update_fastica_state(self):
         """
         Automatically enable/disable FastICA checkbox based on current channel count.
         Called when board is turned on or channel count changes.
         """
         if not self.board_shim:
-            self._disable_fastica()
+            self.disable_fastica()
             return
         
         try:
@@ -363,13 +383,13 @@ class MainApp(QDialog):
                 self.FastICAOnOff.setChecked(False)
             else:
                 # Disable FastICA checkbox if insufficient channels
-                self._disable_fastica()
+                self.disable_fastica()
                 
         except Exception as e:
             # If there's any error, disable FastICA for safety
-            self._disable_fastica()
+            self.disable_fastica()
     
-    def _disable_fastica(self):
+    def disable_fastica(self):
         """
         Disable FastICA checkbox and uncheck it.
         Called when board is turned off or when there are insufficient channels.
@@ -377,15 +397,15 @@ class MainApp(QDialog):
         self.FastICAOnOff.setEnabled(False)
         self.FastICAOnOff.setChecked(False)
 
-    def _on_channel_dial_changed(self, value):
+    def on_channel_dial_changed(self, value):
         """
         Handle channel dial value changes to automatically update FastICA state.
         Only affects FastICA if the board is currently on.
         """
         if self.BoardOnOff.isChecked() and self.board_shim:
-            self._update_fastica_state()
+            self.update_fastica_state()
 
-    def _on_fastica_manual_toggle(self, checked: bool):
+    def on_fastica_manual_toggle(self, checked: bool):
         """
         Handle manual toggling of the FastICA checkbox.
         Updates the ICA manager's state accordingly.
@@ -410,7 +430,7 @@ class MainApp(QDialog):
         """Custom painting (rounded corners, shadows) via backend helper."""
         bed.paintEvent(self, event)
 
-    def _on_average_toggled(self, checked: bool):
+    def on_average_toggled(self, checked: bool):
         """
         If Average smoothing is turned on, force Median smoothing off.
         """
@@ -418,7 +438,7 @@ class MainApp(QDialog):
             # Uncheck Median when Average is enabled
             self.MedianOnOff.setChecked(False)
 
-    def _on_median_toggled(self, checked: bool):
+    def on_median_toggled(self, checked: bool):
         """
         If Median smoothing is turned on, force Average smoothing off.
         """
@@ -446,7 +466,7 @@ class MainApp(QDialog):
     def mousePressEvent(self, event):
         # look for clicks near the edges
         if event.button() == Qt.LeftButton:
-            d = self._get_resize_direction(event.pos())
+            d = self.get_resize_direction(event.pos())
             if d:
                 self._resizing   = True
                 self._resize_dir = d
@@ -459,11 +479,11 @@ class MainApp(QDialog):
         pos = event.pos()
         if self._resizing:
             # perform the resize
-            self._perform_resize(event.globalPos())
+            self.perform_resize(event.globalPos())
             self.chatbot.reposition()
         else:
             # update the cursor shape when hovering edges
-            d = self._get_resize_direction(pos)
+            d = self.get_resize_direction(pos)
             cursors = {
                 'left': Qt.SizeHorCursor, 'right': Qt.SizeHorCursor,
                 'top': Qt.SizeVerCursor, 'bottom': Qt.SizeVerCursor,
@@ -481,7 +501,7 @@ class MainApp(QDialog):
             return
         super().mouseReleaseEvent(event)
 
-    def _get_resize_direction(self, pos):
+    def get_resize_direction(self, pos):
         """Return one of: 'left','right','top','bottom','top-left',… or None."""
         m = self._resize_margin
         r = self.rect()
@@ -494,7 +514,7 @@ class MainApp(QDialog):
             return f"{dirs[0]}-{dirs[1]}"
         return dirs[0] if dirs else None
 
-    def _perform_resize(self, global_pos):
+    def perform_resize(self, global_pos):
         """Resize the window based on drag delta and direction."""
         delta_x = global_pos.x() - self._drag_pos.x()
         delta_y = global_pos.y() - self._drag_pos.y()

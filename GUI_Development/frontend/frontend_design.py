@@ -2,7 +2,7 @@ from PyQt5.QtGui import QIntValidator, QGradient
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtCore import Qt, QUrl, QPointF
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen
-from backend_design.chatbotFE import ChatbotFE
+from frontend.chatbotFE import ChatbotFE
 
 def open_link(event):
     """Opens the MIND website when the logo is clicked."""

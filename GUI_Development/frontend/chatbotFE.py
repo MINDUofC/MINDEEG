@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QLineEdit, QWidget, QPushButton, QTextEdit, QVBoxLay
 from PyQt5.QtCore import Qt, QUrl, QPoint
 from PyQt5.QtGui import QDesktopServices, QPainter, QLinearGradient, QColor, QBrush, QPen, QTextOption
 from backend_logic.chatbot.chatbotBE import ChatbotBE
+from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 
 class ChatbotFE(QWidget):
     def __init__(self, parent: QDialog):
@@ -160,71 +161,9 @@ class ChatbotFE(QWidget):
                 self._finish_collapse()
 
         elif self.expanded == False:
-            # Prompt if local LLM is not installed yet (~4.66GB)
-            try:
-                if not ChatbotBE.is_model_installed():
-                    msg = QMessageBox(self)
-                    msg.setStyleSheet(
-                        """
-                            QMessageBox {
-                            background-color: #F5F9FF;
-                            border-radius: 12px;
-                            }
-                            QLabel {
-                            font-family: 'Montserrat SemiBold';
-                            color: #0A1F44;
-                            border: none;
-                            }
-                            QPushButton {
-                            font-family: 'Montserrat SemiBold';
-                            color: #0A1F44;
-                            background-color: #FFFFFF;
-                            border: 2px solid #0047B2;
-                            min-width: 44px;
-                            min-height: 44px;
-                            border-radius: 22px; /* circular */
-                            padding: 0;
-                            }
-                            QPushButton:hover {
-                            background-color: #F5F9FF;
-                            border-color: #1E63D0;
-                            }
-                            QPushButton:pressed {
-                            background-color: #EAF4FF;
-                            }
-                            QScrollArea, QScrollArea > QWidget > QWidget, QFrame {
-                            background: transparent;
-                            border: none;
-                            }
-                        """
-                    )
-                    msg.setIcon(QMessageBox.Question)
-                    msg.setWindowTitle("Install Local LLM?")
-                    msg.setText("This feature can run a Local LLM on your device.")
-                    msg.setInformativeText("Download size is approximately 4.66 GB. Do you want to install it now to run the chatbot locally? (Also note, having NVIDIA CUDA installed is HIGHLY recommended for faster processing, CPUs are not recommended.)")
-                    msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                    msg.setDefaultButton(QMessageBox.No)
-                    result = msg.exec_()
-                    if result != QMessageBox.Yes:
-                        # Keep hidden and abort expansion
-                        self.expanded = False
-                        return
-
-                    # Init ChatbotBE
-                    self.chatbot_be = ChatbotBE()
-                    pass
-
-
-            except Exception:
-                # If the check or dialog fails, proceed safely without blocking UI
-                pass
-
-
-            # Expand
-            
+            # Expand UI first (no backend checks here)
             self.expanded = True
             self.resize(int(0.25*self.parentWidget().width()),int(0.30*self.parentWidget().height()))
-            # show then fade in
             try:
                 self.chat_box.show()
                 self.fade.stop()
@@ -237,45 +176,160 @@ class ChatbotFE(QWidget):
                 self.fade.start()
             except Exception:
                 self.chat_box.show()
-            self.reposition()  # Reposition after resize
+            self.reposition()
             self.toggle_button.raise_()
-            
-            # Ensure backend is initialized after expand
+
+            # Disable input and defer backend init so UI is responsive
             if not hasattr(self, 'chatbot_be'):
                 try:
-                    # Minimal, non-blocking loading message sized to content
-                    loading_msg = QMessageBox(self)
-                    loading_msg.setIcon(QMessageBox.NoIcon)
-                    loading_msg.setWindowTitle("Loading")
-                    loading_msg.setText("Loading chatbot backend…")
-                    loading_msg.setStandardButtons(QMessageBox.NoButton)
-                    loading_msg.setStyleSheet(
-                       """
-                            QMessageBox {
-                            
-                            border-radius: 0;
-                            
-                            }
-                            QLabel {
-                            font-family: 'Montserrat SemiBold';
-                            color: #0A1F44;
-                            border: none;
-                            selection-background-color: rgba(0,0,0,0);
-                            selection-color: #0A1F44;
-                            }
-                        """
-                    )
-                    loading_msg.adjustSize()
-                    loading_msg.setFixedSize(loading_msg.sizeHint())
-                    loading_msg.show()
-                    QApplication.processEvents()
-
-                    self.chatbot_be = ChatbotBE()
-                    loading_msg.hide()
-                    loading_msg.close()
-
+                    self.input_box.setEnabled(False)
+                    self.input_box.setPlaceholderText("Initializing chatbot...")
                 except Exception:
                     pass
+                QTimer.singleShot(300, self._ensure_backend_ready_after_show)
+            else:
+                try:
+                    self.input_box.setEnabled(True)
+                    self.input_box.setPlaceholderText("Enter your message here...")
+                except Exception:
+                    pass
+
+    def _ensure_backend_ready_after_show(self):
+        # If backend already exists or is initializing, ensure input is enabled and return
+        if hasattr(self, 'chatbot_be') and self.chatbot_be is not None:
+            try:
+                self.input_box.setEnabled(True)
+                self.input_box.setPlaceholderText("Enter your message here...")
+            except Exception:
+                pass
+            return
+
+        # Decide whether to prompt purely via filesystem check (no GPT4All calls)
+        if ChatbotBE.model_exists_locally():
+            # Start backend in background without prompt
+            self._start_backend_worker()
+        else:
+            # Prompt user to allow initialization/download
+            try:
+                msg = QMessageBox(self)
+                msg.setStyleSheet(
+                    """
+                        QMessageBox { background-color: #F5F9FF; border-radius: 12px; }
+                        QLabel { font-family: 'Montserrat SemiBold'; color: #0A1F44; border: none; }
+                        QPushButton { font-family: 'Montserrat SemiBold'; color: #0A1F44; background-color: #FFFFFF; border: 2px solid #0047B2; min-width: 44px; min-height: 44px; border-radius: 22px; padding: 0; }
+                        QPushButton:hover { background-color: #F5F9FF; border-color: #1E63D0; }
+                        QPushButton:pressed { background-color: #EAF4FF; }
+                        QScrollArea, QScrollArea > QWidget > QWidget, QFrame { background: transparent; border: none; }
+                    """
+                )
+                msg.setIcon(QMessageBox.Question)
+                msg.setWindowTitle("Initialize Local LLM?")
+                msg.setText("This feature will need to run a Local LLM on your device. Would you like to proceed and install it?")
+                msg.setInformativeText("Installing may take a few minutes. Also note that the model is ~4.66 GB. Also note it is HIGHLY RECOMMENDED to have a NVIDIA CUDA-enabled GPU for this feature. Proceed?")
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                msg.setDefaultButton(QMessageBox.No)
+                result = msg.exec_()
+                if result != QMessageBox.Yes:
+                    try:
+                        self.input_box.setEnabled(False)
+                        self.input_box.setPlaceholderText("Backend not initialized.")
+                    except Exception:
+                        pass
+                    return
+            except Exception:
+                pass
+
+            self.toggle_button.setEnabled(False)
+            self.new_conversation_button.setEnabled(False)
+            self._start_backend_worker_LLM_installation()
+
+    class _BackendInitWorker(QObject):
+        finished = pyqtSignal(object)
+        error = pyqtSignal(str)
+
+        @pyqtSlot()
+        def run(self):
+            try:
+                be = ChatbotBE()
+                self.finished.emit(be)
+            except Exception as e:
+                self.error.emit(str(e))
+
+    def _start_backend_worker_LLM_installation(self):
+        try:
+            self._backend_thread = QThread()
+            self._backend_worker = ChatbotFE._BackendInitWorker()
+            self._backend_worker.moveToThread(self._backend_thread)
+            self._backend_thread.started.connect(self._backend_worker.run)
+            self._backend_worker.finished.connect(self._on_backend_ready_LLM_installation)
+            self._backend_worker.error.connect(self._on_backend_failed_LLM_installation)
+            self._backend_worker.finished.connect(self._backend_thread.quit)
+            self._backend_worker.error.connect(self._backend_thread.quit)
+            self._backend_thread.finished.connect(self._clear_backend_worker_refs)
+            self._backend_thread.start()
+        except Exception:
+            self._on_backend_failed_LLM_installation("Failed to start backend thread")
+
+
+    def _start_backend_worker(self):
+        try:
+            self._backend_thread = QThread()
+            self._backend_worker = ChatbotFE._BackendInitWorker()
+            self._backend_worker.moveToThread(self._backend_thread)
+            self._backend_thread.started.connect(self._backend_worker.run)
+            self._backend_worker.finished.connect(self._on_backend_ready)
+            self._backend_worker.error.connect(self._on_backend_failed)
+            self._backend_worker.finished.connect(self._backend_thread.quit)
+            self._backend_worker.error.connect(self._backend_thread.quit)
+            self._backend_thread.finished.connect(self._clear_backend_worker_refs)
+            self._backend_thread.start()
+        except Exception:
+            self._on_backend_failed("Failed to start backend thread")
+
+    def _clear_backend_worker_refs(self):
+        self._backend_thread = None
+        self._backend_worker = None
+
+    @pyqtSlot(object)
+    def _on_backend_ready(self, be):
+        self.chatbot_be = be
+        try:
+            self.input_box.setEnabled(True)
+            self.input_box.setPlaceholderText("Enter your message here...")
+        except Exception:
+            pass
+
+    @pyqtSlot(object)
+    def _on_backend_ready_LLM_installation(self, be):
+        self.chatbot_be = be
+        try:
+            self.toggle_button.setEnabled(True)
+            self.new_conversation_button.setEnabled(True)
+            self.input_box.setEnabled(True)
+            self.input_box.setPlaceholderText("Enter your message here...")
+        except Exception:
+            pass
+
+
+
+    @pyqtSlot(str)
+    def _on_backend_failed(self, err):
+        try:
+            self.input_box.setEnabled(False)
+            self.input_box.setPlaceholderText("Initialization failed.")
+        except Exception:
+            pass
+
+
+    @pyqtSlot(str)
+    def _on_backend_failed_LLM_installation(self, err):
+        try:
+            self.toggle_button.setEnabled(True)
+            self.new_conversation_button.setEnabled(True)
+            self.input_box.setEnabled(False)
+            self.input_box.setPlaceholderText("Initialization failed.")
+        except Exception:
+            pass
 
 
     def _finish_collapse(self):
@@ -451,13 +505,14 @@ class ChatbotFE(QWidget):
     def format_new_chatbot_message(self, message: str, chatbot_history: QWidget):
         bubble = self._create_message_bubble(message, is_assistant=True)
         self._append_message_row(bubble, align_left=True)
-        self._auto_scroll_to_bottom()
+        QTimer.singleShot(500, self._auto_scroll_to_bottom)
+        
         
 
     def format_new_human_message(self, message: str, chatbot_history: QWidget):
         bubble = self._create_message_bubble(message, is_assistant=False)
         self._append_message_row(bubble, align_left=False)
-        self._auto_scroll_to_bottom()
+        QTimer.singleShot(250, self._auto_scroll_to_bottom)
 
     def _create_message_bubble(self, message: str, is_assistant: bool) -> QWidget:
         text = QTextEdit(message)
@@ -500,20 +555,13 @@ class ChatbotFE(QWidget):
 
         self.chat_history_layout.addWidget(row)
         self._fit_bubble_to_content(bubble)
-        # Re-fit once the layout has finalized and then scroll to the latest
-        QTimer.singleShot(0, lambda b=bubble: (self._fit_bubble_to_content(b), self._auto_scroll_to_bottom()))
+        # Re-fit once the layout has finalized to ensure correct size on right/left alignments
+        QTimer.singleShot(0, lambda b=bubble: self._fit_bubble_to_content(b))
 
     def _auto_scroll_to_bottom(self) -> None:
         try:
             bar = self.chat_history_scroll.verticalScrollBar()
-            # Defer scrolling to after layout/size updates to avoid stopping one item early
-            def do_scroll():
-                try:
-                    bar.setValue(bar.maximum())
-                except Exception:
-                    pass
-            QTimer.singleShot(0, do_scroll)
-            QTimer.singleShot(30, do_scroll)
+            bar.setValue(bar.maximum())
         except Exception:
             pass
 

@@ -155,19 +155,61 @@ class ChatbotBE:
 
 
 
-
     @staticmethod
-    def is_model_installed(model_name: str = "Meta-Llama-3-8B-Instruct.Q4_0.gguf", model_path: Optional[str] = None) -> bool:
+    def model_exists_locally(model_name: str = "Meta-Llama-3-8B-Instruct.Q4_0.gguf", additional_dirs: Optional[list] = None) -> bool:
         """
-        Returns True if the model file is already present locally according to GPT4All's
-        resolution rules. This never triggers a download.
-
-        - model_name: Either the filename (e.g., "Meta...gguf") or a full path
-        - model_path: Optional directory where models are stored
+        Lightweight filesystem check to decide if the model file exists locally
+        without touching GPT4All (avoids network/dll checks/logs).
         """
         try:
-            # Construct with allow_download=False so it will error if not found locally
-            _ = gpt4all.GPT4All(model_name, model_path=model_path, allow_download=False)
-            return True
+            candidates = []
+            if additional_dirs:
+                for d in additional_dirs:
+                    try:
+                        candidates.append(Path(d))
+                    except Exception:
+                        pass
+
+            # Directory of this file and a sibling 'models' directory
+            file_dir = Path(__file__).resolve().parent
+            candidates.append(file_dir)
+            candidates.append(file_dir / "models")
+
+            # CWD models directory
+            try:
+                candidates.append(Path.cwd() / "models")
+            except Exception:
+                pass
+
+            # Windows common locations
+            local_appdata = os.getenv("LOCALAPPDATA")
+            appdata = os.getenv("APPDATA")
+            if local_appdata:
+                candidates.append(Path(local_appdata) / "nomic.ai" / "GPT4All")
+            if appdata:
+                candidates.append(Path(appdata) / "nomic.ai" / "GPT4All")
+
+            # Home cache fallbacks
+            try:
+                candidates.append(Path.home() / ".cache" / "gpt4all")
+                candidates.append(Path.home() / ".cache" / "GPT4All")
+            except Exception:
+                pass
+
+            # Environment override
+            env_model_path = os.getenv("GPT4ALL_MODEL_PATH")
+            if env_model_path:
+                try:
+                    candidates.append(Path(env_model_path))
+                except Exception:
+                    pass
+
+            for d in candidates:
+                try:
+                    if (d / model_name).exists():
+                        return True
+                except Exception:
+                    continue
         except Exception:
             return False
+        return False

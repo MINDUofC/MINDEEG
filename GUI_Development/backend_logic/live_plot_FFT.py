@@ -6,7 +6,7 @@ from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
 from GUI_Development.backend_logic.data_processing import get_filtered_data_with_ica
-
+from backend_logic.data_collector import DataCollector
 
 class FFTGraph(QWidget):
     def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, parent=None):
@@ -75,6 +75,8 @@ class FFTGraph(QWidget):
             self.num_points = int(6 * self.sampling_rate)
             print(f"FFT Init: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
+
+#del from here
         data = get_filtered_data_with_ica(
             self.board_shim, 
             self.num_points, 
@@ -100,5 +102,19 @@ class FFTGraph(QWidget):
             # Perform FFT on windowed signal
             fft_vals = np.fft.rfft(windowed_signal)
             amplitude = np.abs(fft_vals)
+#to here
+
+
+
+        # replacement code below (temporary and not final)
+        # 
+        # fft_data_array = self.data_collector.collect_data_FFT()
+        # 
+        # for idx, ch in enumerate(self.eeg_channels):
+        #     amplitude = fft_data_array[idx]
+        #     self.curves[idx].setData(freqs, amplitude)
+        # 
+
+
 
             self.curves[idx].setData(freqs, amplitude)
