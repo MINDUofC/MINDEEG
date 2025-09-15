@@ -5,17 +5,17 @@ from scipy.signal import windows
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.data_processing import get_filtered_data_with_ica
-from backend_logic.data_collector import DataCollector
+from GUI_Development.backend_logic.data_collector import CentralizedDataCollector
 
 class FFTGraph(QWidget):
-    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, parent=None):
+    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, data_collector=None, parent=None):
         super().__init__(parent)
 
         self.board_shim = board_shim
         self.BoardOnCheckBox = BoardOnCheckBox
         self.preprocessing_controls = preprocessing_controls
         self.ica_manager = ica_manager
+        self.data_collector = data_collector
 
         self.eeg_channels = None
         self.sampling_rate = None
@@ -75,46 +75,17 @@ class FFTGraph(QWidget):
             self.num_points = int(6 * self.sampling_rate)
             print(f"FFT Init: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
-
-#del from here
-        data = get_filtered_data_with_ica(
-            self.board_shim, 
-            self.num_points, 
-            self.eeg_channels, 
-            self.preprocessing_controls,
-            self.ica_manager
-        )
-
-        freqs = np.fft.rfftfreq(self.num_points, d=1.0 / self.sampling_rate)
-
-        # Create the window only once
-        window = windows.hamming(self.num_points)
+        # Use centralized data collector
+        fft_data = self.data_collector.collect_data_FFT() if self.data_collector else None
+        
+        if fft_data is None:
+            return
+            
+        freqs = fft_data[0]
+        amplitudes = fft_data[1]
 
         for idx, ch in enumerate(self.eeg_channels):
-            # Apply the window to the latest slice of EEG data
-            signal = data[ch]
-            if len(signal) < self.num_points:
-                return  # Not enough data yet — skip this frame
+            if idx < len(amplitudes):
+                amplitude = amplitudes[idx]
 
-            signal = signal[-self.num_points:]  # Now we can safely slice
-            windowed_signal = signal * window
-
-            # Perform FFT on windowed signal
-            fft_vals = np.fft.rfft(windowed_signal)
-            amplitude = np.abs(fft_vals)
-#to here
-
-
-
-        # replacement code below (temporary and not final)
-        # 
-        # fft_data_array = self.data_collector.collect_data_FFT()
-        # 
-        # for idx, ch in enumerate(self.eeg_channels):
-        #     amplitude = fft_data_array[idx]
-        #     self.curves[idx].setData(freqs, amplitude)
-        # 
-
-
-
-            self.curves[idx].setData(freqs, amplitude)
+                self.curves[idx].setData(freqs, amplitude)

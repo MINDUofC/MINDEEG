@@ -22,12 +22,13 @@ from PyQt5.QtGui import QDesktopServices
 import resources_rc
 import frontend.frontend_design as bed  # Backend window/control helpers
 import backend_logic.backend_eeg as beeg
+from brainflow.board_shim import BoardShim
 from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
 from backend_logic.live_plot_FFT import FFTGraph
 from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 from backend_logic.ica_manager import ICAManager
-from backend_logic.data_collector import DataCollector
+from backend_logic.data_collector import CentralizedDataCollector
 from frontend.chatbotFE import ChatbotFE
 
 
@@ -251,20 +252,32 @@ class MainApp(QDialog):
     def setup_muV_live_plot(self):
         """Lazy-create and embed the µV live plot into its tab."""
         layout = QVBoxLayout(self.muVPlot)
-        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
+        self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.muVGraph)
+        
+        # Update data collector reference if it exists but wasn't available during creation
+        if self.data_collector and self.muVGraph.data_collector is None:
+            self.muVGraph.data_collector = self.data_collector
 
     def setup_FFT_live_plot(self):
         """Lazy-create and embed the FFT live plot into its tab."""
         layout = QVBoxLayout(self.FFTPlot)
-        self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
+        self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.FFTGraph)
+        
+        # Update data collector reference if it exists but wasn't available during creation
+        if self.data_collector and self.FFTGraph.data_collector is None:
+            self.FFTGraph.data_collector = self.data_collector
 
     def setup_PSDGraph(self):
         """Lazy-create and embed the PSD live plot into its tab."""
         layout = QVBoxLayout(self.PSDPlot)
-        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager)
+        self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.PSDGraph)
+        
+        # Update data collector reference if it exists but wasn't available during creation
+        if self.data_collector and self.PSDGraph.data_collector is None:
+            self.PSDGraph.data_collector = self.data_collector
 
     def handle_tab_change_on_Visualizer(self, index):
         """
@@ -319,26 +332,43 @@ class MainApp(QDialog):
                 return
 
 
-            if self.first_time_collecting:
-                # self.data_collector = DataCollector(self.board_shim, , self.preprocessing_controls, self.ica_manager)
-                pass
+            # Initialize or update centralized data collector
+            if self.data_collector is None:
+                # First time initialization
+            
+                eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
+                self.data_collector = CentralizedDataCollector(
+                    self.board_shim, 
+                    eeg_channels, 
+                    self.preprocessing_controls, 
+                    self.ica_manager
+                )
+            else:
+                # Subsequent times - just update the board_shim
+                self.data_collector.set_board_shim(self.board_shim)
     
 
 
 
-            # Update each graph's board_shim reference if they exist
-            if self.muVGraph: self.muVGraph.board_shim = self.board_shim
-            if self.FFTGraph: self.FFTGraph.board_shim = self.board_shim
-            if self.PSDGraph: self.PSDGraph.board_shim = self.board_shim
-            
             # Update ICA manager's board shim reference
             self.ica_manager.set_board_shim(self.board_shim)
 
             # Automatically enable FastICA if we have 2+ channels
             self.update_fastica_state()
 
-            # Start the timer on whichever tab is active now
+            # Start the timer on whichever tab is active now (this may create graphs)
             self.handle_tab_change_on_Visualizer(self.Visualizer.currentIndex())
+            
+            # Update each graph's board_shim and data_collector reference AFTER they're created
+            if self.muVGraph: 
+                self.muVGraph.board_shim = self.board_shim
+                self.muVGraph.data_collector = self.data_collector
+            if self.FFTGraph: 
+                self.FFTGraph.board_shim = self.board_shim
+                self.FFTGraph.data_collector = self.data_collector
+            if self.PSDGraph: 
+                self.PSDGraph.board_shim = self.board_shim
+                self.PSDGraph.data_collector = self.data_collector
 
             # Set first_time_collecting to False since next time we turn on the board its no longer the first time
             self.first_time_collecting = False
@@ -358,9 +388,14 @@ class MainApp(QDialog):
             # Clear the board_shim reference to ensure fresh instance on next turn on
             self.board_shim = None
             
+            # Clear the data collector's board reference but keep the collector
+            if self.data_collector:
+                self.data_collector.set_board_shim(None)
+            
             for graph in (self.muVGraph, self.FFTGraph, self.PSDGraph):
                 if graph:
                     graph.board_shim = None
+                    # Keep the data_collector reference - it will handle the board_shim being None
                     graph.timer.stop()
 
     def update_fastica_state(self):

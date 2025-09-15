@@ -6,17 +6,18 @@ from vispy import scene
 from vispy.scene import Line, Text
 from vispy.color import get_colormap
 from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.data_processing import get_filtered_data_with_ica
+from GUI_Development.backend_logic.data_collector import CentralizedDataCollector
 
 
 class MuVGraphVispyStacked(QWidget):
-    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, parent=None):
+    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, data_collector=None, parent=None):
         super().__init__(parent)
 
         self.board_shim = board_shim
         self.BoardOnCheckBox = BoardOnCheckBox
         self.preprocessing_controls = preprocessing_controls
         self.ica_manager = ica_manager
+        self.data_collector = data_collector
 
         # Live update config
         self.update_speed_ms = 30
@@ -131,13 +132,11 @@ class MuVGraphVispyStacked(QWidget):
             self.num_points = int(6 * self.sampling_rate)  # 6-second window
             print(f"Board Initialized: {len(self.eeg_channels)} EEG channels, {self.sampling_rate} Hz")
 
-        filtered_data = get_filtered_data_with_ica(
-            self.board_shim,
-            self.num_points,
-            self.eeg_channels,
-            self.preprocessing_controls,
-            self.ica_manager
-        )
+        # Use centralized data collector
+        filtered_data = self.data_collector.collect_data_muV() if self.data_collector else None
+        
+        if filtered_data is None:
+            return
 
         track_height = self.offset_spacing * 0.8
         num_active = len(self.eeg_channels)

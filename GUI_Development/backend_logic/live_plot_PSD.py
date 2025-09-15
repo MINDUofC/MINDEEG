@@ -5,17 +5,18 @@ from scipy.signal import welch, windows
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.data_processing import get_filtered_data_with_ica
+from GUI_Development.backend_logic.data_collector import CentralizedDataCollector
 
 
 class PSDGraph(QWidget):
-    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, parent=None):
+    def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, data_collector=None, parent=None):
         super().__init__(parent)
 
         self.board_shim = board_shim
         self.BoardOnCheckBox = BoardOnCheckBox
         self.preprocessing_controls = preprocessing_controls
         self.ica_manager = ica_manager
+        self.data_collector = data_collector
 
         self.eeg_channels = None
         self.sampling_rate = None
@@ -88,37 +89,18 @@ class PSDGraph(QWidget):
             self.num_points = 84  # for 1.5 Hz resolution
             print(f"PSD Init: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
-        data = get_filtered_data_with_ica(
-            self.board_shim, 
-            self.num_points, 
-            self.eeg_channels, 
-            self.preprocessing_controls,
-            self.ica_manager
-        )
-
-        # Welch window and overlap
-        nperseg = self.num_points  # Full window size for Welch = 84 samples
-        noverlap = int(0.5 * nperseg)  # 50% overlap for smoother averaging
-        window = windows.hamming(nperseg)  # Tapered window to reduce spectral leakage
+        # Use centralized data collector
+        psd_data = self.data_collector.collect_data_PSD() if self.data_collector else None
+        
+        if psd_data is None:
+            return
+            
+        freqs = psd_data[0]
+        powers = psd_data[1]
 
         for idx, ch in enumerate(self.eeg_channels):
-            signal = data[ch]
-            if len(signal) < self.num_points:
-                return
-
-            signal = signal[-self.num_points:] * window
-            freqs, power = welch(
-                signal,
-                fs=self.sampling_rate,  # Ensure this is 125 Hz or as configured
-                window=window,
-                nperseg=self.num_points,  # Should be high enough for clear frequency resolution
-                noverlap=int(0.5 * self.num_points),
-                scaling='density'
-            )
-
-            log_power = np.log1p(power)  # Safe log
-            log_power = uniform_filter1d(log_power, size=4)  # Smooth
-
+            if idx < len(powers):
+                log_power = powers[idx]
             self.curves[idx].setData(freqs, log_power)
             # if you switch to linear scale, just use the power variable instead of log_power
 
