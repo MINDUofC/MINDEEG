@@ -2916,6 +2916,9 @@ QComboBox QAbstractItemView::item:selected {
 }
 </string>
          </property>
+         <property name="editable">
+          <bool>false</bool>
+         </property>
         </widget>
         <widget class="QLabel" name="label_38">
          <property name="geometry">

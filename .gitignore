@@ -9,3 +9,4 @@
 /GUI_Development/backend_logic/__pycache__
 /.gitignore
 GUI_Development/backend_logic/chatbot/test.py
+GUI_Development/backend_logic/export_destination.txt

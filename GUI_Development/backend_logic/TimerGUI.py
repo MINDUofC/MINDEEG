@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QGraphicsView, \
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QColor, QBrush, QPen, QFont
 from PyQt5.QtCore import QElapsedTimer
-from GUI_Development.backend_logic import backend_eeg as beeg
+from backend_logic import backend_eeg as beeg
 
 # —————————————————————————————————————————————————————————————
 # Configure logging: debug output to console

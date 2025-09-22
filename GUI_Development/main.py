@@ -29,6 +29,8 @@ from backend_logic.live_plot_PSD import PSDGraph
 from backend_logic.TimerGUI import TimelineWidget
 from backend_logic.ica_manager import ICAManager
 from backend_logic.data_collector import CentralizedDataCollector
+from backend_logic.export_manager import ExportDestinationManager
+from backend_logic.recording_manager import PreciseRecordingManager
 from frontend.chatbotFE import ChatbotFE
 
 
@@ -112,7 +114,16 @@ class MainApp(QDialog):
         self.FFTData             = self.findChild(QCheckBox, "FFTData")
         self.PSDData             = self.findChild(QCheckBox, "PSDData")
         self.FileType            = self.findChild(QComboBox, "FileType")
+        # Populate FileType combo box on startup (required for visibility)
+        if self.FileType is not None:
+            self.FileType.clear()
+            self.FileType.addItem("Select file type...")
+            self.FileType.addItem("CSV")
+            self.FileType.setCurrentIndex(0)
+            
         self.ExportDestination   = self.findChild(QPushButton, "ExportDestination")
+        self.ExportFile          = self.findChild(QPushButton, "ExportButton")
+        self.ExportStatus        = self.findChild(QLabel, "ExportStatus")
 
         # Epoch/timing controls
         self.BeforeOnset         = self.findChild(QSpinBox, "BeforeOnset")
@@ -239,6 +250,27 @@ class MainApp(QDialog):
         # Initialize data collector and associated variables
         self.data_collector = None
         self.first_time_collecting = True
+
+        # Export destination + recording managers
+        self.export_dest_manager = ExportDestinationManager()
+        self.recording_manager = None
+
+        # Hook export controls
+        if self.ExportDestination is not None:
+            self.ExportDestination.clicked.connect(self.browse_export_destination)
+        if self.ExportFile is not None:
+            self.ExportFile.clicked.connect(self.export_button_clicked)
+
+        # Add recording handlers in addition to TimerGUI wiring
+        if self.recordButton is not None:
+            self.recordButton.clicked.connect(self.handle_record_button)
+        if self.stopButton is not None:
+            self.stopButton.clicked.connect(self.handle_stop_button)
+
+        # Load export destination on startup and reflect in UI
+        self.load_export_destination_on_startup()
+
+        # (Reverted FileType runtime population/sizing fixes)
 
 
         # ─── Ensure µV tab is selected on start & hook tab changes ─────
@@ -370,6 +402,17 @@ class MainApp(QDialog):
                 self.PSDGraph.board_shim = self.board_shim
                 self.PSDGraph.data_collector = self.data_collector
 
+            # Initialize precise recording manager when board is on and collector ready
+            try:
+                if self.data_collector and self.recording_manager is None:
+                    self.recording_manager = PreciseRecordingManager(
+                        self.data_collector,
+                        self.timeline_widget,
+                        self.ExportStatus
+                    )
+            except Exception:
+                pass
+
             # Set first_time_collecting to False since next time we turn on the board its no longer the first time
             self.first_time_collecting = False
 
@@ -391,12 +434,154 @@ class MainApp(QDialog):
             # Clear the data collector's board reference but keep the collector
             if self.data_collector:
                 self.data_collector.set_board_shim(None)
+            # Stop any ongoing recording when board turns off
+            if self.recording_manager and self.recording_manager.is_recording:
+                try:
+                    self.recording_manager.forfeit()
+                except Exception:
+                    pass
             
             for graph in (self.muVGraph, self.FFTGraph, self.PSDGraph):
                 if graph:
                     graph.board_shim = None
                     # Keep the data_collector reference - it will handle the board_shim being None
                     graph.timer.stop()
+
+    def load_export_destination_on_startup(self):
+        saved_path, is_valid = self.export_dest_manager.load_destination_on_startup()
+        if is_valid:
+            try:
+                base = os.path.basename(saved_path.rstrip(os.sep)) or saved_path
+                self.ExportDestination.setText("")
+                self.ExportDestination.setToolTip(saved_path)
+                self.ExportStatus.setText("Export destination loaded")
+            except Exception:
+                pass
+        else:
+            try:
+                self.ExportDestination.setText("")
+                self.ExportDestination.setToolTip("No export destination selected")
+                self.ExportStatus.setText("Select export destination before exporting")
+            except Exception:
+                pass
+
+    # (Removed FileType configure/ensure methods)
+
+    def browse_export_destination(self):
+        try:
+            from PyQt5.QtWidgets import QFileDialog
+            path = QFileDialog.getExistingDirectory(self, "Select Export Destination Directory")
+            if path:
+                if self.export_dest_manager.save_destination(path):
+                    base = os.path.basename(path.rstrip(os.sep)) or path
+                    self.ExportDestination.setText("")
+                    self.ExportDestination.setToolTip(path)
+                    self.ExportStatus.setText("Export destination updated")
+                else:
+                    self.ExportStatus.setText("Failed to save export destination")
+        except Exception:
+            pass
+
+    def validate_recording_controls(self):
+        # Ensure a file type is chosen
+        if (self.FileType is None) or (self.FileType.currentIndex() <= 0):
+            return False, "File type not selected"
+        # Ensure at least one data type is selected
+        selected = any([
+            self.RawData.isChecked() if self.RawData is not None else False,
+            self.FFTData.isChecked() if self.FFTData is not None else False,
+            self.PSDData.isChecked() if self.PSDData is not None else False,
+        ])
+        if not selected:
+            return False, "No data types selected"
+        return True, "OK"
+
+    def handle_record_button(self):
+        # TimerGUI already starts animation; here we handle recording logic/status
+        ok, msg = self.validate_recording_controls()
+        if not ok:
+            try:
+                self.ExportStatus.setText(f"Not recording: {msg}")
+            except Exception:
+                pass
+            return
+
+        if not (self.BoardOnOff and self.BoardOnOff.isChecked()):
+            try:
+                self.ExportStatus.setText("Board OFF: Not recording")
+            except Exception:
+                pass
+            return
+
+        # Board ON - start synchronized recording a moment after timers start
+        def _start_rec():
+            try:
+                if self.data_collector and self.recording_manager is None:
+                    self.recording_manager = PreciseRecordingManager(
+                        self.data_collector,
+                        self.timeline_widget,
+                        self.ExportStatus
+                    )
+                if not self.recording_manager:
+                    self.ExportStatus.setText("Recording failed: Not initialized")
+                    return
+                selected_types = {
+                    'muV': self.RawData.isChecked() if self.RawData else False,
+                    'FFT': self.FFTData.isChecked() if self.FFTData else False,
+                    'PSD': self.PSDData.isChecked() if self.PSDData else False,
+                }
+                success, message = self.recording_manager.start(selected_types)
+                if success:
+                    self.ExportStatus.setText("Board ON: Recording in progress")
+                else:
+                    self.ExportStatus.setText(f"Recording failed: {message}")
+            except Exception:
+                try:
+                    self.ExportStatus.setText("Recording failed: Unexpected error")
+                except Exception:
+                    pass
+
+        from PyQt5.QtCore import QTimer
+        QTimer.singleShot(50, _start_rec)
+
+    def handle_stop_button(self):
+        # TimerGUI handles UI stop; we only forfeit data
+        try:
+            if self.recording_manager and self.recording_manager.is_recording:
+                self.recording_manager.forfeit()
+                self.ExportStatus.setText("Recording forfeited - No data saved")
+            else:
+                self.ExportStatus.setText("Stopped")
+        except Exception:
+            pass
+
+    def export_button_clicked(self):
+        try:
+            if not self.recording_manager or not self.recording_manager.has_cached_data():
+                self.ExportStatus.setText("Export failed: Record data beforehand")
+                return
+            dest = self.export_dest_manager.current_destination
+            if not dest or not os.path.isdir(dest):
+                self.ExportStatus.setText("Export failed: Destination not set")
+                return
+            # Require explicit file type selection (CSV only for now)
+            if (self.FileType is None) or (self.FileType.currentIndex() <= 0):
+                self.ExportStatus.setText("Export failed: Select file type")
+                return
+            file_type = self.FileType.currentText()
+            if file_type.upper() != "CSV":
+                self.ExportStatus.setText("Export failed: Unsupported file type")
+                return
+            ok = self.recording_manager.export_cached(dest, "csv")
+            if ok:
+                self.ExportStatus.setText("Export successful")
+            else:
+                self.ExportStatus.setText("Export failed")
+        except Exception:
+            try:
+                self.ExportStatus.setText("Export failed: Unexpected error")
+            except Exception:
+                pass
 
     def update_fastica_state(self):
         """
@@ -577,4 +762,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = MainApp()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec_()) is not None

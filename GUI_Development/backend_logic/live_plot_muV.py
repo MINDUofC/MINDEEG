@@ -6,7 +6,7 @@ from vispy import scene
 from vispy.scene import Line, Text
 from vispy.color import get_colormap
 from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.data_collector import CentralizedDataCollector
+from backend_logic.data_collector import CentralizedDataCollector
 
 
 class MuVGraphVispyStacked(QWidget):
