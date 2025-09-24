@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import (
     QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout,
     QTextEdit, QPlainTextEdit
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
 from PyQt5.QtCore import QUrl
@@ -32,6 +32,7 @@ from backend_logic.data_collector import CentralizedDataCollector
 from backend_logic.export_manager import ExportDestinationManager
 from backend_logic.recording_manager import PreciseRecordingManager
 from frontend.chatbotFE import ChatbotFE
+from frontend.menu_handler import MenuHandler
 
 
 
@@ -71,6 +72,9 @@ class MainApp(QDialog):
         self.MindLogo = self.findChild(QLabel, "MindLogo")
         self.InstaLogo = self.findChild(QPushButton, "InstaLogo")
         self.LinkedInLogo = self.findChild(QPushButton, "LinkedInLogo")
+        
+        # Menu Options combo box
+        self.MenuOptions = self.findChild(QComboBox, "MenuOptions")
 
         # Chatbot controls
         self.chatbot = ChatbotFE(self)
@@ -224,6 +228,15 @@ class MainApp(QDialog):
         self.ChannelDial.valueChanged.connect(self.on_channel_dial_changed)
         # FastICA checkbox manual toggle
         self.FastICAOnOff.toggled.connect(self.on_fastica_manual_toggle)
+        # Connecting FileDestination Button so it shrinks when pressed
+        self.ExportDestination.pressed.connect(self.on_export_destination_clicked)
+        self.ExportDestination.released.connect(self.on_export_destination_released)
+        
+        # Initialize menu handler
+        self.menu_handler = MenuHandler(self, self.MenuOptions)
+
+
+        
 
         # ─── Enforce integer-only where appropriate ─────────────────────
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -757,6 +770,12 @@ class MainApp(QDialog):
         self.setGeometry(new_x, new_y, new_w, new_h)
         self.chatbot.reposition()
 
+
+    def on_export_destination_clicked(self):
+        self.ExportDestination.setIconSize(QSize(17,17))
+
+    def on_export_destination_released(self):
+        self.ExportDestination.setIconSize(QSize(20,20))
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
