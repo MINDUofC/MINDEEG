@@ -73,6 +73,20 @@ def bandpass_filters(signal, preprocessing, sampling_rate=125, order=4):
     """
     num_bp = preprocessing["NumberBandPass"].value()
 
+    # Determine FIR/IIR mode once and read window (for FIR only) from combo userData
+    try:
+        fir_iir_mode = preprocessing["BPTypeFIR_IIR"].currentText().strip().upper()
+    except Exception:
+        fir_iir_mode = "IIR"
+    window = None
+    if fir_iir_mode == "FIR":
+        try:
+            window = preprocessing["FIRWindowType"].currentData()
+            if window is None:
+                window = "hamming"
+        except Exception:
+            window = "hamming"
+
     for i in range(1, num_bp + 1):
         raw_start = preprocessing[f"BP{i}Start"].text().strip()
         raw_end   = preprocessing[f"BP{i}End"].text().strip()
@@ -91,39 +105,80 @@ def bandpass_filters(signal, preprocessing, sampling_rate=125, order=4):
         except ValueError:
             end = None
 
-        # 1) True band-pass
-        if start and end and start < end:
-            DataFilter.perform_bandpass(
-                data=signal,
-                sampling_rate=sampling_rate,
-                start_freq=start,
-                stop_freq=end,
-                order=order,
-                filter_type=FilterTypes.BUTTERWORTH.value,
-                ripple=0
-            )
+        if fir_iir_mode == "FIR":
+            # FIR branch: windowed FIR with 101 taps, zero-phase via filtfilt
+            try:
+                # 1) True band-pass
+                if start and end and start < end:
+                    taps = signal_lib.firwin(
+                        numtaps=101,
+                        cutoff=[start, end],
+                        pass_zero=False,
+                        window=window,
+                        fs=sampling_rate
+                    )
+                    signal = signal_lib.filtfilt(taps, [1.0], signal, axis=-1)
 
-        # 2) Low-pass only (no valid start ⇒ pass all below `end`)
-        elif end and (not start or start <= 0):
-            DataFilter.perform_lowpass(
-                data=signal,
-                sampling_rate=sampling_rate,
-                cutoff=end,
-                order=order,
-                filter_type=FilterTypes.BUTTERWORTH.value,
-                ripple=0
-            )
+                # 2) Low-pass only (no valid start ⇒ pass all below `end`)
+                elif end and (not start or start <= 0):
+                    taps = signal_lib.firwin(
+                        numtaps=101,
+                        cutoff=end,
+                        pass_zero=True,
+                        window=window,
+                        fs=sampling_rate
+                    )
+                    signal = signal_lib.filtfilt(taps, [1.0], signal, axis=-1)
 
-        # 3) High-pass only (no valid end ⇒ pass all above `start`)
-        elif start and (not end or end <= 0):
-            DataFilter.perform_highpass(
-                data=signal,
-                sampling_rate=sampling_rate,
-                cutoff=start,
-                order=order,
-                filter_type=FilterTypes.BUTTERWORTH.value,
-                ripple=0
-            )
+                # 3) High-pass only (no valid end ⇒ pass all above `start`)
+                elif start and (not end or end <= 0):
+                    taps = signal_lib.firwin(
+                        numtaps=101,
+                        cutoff=start,
+                        pass_zero=False,
+                        window=window,
+                        fs=sampling_rate
+                    )
+                    signal = signal_lib.filtfilt(taps, [1.0], signal, axis=-1)
+                # else: invalid combination → skip
+            except Exception:
+                # Skip slot on FIR failure rather than raising
+                pass
+        else:
+            # IIR branch (existing behavior via BrainFlow Butterworth)
+            # 1) True band-pass
+            if start and end and start < end:
+                DataFilter.perform_bandpass(
+                    data=signal,
+                    sampling_rate=sampling_rate,
+                    start_freq=start,
+                    stop_freq=end,
+                    order=order,
+                    filter_type=FilterTypes.BUTTERWORTH.value,
+                    ripple=0
+                )
+
+            # 2) Low-pass only (no valid start ⇒ pass all below `end`)
+            elif end and (not start or start <= 0):
+                DataFilter.perform_lowpass(
+                    data=signal,
+                    sampling_rate=sampling_rate,
+                    cutoff=end,
+                    order=order,
+                    filter_type=FilterTypes.BUTTERWORTH.value,
+                    ripple=0
+                )
+
+            # 3) High-pass only (no valid end ⇒ pass all above `start`)
+            elif start and (not end or end <= 0):
+                DataFilter.perform_highpass(
+                    data=signal,
+                    sampling_rate=sampling_rate,
+                    cutoff=start,
+                    order=order,
+                    filter_type=FilterTypes.BUTTERWORTH.value,
+                    ripple=0
+                )
 
         # else: invalid combination → skip
 

@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QTextEdit, QPlainTextEdit
 )
 from PyQt5.QtCore import Qt, QSize
+import time
 from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
 from PyQt5.QtCore import QUrl
@@ -52,6 +53,8 @@ class MainApp(QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MINDStream EEG Extraction Interface")
         self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
+        # Debounce state for Record button
+        self._last_record_click_ts = 0.0
 
         # ─── Custom frameless‐resize state ────────────────────────────
         self._resizing = False
@@ -93,10 +96,32 @@ class MainApp(QDialog):
         self.BandStopOnOff       = self.findChild(QCheckBox, "BandStopOnOff")
         self.NumBandPass         = self.findChild(QSpinBox,  "NumBandPass")
         self.NumBandStop         = self.findChild(QSpinBox,  "NumBandStop")
+        self.BPTypeFIR_IIR       = self.findChild(QComboBox,  "BPTypeFIR_IIR")
         self.BP1Start            = self.findChild(QLineEdit,  "BP1Start")
         self.BP1End              = self.findChild(QLineEdit,  "BP1End")
         self.BP2Start            = self.findChild(QLineEdit,  "BP2Start")
         self.BP2End              = self.findChild(QLineEdit,  "BP2End")
+        self.FIRWindowType       = self.findChild(QComboBox,  "FIRWindowType")
+        self.FIRWindowLabel      = self.findChild(QLabel,  "FIRWindowLabel")
+
+        # FIR/IIR Combo Box Initialization, default is IIR
+        if self.BPTypeFIR_IIR is not None:
+            self.BPTypeFIR_IIR.clear()
+            self.BPTypeFIR_IIR.addItem("IIR")
+            self.BPTypeFIR_IIR.addItem("FIR")
+            self.BPTypeFIR_IIR.setCurrentIndex(0)
+            
+        # FIR Window Type Combo Box Initialization, default is Hamming
+        if self.FIRWindowType is not None:
+            self.FIRWindowType.clear()
+            self.FIRWindowType.addItem("Hamming",userData="hamming")
+            self.FIRWindowType.addItem("Hann",userData="hann")
+            self.FIRWindowType.addItem("Blackman",userData="blackman")
+            self.FIRWindowType.addItem("Kaiser (β=8)", userData=("kaiser", 8.0)) #Beta value is 8.0 as its a safe default for most applications
+            self.FIRWindowType.addItem("Flat Top", userData="flattop")
+            self.FIRWindowType.setCurrentIndex(0)
+
+
         self.BStop1Start         = self.findChild(QLineEdit,  "BStop1Start")
         self.BStop1End           = self.findChild(QLineEdit,  "BStop1End")
         self.BStop2Start         = self.findChild(QLineEdit,  "BStop2Start")
@@ -150,6 +175,8 @@ class MainApp(QDialog):
             "ICACalibSecs":        self.ICACalibSecs,
             "NumberBandPass":      self.NumBandPass,
             "NumberBandStop":      self.NumBandStop,
+            "BPTypeFIR_IIR":       self.BPTypeFIR_IIR,
+            "FIRWindowType":       self.FIRWindowType,
             "BP1Start":            self.BP1Start,
             "BP1End":              self.BP1End,
             "BP2Start":            self.BP2Start,
@@ -160,7 +187,7 @@ class MainApp(QDialog):
             "BStop2End":           self.BStop2End,
             "Average":             self.AverageOnOff,
             "Median":              self.MedianOnOff,
-            "Window":              self.Window
+            "Window":              self.Window,
         }
 
         # ─── Initialize board and graph placeholders ────────────────────
@@ -174,6 +201,10 @@ class MainApp(QDialog):
         self.findChild(QWidget, "BandPassSettings").setEnabled(False)
         self.findChild(QWidget, "BandStopSettings").setVisible(False)
         self.findChild(QWidget, "BandStopSettings").setEnabled(False)
+        self.findChild(QWidget, "FIRWindowLabel").setVisible(False)
+        self.findChild(QWidget, "FIRWindowLabel").setEnabled(False)
+        self.findChild(QWidget, "FIRWindowType").setVisible(False)
+        self.findChild(QWidget, "FIRWindowType").setEnabled(False)
 
         # ─── Initialize FastICA checkbox state ──────────────────────────
         # Start with FastICA disabled by default
@@ -220,6 +251,10 @@ class MainApp(QDialog):
         # Show/hide band settings when counts change
         self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
         self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
+
+        self.BPTypeFIR_IIR.currentTextChanged.connect(lambda: bed.toggle_settings_visibility(self))
+        
+
         # Refresh serial ports dropdown on click
         self.Port.installEventFilter(self)
         # Board on/off
@@ -236,7 +271,6 @@ class MainApp(QDialog):
         self.menu_handler = MenuHandler(self, self.MenuOptions)
 
 
-        
 
         # ─── Enforce integer-only where appropriate ─────────────────────
         bed.set_integer_only(self.BoardID, 0, 57)
@@ -510,6 +544,11 @@ class MainApp(QDialog):
         return True, "OK"
 
     def handle_record_button(self):
+        # Debounce: ignore rapid re-clicks within 200ms
+        now_ts = time.monotonic()
+        if (now_ts - getattr(self, '_last_record_click_ts', 0.0)) < 0.2:
+            return
+        self._last_record_click_ts = now_ts
         # TimerGUI already starts animation; here we handle recording logic/status
         ok, msg = self.validate_recording_controls()
         if not ok:
@@ -554,8 +593,8 @@ class MainApp(QDialog):
                 except Exception:
                     pass
 
-        from PyQt5.QtCore import QTimer
-        QTimer.singleShot(50, _start_rec)
+        # Start recording immediately to avoid initial ~50 ms offset
+        _start_rec()
 
     def handle_stop_button(self):
         # TimerGUI handles UI stop; we only forfeit data

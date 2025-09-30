@@ -85,6 +85,7 @@ def toggle_settings_visibility(self):
     # Get values from spinboxes
     bandpass_value = self.NumBandPass.value()
     bandstop_value = self.NumBandStop.value()
+    is_FIR_On = self.BPTypeFIR_IIR.currentText() == "FIR"  #Boolean to check if FIR is selected
 
     # BandPassSettings visibility toggle
     if bandpass_value > 0:
@@ -102,6 +103,16 @@ def toggle_settings_visibility(self):
         self.BandStopSettings.setVisible(False)
         self.BandStopSettings.setEnabled(False)
 
+    if is_FIR_On and bandpass_value > 0:
+        self.FIRWindowLabel.setVisible(True)
+        self.FIRWindowLabel.setEnabled(True)
+        self.FIRWindowType.setVisible(True)
+        self.FIRWindowType.setEnabled(True)
+    else:
+        self.FIRWindowLabel.setVisible(False)
+        self.FIRWindowLabel.setEnabled(False)
+        self.FIRWindowType.setVisible(False)
+        self.FIRWindowType.setEnabled(False)
 
 
 

@@ -91,6 +91,7 @@ def turn_on_board(board_id_input: QLineEdit, port_input: QComboBox, channel_dial
                 neuro_pawn_commands.append(f"rldadd_{ch}")  # Add common reference
 
         board_shim.start_stream(450000)
+        board_shim.get_board_data() #this will clear the buffer, good practice after every turn on
         time.sleep(2)  # Allow board time to initialize
 
         # **Send configuration commands**

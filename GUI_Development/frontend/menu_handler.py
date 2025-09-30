@@ -11,6 +11,7 @@ DIALOG_STYLESHEET = """
     QDialog { 
         border-radius: 12px; 
         border: 2px solid #0047B2;
+        background-color: #d7d7d7;
     }
     QLabel { 
         font-family: 'Montserrat SemiBold';
@@ -117,6 +118,10 @@ class MenuHandler:
             self.show_how_to_use_dialog()
             # Reset combo box to default
             self.menu_combo.setCurrentText("Menu")
+        elif text == "Understanding Data Files":
+            self.show_csv_data_guide_dialog()
+            # Reset combo box to default
+            self.menu_combo.setCurrentText("Menu")
     
     def create_custom_dialog(self, title, content, width=600, height=400):
         """Create a custom dialog with proper sizing and layout control."""
@@ -174,7 +179,7 @@ class MenuHandler:
         about_text = """
 <h2>About This Application</h2>
 
-<p><b>Developer:</b> Taha Malik was the sole developer of this project</p>
+<p><b>Developer:</b> <a href="https://www.linkedin.com/in/taha--malik/" target="_blank">Taha Malik</a></p>
 
 <p><b>Version:</b> 1.0.0<br>
 <b>Development Phase:</b> April 2025 to September 2025</p>
@@ -240,4 +245,13 @@ class MenuHandler:
         """
         
         dialog = self.create_custom_dialog("How to Use MINDStream EEG", how_to_text, 700, 500)
+        dialog.exec_()
+    
+    def show_csv_data_guide_dialog(self):
+        """Show CSV Data Structure Guide dialog."""
+        csv_guide_text = """
+TODO
+        """
+        
+        dialog = self.create_custom_dialog("CSV Data Structure Guide", csv_guide_text, 800, 600)
         dialog.exec_()

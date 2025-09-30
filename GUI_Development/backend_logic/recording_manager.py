@@ -1,6 +1,7 @@
 import os
 import threading
 import numpy as np
+from datetime import datetime
 from PyQt5.QtCore import QTimer, Qt
 
 
@@ -26,6 +27,8 @@ class SynchronizedRecordingTimer:
         self.actual_sample_count = 0
         self.recording_timer.timeout.connect(self._on_timeout)
         self.recording_timer.start(self.sample_interval_ms)
+        # Trigger an immediate first tick to avoid startup latency (~one or more 8 ms slots)
+        QTimer.singleShot(0, self._on_timeout)
 
     def stop(self):
         if self.recording_timer.isActive():
@@ -56,8 +59,13 @@ class SynchronizedRecordingTimer:
 
 class PreciseRecordingManager:
     """
-    Collects EEG samples at 125 Hz and appends aligned timestamps:
-    columns: [ch1..ch8, global_time_s, trial_time_s]
+    Collects EEG samples at 125 Hz for multiple data types simultaneously.
+    Each data type gets its own file with datetime naming.
+    
+    Data structures:
+    - muV: [ch1..ch8, global_s, trial_s] - time domain samples
+    - FFT: [trial_s, global_s, ch1_bin1..ch1_binN, ch2_bin1..ch2_binN, ..., ch8_bin1..ch8_binN]
+    - PSD: [trial_s, global_s, ch1_bin1..ch1_binN, ch2_bin1..ch2_binN, ..., ch8_bin1..ch8_binN]
     """
 
     def __init__(self, data_collector, timer_widget, export_status_label):
@@ -68,9 +76,21 @@ class PreciseRecordingManager:
         self.sync = SynchronizedRecordingTimer(timer_widget)
         self.is_recording = False
         self._data_lock = threading.Lock()
-        self._rows = []  # each row is np.ndarray shape (10,)
+        
+        # Separate data storage for each type
+        self._muv_rows = []  # Shape: (N_samples, 10) -> [ch1..ch8, global_s, trial_s]
+        # For FFT/PSD we store one row per timestamp with all channels concatenated
+        # Shape: (N_samples, 2 + 8*num_freq_bins) -> [trial_s, global_s, ch1_bins..., ch2_bins..., ..., ch8_bins...]
+        self._fft_rows = []
+        self._psd_rows = []
+        
         self._last_sample_index = -1  # guard against duplicates
         self._sample_rate = getattr(self.data_collector, 'sampling_rate', None) or 125
+        self._recording_timestamp = None  # Set when recording starts
+        
+        # Store frequency information for FFT/PSD
+        self._fft_freqs = None
+        self._psd_freqs = None
 
         self.selected_types = {
             'muV': False,
@@ -84,9 +104,23 @@ class PreciseRecordingManager:
         if not self.data_collector or not self.data_collector.board_on:
             return False, "Board is off"
         self.selected_types = selected_types.copy()
+        # Generate timestamp for this recording session
+        self._recording_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         with self._data_lock:
-            self._rows = []
+            self._muv_rows = []
+            self._fft_rows = []
+            self._psd_rows = []
             self._last_sample_index = -1
+        # Pre-warm collectors so first tick has data ready (non-fatal if unavailable)
+        try:
+            if self.selected_types.get('muV'):
+                self.data_collector.collect_data_muV()
+            if self.selected_types.get('FFT'):
+                self.data_collector.collect_data_FFT()
+            if self.selected_types.get('PSD'):
+                self.data_collector.collect_data_PSD()
+        except Exception:
+            pass
         try:
             self.sync.start(self._on_sample_tick)
             self.is_recording = True
@@ -101,17 +135,50 @@ class PreciseRecordingManager:
     def forfeit(self):
         self.stop()
         with self._data_lock:
-            self._rows = []
+            self._muv_rows = []
+            self._fft_rows = []
+            self._psd_rows = []
 
     def has_cached_data(self) -> bool:
         with self._data_lock:
-            return len(self._rows) > 0
+            return (len(self._muv_rows) > 0 or 
+                   len(self._fft_rows) > 0 or 
+                   len(self._psd_rows) > 0)
 
-    def get_cached_matrix(self) -> np.ndarray:
+    def get_cached_data_by_type(self) -> dict:
+        """Return cached data separated by type with proper structures"""
         with self._data_lock:
-            if not self._rows:
-                return np.empty((0, 10), dtype=float)
-            return np.vstack(self._rows)
+            result = {}
+            
+            # muV: Keep original 10xN format [ch1..ch8, global_s, trial_s]
+            if len(self._muv_rows) > 0:
+                result['muV'] = {
+                    'data': np.vstack(self._muv_rows).T,  # 10xN format
+                    'structure': 'channels+time',
+                    'columns': ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'global_s', 'trial_s']
+                }
+            
+            # FFT: Frequency domain data with all channels per row
+            if len(self._fft_rows) > 0:
+                fft_matrix = np.vstack(self._fft_rows)
+                result['FFT'] = {
+                    'data': fft_matrix,  # rows = timestamps, cols = [trial_s, global_s, ch1_bins..., ..., ch8_bins...]
+                    'structure': 'time_by_channel_bins',
+                    'freqs': self._fft_freqs,
+                    'columns': []
+                }
+            
+            # PSD: Power spectral density with all channels per row
+            if len(self._psd_rows) > 0:
+                psd_matrix = np.vstack(self._psd_rows)
+                result['PSD'] = {
+                    'data': psd_matrix,  # rows = timestamps, cols = [trial_s, global_s, ch1_bins..., ..., ch8_bins...]
+                    'structure': 'time_by_channel_bins',
+                    'freqs': self._psd_freqs,
+                    'columns': []
+                }
+            
+            return result
 
     def _on_sample_tick(self, current_global_ms: int):
         if not self.is_recording:
@@ -135,37 +202,96 @@ class PreciseRecordingManager:
             if sample_index <= self._last_sample_index:
                 return
 
-            # Acquire one sample vector for 8 channels from selected source
-            sample = self._collect_single_sample()
-            if sample is None:
-                return
-            row = np.append(sample, [global_time_s, trial_time_s])
-            if row.shape[0] != 10:
-                return
+            # Collect samples for each selected data type
             with self._data_lock:
-                self._rows.append(row.astype(float))
+                # muV: Keep the working logic unchanged
+                if self.selected_types.get('muV'):
+                    muv_sample = self._collect_muv_sample()
+                    if muv_sample is not None:
+                        muv_row = np.append(muv_sample, [global_time_s, trial_time_s])
+                        if muv_row.shape[0] == 10:
+                            self._muv_rows.append(muv_row.astype(float))
+                
+                # FFT: Store frequency data for all channels in a single row per timestamp
+                if self.selected_types.get('FFT'):
+                    fft_channel_data = self._collect_fft_sample()
+                    if fft_channel_data is not None and len(fft_channel_data) > 0:
+                        # Ensure channels are in order and flatten all bins across channels
+                        channel_bins = []
+                        for _, freq_amplitudes in fft_channel_data[:8]:
+                            channel_bins.append(np.asarray(freq_amplitudes, dtype=float))
+                        if len(channel_bins) > 0:
+                            all_bins_flat = np.concatenate(channel_bins)
+                            fft_row = np.concatenate(([trial_time_s, global_time_s], all_bins_flat))
+                            self._fft_rows.append(fft_row.astype(float))
+                
+                # PSD: Store power data for all channels in a single row per timestamp
+                if self.selected_types.get('PSD'):
+                    psd_channel_data = self._collect_psd_sample()
+                    if psd_channel_data is not None and len(psd_channel_data) > 0:
+                        channel_bins = []
+                        for _, freq_powers in psd_channel_data[:8]:
+                            channel_bins.append(np.asarray(freq_powers, dtype=float))
+                        if len(channel_bins) > 0:
+                            all_bins_flat = np.concatenate(channel_bins)
+                            psd_row = np.concatenate(([trial_time_s, global_time_s], all_bins_flat))
+                            self._psd_rows.append(psd_row.astype(float))
+                
                 self._last_sample_index = sample_index
         except Exception:
             # Fail silently per tick; overall recording continues
             pass
 
-    def _collect_single_sample(self):
-        """Return np.array of 8 channel values, or None if not available."""
-        # Priority: muV > FFT > PSD based on selection
-        if self.selected_types.get('muV'):
+    def _collect_muv_sample(self):
+        """Collect muV data sample - using the working logic"""
+        try:
             data = self.data_collector.collect_data_muV()
             if data:
                 return self._extract_latest_from_channels(data)
-        if self.selected_types.get('FFT'):
+        except Exception:
+            pass
+        return None
+
+    def _collect_fft_sample(self):
+        """Collect FFT data - returns list of rows for all channels"""
+        try:
             fft_tuple = self.data_collector.collect_data_FFT()
             if fft_tuple:
                 freqs, amplitudes = fft_tuple
-                return self._extract_peak_from_amplitudes(amplitudes)
-        if self.selected_types.get('PSD'):
+                # Store frequency info on first collection
+                if self._fft_freqs is None:
+                    self._fft_freqs = freqs
+                
+                # Create one row per channel with all frequency bins
+                channel_rows = []
+                for ch_idx, amplitude_array in enumerate(amplitudes[:8]):
+                    if amplitude_array is not None and len(amplitude_array) > 0:
+                        # Row: [freq_bin_values..., global_s, trial_s, channel_id]
+                        channel_rows.append((ch_idx + 1, amplitude_array))
+                return channel_rows
+        except Exception:
+            pass
+        return None
+
+    def _collect_psd_sample(self):
+        """Collect PSD data - returns list of rows for all channels"""
+        try:
             psd_tuple = self.data_collector.collect_data_PSD()
             if psd_tuple:
                 freqs, powers = psd_tuple
-                return self._extract_sum_from_powers(powers)
+                # Store frequency info on first collection
+                if self._psd_freqs is None:
+                    self._psd_freqs = freqs
+                
+                # Create one row per channel with all frequency bins
+                channel_rows = []
+                for ch_idx, power_array in enumerate(powers[:8]):
+                    if power_array is not None and len(power_array) > 0:
+                        # Row: [freq_bin_values..., global_s, trial_s, channel_id]
+                        channel_rows.append((ch_idx + 1, power_array))
+                return channel_rows
+        except Exception:
+            pass
         return None
 
     def _extract_latest_from_channels(self, channel_dict) -> np.ndarray:
@@ -191,61 +317,87 @@ class PreciseRecordingManager:
         return values
 
     def export_cached(self, directory_path: str, file_type: str) -> bool:
-        """Export cached matrix to directory as chosen file type.
-        Output shape is (10, N): rows = 8 channels + global_s + trial_s; columns = samples.
-        """
-        matrix = self.get_cached_matrix()  # shape (N, 10)
-        if matrix.size == 0:
+        """Export cached data to separate files by type with datetime naming."""
+        cached_data = self.get_cached_data_by_type()
+        if not cached_data:
             return False
-        # Transpose to (10, N) to match required format
-        data_10xN = matrix.T
+        
         try:
             os.makedirs(directory_path, exist_ok=True)
-            fname = "recording"
-            # Simple unique suffix
-            suffix = str(int(np.random.randint(10000, 99999)))
             ext = file_type.lower()
             if ext.startswith("."):
                 ext = ext[1:]
-            if ext in ("npz",):
-                path = os.path.join(directory_path, f"{fname}_{suffix}.npz")
-                # Save with explicit key names for clarity
-                np.savez(
-                    path,
-                    ch1=data_10xN[0], ch2=data_10xN[1], ch3=data_10xN[2], ch4=data_10xN[3],
-                    ch5=data_10xN[4], ch6=data_10xN[5], ch7=data_10xN[6], ch8=data_10xN[7],
-                    global_s=data_10xN[8], trial_s=data_10xN[9],
-                    data=data_10xN
-                )
-                return True
-            elif ext in ("npy",):
-                path = os.path.join(directory_path, f"{fname}_{suffix}.npy")
-                np.save(path, data_10xN)
-                return True
-            elif ext in ("csv",):
-                path = os.path.join(directory_path, f"{fname}_{suffix}.csv")
-                # Write CSV with row labels, columns are sample indices
-                labels = [f"ch{i+1}" for i in range(8)] + ["global_s", "trial_s"]
-                num_cols = data_10xN.shape[1]
-                with open(path, "w", encoding="utf-8") as f:
-                    # header row: label,0,1,2,...
-                    f.write("label," + ",".join(str(i) for i in range(num_cols)) + "\n")
-                    for r, label in enumerate(labels):
-                        row_vals = ",".join(f"{v:.10f}" for v in data_10xN[r])
-                        f.write(f"{label},{row_vals}\n")
-                return True
-            else:
-                # default to npz
-                path = os.path.join(directory_path, f"{fname}_{suffix}.npz")
-                np.savez(
-                    path,
-                    ch1=data_10xN[0], ch2=data_10xN[1], ch3=data_10xN[2], ch4=data_10xN[3],
-                    ch5=data_10xN[4], ch6=data_10xN[5], ch7=data_10xN[6], ch8=data_10xN[7],
-                    global_s=data_10xN[8], trial_s=data_10xN[9],
-                    data=data_10xN
-                )
-                return True
+            
+            exported_files = []
+            
+            # Export each data type to separate file
+            for data_type, data_info in cached_data.items():
+                filename = f"record{data_type}_{self._recording_timestamp}"
+                matrix = data_info['data']
+                columns = data_info['columns']
+                
+                if ext == "csv":
+                    path = os.path.join(directory_path, f"{filename}.csv")
+                    self._write_csv_file(path, matrix, columns, data_info)
+                    exported_files.append(path)
+                elif ext == "npy":
+                    path = os.path.join(directory_path, f"{filename}.npy")
+                    np.save(path, matrix)
+                    exported_files.append(path)
+                elif ext == "npz":
+                    path = os.path.join(directory_path, f"{filename}.npz")
+                    save_dict = {'data': matrix, 'columns': columns}
+                    if 'freqs' in data_info:
+                        save_dict['freqs'] = data_info['freqs']
+                    np.savez(path, **save_dict)
+                    exported_files.append(path)
+            
+            return len(exported_files) > 0
+            
         except Exception:
             return False
+    
+    def _write_csv_file(self, path: str, matrix: np.ndarray, columns: list, data_info: dict):
+        """Write CSV file with appropriate format for each data type"""
+        num_cols = matrix.shape[1]
+        
+        with open(path, "w", encoding="utf-8") as f:
+            # Special handling for FFT/PSD time-by-channel-bins structure
+            if data_info.get('structure') == 'time_by_channel_bins' and 'freqs' in data_info:
+                num_channels = 8
+                freqs = list(data_info['freqs']) if data_info['freqs'] is not None else []
+                num_freq_bins = len(freqs)
+
+                # 1) Frequency header line: label + two blanks (trial_s, global_s) + freqs repeated per channel
+                freq_header_line = ["# Frequencies (Hz)", ""]
+                for _ in range(num_channels):
+                    freq_header_line.extend([f"{f:.2f}" for f in freqs])
+                f.write(",".join(freq_header_line) + "\n")
+
+                # 2) First header: bin1..binN repeated per channel
+                bin_labels = ["trial_s", "global_s"]
+                bin_labels.extend([f"bin{i+1}" for _ in range(num_channels) for i in range(num_freq_bins)])
+                f.write(",".join(bin_labels) + "\n")
+
+                # 3) Second header: channel labels spanning each bin block
+                ch_labels = ["", ""]
+                for ch in range(num_channels):
+                    ch_labels.extend([f"ch{ch+1}" for _ in range(num_freq_bins)])
+                f.write(",".join(ch_labels) + "\n")
+
+                # 4) Data rows (already row-oriented)
+                for row in matrix:
+                    f.write(",".join(f"{v:.10f}" for v in row) + "\n")
+                return
+
+            # Default generic writer (used for muV)
+            # Column headers: label,sample_0,sample_1,sample_2,...
+            f.write("label," + ",".join(str(i) for i in range(num_cols)) + "\n")
+            
+            # Data rows (matrix is expected to be row-oriented by 'columns')
+            for r, label in enumerate(columns):
+                if r < matrix.shape[0]:
+                    row_vals = ",".join(f"{v:.10f}" for v in matrix[r])
+                    f.write(f"{label},{row_vals}\n")
 
 
