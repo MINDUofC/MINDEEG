@@ -148,6 +148,9 @@ class MenuHandler:
         content_widget.setWordWrap(True)
         content_widget.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         content_widget.setContentsMargins(20, 20, 20, 20)
+        # Enable clickable links and text selection
+        content_widget.setOpenExternalLinks(True)
+        content_widget.setTextInteractionFlags(Qt.TextBrowserInteraction)
         
         scroll_area.setWidget(content_widget)
         layout.addWidget(scroll_area)

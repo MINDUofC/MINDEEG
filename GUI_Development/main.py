@@ -272,6 +272,9 @@ class MainApp(QDialog):
 
 
 
+        # Enable clickable links and text selection on all labels in the app
+        self.enable_global_label_interactions()
+
         # ─── Enforce integer-only where appropriate ─────────────────────
         bed.set_integer_only(self.BoardID, 0, 57)
         bed.set_integer_only(self.NumOfTrials)
@@ -697,6 +700,8 @@ class MainApp(QDialog):
         """Restore window state (fullscreen/normal) when the dialog is shown."""
         super().showEvent(event)
         bed.restore_window(self, self.chatbot)
+        # Re-apply interaction flags in case labels were re-created or updated
+        self.enable_global_label_interactions()
 
     def paintEvent(self, event):
         """Custom painting (rounded corners, shadows) via backend helper."""
@@ -815,6 +820,20 @@ class MainApp(QDialog):
 
     def on_export_destination_released(self):
         self.ExportDestination.setIconSize(QSize(20,20))
+
+    def enable_global_label_interactions(self):
+        """Make all QLabel widgets allow link clicking and text selection app-wide."""
+        try:
+            for lbl in self.findChildren(QLabel):
+                try:
+                    lbl.setTextFormat(Qt.RichText)
+                    lbl.setOpenExternalLinks(True)
+                    lbl.setTextInteractionFlags(Qt.TextBrowserInteraction | Qt.TextSelectableByMouse)
+                except Exception:
+                    # Some labels may not support all flags; continue gracefully
+                    pass
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
