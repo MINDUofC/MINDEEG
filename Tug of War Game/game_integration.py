@@ -41,7 +41,7 @@ def setup_blink_detector_p1():
 
     params_p1 = BrainFlowInputParams()
     params_p1.serial_port = "###" # Replace with actual port
-    params_p1_board_id = 00 # Replace with actual board ID
+    params_p1_board_id = 57  # Replace with actual board ID
     board_p1 = BoardShim(params_p1_board_id, params_p1)  # Replace 57 with actual board ID
     
     try:
@@ -71,7 +71,7 @@ def setup_blink_detector_p2():
     # Parameters for Player 2
     params_p2 = BrainFlowInputParams()
     params_p2.serial_port = "###" # Replace with actual port
-    params_p2_board_id = 00 # Replace with actual board ID
+    params_p2_board_id = 57  # Replace with actual board ID
     board_p2 = BoardShim(params_p2_board_id, params_p2)  # Replace 57 with actual board ID
 
     try:
@@ -108,7 +108,8 @@ pygame.init()
 
 # Setup blink detectors in separate threads
 threading.Thread(target=setup_blink_detector_p1).start()
-threading.Thread(target=setup_blink_detector_p2).start()
+print("Detector 1 started")
+# threading.Thread(target=setup_blink_detector_p2).start()
 time.sleep(5)  # Give some time for detectors to initialize
 
 # Screen setup
@@ -398,17 +399,26 @@ while True:
                     if blink_queue_p1.get_nowait():
                         blink_p1 += 1
                         rope_x -= blink_rope_speed
+                        print("Blink once")
                         toggle_p2 = 5 if toggle_p2 == 0 else 0
                 except:
                     pass
 
-                try:
-                    if  blink_queue_p2.get_nowait():
-                        blink_p2 += 1
-                        rope_x += blink_rope_speed
-                        toggle_p1 = 5 if toggle_p1 == 0 else 0
-                except:
-                    pass
+                # try:
+                #     if  blink_queue_p2.get_nowait():
+                #         blink_p2 += 1
+                #         rope_x += blink_rope_speed
+                #         toggle_p1 = 5 if toggle_p1 == 0 else 0
+                # except:
+                #     pass
+
+                if event.key == pygame.K_n:
+                    blink_p2 += 1
+                    rope_x += blink_rope_speed
+                    toggle_p1 = 5 if toggle_p1 == 0 else 0
+                    
+
+
                 # if event.key == pygame.K_b:
                 #     blink_p1 += 1
                 #     rope_x -= blink_rope_speed
