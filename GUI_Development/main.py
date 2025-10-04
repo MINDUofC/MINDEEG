@@ -32,6 +32,7 @@ from backend_logic.ica_manager import ICAManager
 from backend_logic.data_collector import CentralizedDataCollector
 from backend_logic.export_manager import ExportDestinationManager
 from backend_logic.recording_manager import PreciseRecordingManager
+from backend_logic.timing_engine import TimingEngine
 from frontend.chatbotFE import ChatbotFE
 from frontend.menu_handler import MenuHandler
 
@@ -285,14 +286,24 @@ class MainApp(QDialog):
         self.AfterOnset.setMinimum(1)
 
         # ─── Build and add the timeline widget ──────────────────────────
+        # Centralized timing engine (125 Hz)
+        self.timing_engine = TimingEngine()
+
         tl_layout = QVBoxLayout(self.TimelineVisualizer)
         self.timeline_widget = TimelineWidget(
             self.recordButton, self.stopButton,
             self.BeforeOnset, self.AfterOnset,
             self.TimeBetweenTrials, self.NumOfTrials,
-            self.StatusBar
+            self.StatusBar, self.timing_engine
         )
         tl_layout.addWidget(self.timeline_widget)
+
+        # Ensure boolean-first: disconnect TimelineWidget's direct start hookup
+        try:
+            if self.recordButton is not None:
+                self.recordButton.clicked.disconnect()
+        except Exception:
+            pass
 
         # Initialize ICA manager
         self.ica_manager = ICAManager(self.StatusBar, self.FastICAOnOff, self.ICACalibSecs, self.ChannelDial)
@@ -458,6 +469,7 @@ class MainApp(QDialog):
                     self.recording_manager = PreciseRecordingManager(
                         self.data_collector,
                         self.timeline_widget,
+                        self.timing_engine,
                         self.ExportStatus
                     )
             except Exception:
@@ -552,56 +564,73 @@ class MainApp(QDialog):
         if (now_ts - getattr(self, '_last_record_click_ts', 0.0)) < 0.2:
             return
         self._last_record_click_ts = now_ts
-        # TimerGUI already starts animation; here we handle recording logic/status
+        # Boolean-first: decide recording_enabled from validation & board state
         ok, msg = self.validate_recording_controls()
-        if not ok:
-            try:
+        board_on = bool(self.BoardOnOff and self.BoardOnOff.isChecked())
+        recording_enabled = bool(ok and board_on)
+        try:
+            if not ok:
                 self.ExportStatus.setText(f"Not recording: {msg}")
-            except Exception:
-                pass
-            return
-
-        if not (self.BoardOnOff and self.BoardOnOff.isChecked()):
-            try:
+            elif not board_on:
                 self.ExportStatus.setText("Board OFF: Not recording")
-            except Exception:
-                pass
-            return
+        except Exception:
+            pass
 
-        # Board ON - start synchronized recording a moment after timers start
-        def _start_rec():
+        # Boolean-first: configure and start engine once; consumers react
+        try:
+            # Ensure recording_manager exists
+            if self.data_collector and self.recording_manager is None:
+                self.recording_manager = PreciseRecordingManager(
+                    self.data_collector,
+                    self.timeline_widget,
+                    self.timing_engine,
+                    self.ExportStatus
+                )
+
+            # Configure engine run from UI controls
+            total_trials_val = 0
             try:
-                if self.data_collector and self.recording_manager is None:
-                    self.recording_manager = PreciseRecordingManager(
-                        self.data_collector,
-                        self.timeline_widget,
-                        self.ExportStatus
-                    )
-                if not self.recording_manager:
-                    self.ExportStatus.setText("Recording failed: Not initialized")
-                    return
-                selected_types = {
-                    'muV': self.RawData.isChecked() if self.RawData else False,
-                    'FFT': self.FFTData.isChecked() if self.FFTData else False,
-                    'PSD': self.PSDData.isChecked() if self.PSDData else False,
-                }
+                total_trials_val = int(self.NumOfTrials.text())
+            except Exception:
+                total_trials_val = 0
+
+            self.timing_engine.configure_run(
+                before_s=self.BeforeOnset.value(),
+                after_s=self.AfterOnset.value(),
+                buffer_s=self.TimeBetweenTrials.value(),
+                total_trials=total_trials_val,
+            )
+
+            # Configure selected types for recorder
+            selected_types = {
+                'muV': self.RawData.isChecked() if self.RawData else False,
+                'FFT': self.FFTData.isChecked() if self.FFTData else False,
+                'PSD': self.PSDData.isChecked() if self.PSDData else False,
+            }
+            if self.recording_manager:
+                self.recording_manager.selected_types = selected_types
+
+            # Start engine (emits immediate tick)
+            self.timing_engine.start(recording_enabled=recording_enabled)
+
+            # Start recorder only when enabled; otherwise remain reactive but idle
+            if recording_enabled and self.recording_manager:
                 success, message = self.recording_manager.start(selected_types)
                 if success:
                     self.ExportStatus.setText("Board ON: Recording in progress")
                 else:
                     self.ExportStatus.setText(f"Recording failed: {message}")
+        except Exception:
+            try:
+                self.ExportStatus.setText("Recording failed: Unexpected error")
             except Exception:
-                try:
-                    self.ExportStatus.setText("Recording failed: Unexpected error")
-                except Exception:
-                    pass
-
-        # Start recording immediately to avoid initial ~50 ms offset
-        _start_rec()
+                pass
 
     def handle_stop_button(self):
-        # TimerGUI handles UI stop; we only forfeit data
+        # Stop engine (UI and recorder react). Forfeit any in-progress data.
         try:
+            if hasattr(self, 'timing_engine') and self.timing_engine:
+                self.timing_engine.stop()
             if self.recording_manager and self.recording_manager.is_recording:
                 self.recording_manager.forfeit()
                 self.ExportStatus.setText("Recording forfeited - No data saved")

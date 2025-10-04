@@ -6,55 +6,56 @@ from PyQt5.QtCore import QTimer, Qt
 
 
 class SynchronizedRecordingTimer:
-    def __init__(self, timer_widget, sampling_rate: int = 125):
-        self.timer_widget = timer_widget
+    def __init__(self, timing_engine, sampling_rate: int = 125):
+        self.engine = timing_engine
         self.sampling_rate = sampling_rate
         self.sample_interval_ms = int(1000 / max(self.sampling_rate, 1))
-        self.recording_timer = QTimer()
-        self.recording_timer.setTimerType(Qt.PreciseTimer)
         self.recording_start_time_ms = None
         self.expected_sample_count = 0
         self.actual_sample_count = 0
         self._tick = None  # callback set by owner
 
     def start(self, on_tick_callback):
-        """Start precise 125 Hz timer. Owner passes a callback to receive ticks."""
-        if not self.timer_widget.in_trial:
-            raise RuntimeError("TimerGUI not running; cannot start synchronized recording.")
+        """Start by subscribing to the engine's 8ms master tick."""
+        if not getattr(self.engine, 'run_active', False):
+            raise RuntimeError("TimingEngine not running; cannot start synchronized recording.")
         self._tick = on_tick_callback
-        self.recording_start_time_ms = self.timer_widget.global_timer.elapsed()
+        # Reset per-run baseline for recording timestamps
+        self.recording_start_time_ms = 0
         self.expected_sample_count = 0
         self.actual_sample_count = 0
-        self.recording_timer.timeout.connect(self._on_timeout)
-        self.recording_timer.start(self.sample_interval_ms)
-        # Trigger an immediate first tick to avoid startup latency (~one or more 8 ms slots)
-        QTimer.singleShot(0, self._on_timeout)
-
-    def stop(self):
-        if self.recording_timer.isActive():
-            self.recording_timer.stop()
         try:
-            self.recording_timer.timeout.disconnect(self._on_timeout)
+            # Connect to engine tick: now_ms, sched_ms
+            self.engine.tick_8ms.connect(self._on_engine_tick)
         except Exception:
             pass
 
-    def _on_timeout(self):
+    def stop(self):
+        try:
+            self.engine.tick_8ms.disconnect(self._on_engine_tick)
+        except Exception:
+            pass
+
+    def _on_engine_tick(self, now_ms: int, sched_ms: int):
         if self._tick is None:
             return
-        current_global_ms = self.timer_widget.global_timer.elapsed()
+        # Use schedule time to avoid host-side latency bias
         expected_ms = self.recording_start_time_ms + (self.expected_sample_count * self.sample_interval_ms)
-        drift_ms = current_global_ms - expected_ms
-        # We could log drift_ms if needed
-        self._tick(current_global_ms)
+        drift_ms = now_ms - expected_ms  # optional for telemetry
+        # Pass run-relative ms so each run starts at 0
+        try:
+            run_ms = int(self.engine.get_run_elapsed_ms())
+        except Exception:
+            run_ms = sched_ms
+        self._tick(run_ms)
         self.expected_sample_count += 1
         self.actual_sample_count += 1
 
     def get_trial_relative_seconds(self) -> float:
-        if not self.timer_widget.in_trial:
+        if not getattr(self.engine, 'run_active', False):
             return 0.0
-        elapsed_trial_ms = self.timer_widget.trial_timer.elapsed()
-        before = self.timer_widget.time_before.value()
-        return -float(before) + (elapsed_trial_ms / 1000.0)
+        elapsed_trial_ms = self.engine.trial_timer.elapsed()
+        return (elapsed_trial_ms / 1000.0)
 
 
 class PreciseRecordingManager:
@@ -68,14 +69,20 @@ class PreciseRecordingManager:
     - PSD: [trial_s, global_s, ch1_bin1..ch1_binN, ch2_bin1..ch2_binN, ..., ch8_bin1..ch8_binN]
     """
 
-    def __init__(self, data_collector, timer_widget, export_status_label):
+    def __init__(self, data_collector, timer_widget, timing_engine, export_status_label):
         self.data_collector = data_collector
         self.timer_widget = timer_widget
+        self.engine = timing_engine
         self.export_status = export_status_label
 
-        self.sync = SynchronizedRecordingTimer(timer_widget)
+        self.sync = SynchronizedRecordingTimer(timing_engine)
         self.is_recording = False
         self._data_lock = threading.Lock()
+        try:
+            # React to engine completing the run
+            self.engine.run_completed.connect(self._on_run_completed)
+        except Exception:
+            pass
         
         # Separate data storage for each type
         self._muv_rows = []  # Shape: (N_samples, 10) -> [ch1..ch8, global_s, trial_s]
@@ -83,6 +90,8 @@ class PreciseRecordingManager:
         # Shape: (N_samples, 2 + 8*num_freq_bins) -> [trial_s, global_s, ch1_bins..., ch2_bins..., ..., ch8_bins...]
         self._fft_rows = []
         self._psd_rows = []
+        # Flags aligned to muV samples indicating engine was in buffer phase
+        self._muv_is_buffer = []
         
         self._last_sample_index = -1  # guard against duplicates
         self._sample_rate = getattr(self.data_collector, 'sampling_rate', None) or 125
@@ -108,6 +117,7 @@ class PreciseRecordingManager:
         self._recording_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         with self._data_lock:
             self._muv_rows = []
+            self._muv_is_buffer = []
             self._fft_rows = []
             self._psd_rows = []
             self._last_sample_index = -1
@@ -155,7 +165,8 @@ class PreciseRecordingManager:
                 result['muV'] = {
                     'data': np.vstack(self._muv_rows).T,  # 10xN format
                     'structure': 'channels+time',
-                    'columns': ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'global_s', 'trial_s']
+                    'columns': ['ch1', 'ch2', 'ch3', 'ch4', 'ch5', 'ch6', 'ch7', 'ch8', 'global_s', 'trial_s'],
+                    'buffer_flags': list(self._muv_is_buffer)
                 }
             
             # FFT: Frequency domain data with all channels per row
@@ -180,11 +191,11 @@ class PreciseRecordingManager:
             
             return result
 
-    def _on_sample_tick(self, current_global_ms: int):
+    def _on_sample_tick(self, current_sched_ms: int):
         if not self.is_recording:
             return
         # If trials finished, stop and mark complete
-        if not self.timer_widget.in_trial:
+        if not getattr(self.engine, 'run_active', False):
             self.stop()
             try:
                 if self.export_status is not None:
@@ -194,8 +205,10 @@ class PreciseRecordingManager:
             return
         try:
             # Timestamps
-            global_time_s = current_global_ms / 1000.0
-            trial_time_s = self.sync.get_trial_relative_seconds()
+            global_time_s = current_sched_ms / 1000.0
+            # trial_time_s is schedule-aligned relative to trial start minus before window
+            trial_time_s = (-float(self.timer_widget.time_before.value())
+                            + self.sync.get_trial_relative_seconds())
 
             # De-duplication: compute sample index at sampling rate and skip duplicates
             sample_index = int(global_time_s * self._sample_rate + 1e-6)
@@ -211,6 +224,11 @@ class PreciseRecordingManager:
                         muv_row = np.append(muv_sample, [global_time_s, trial_time_s])
                         if muv_row.shape[0] == 10:
                             self._muv_rows.append(muv_row.astype(float))
+                            # Track whether this sample occurred during buffer phase
+                            try:
+                                self._muv_is_buffer.append(self.engine.phase == 'buffer')
+                            except Exception:
+                                self._muv_is_buffer.append(False)
                 
                 # FFT: Store frequency data for all channels in a single row per timestamp
                 if self.selected_types.get('FFT'):
@@ -240,6 +258,16 @@ class PreciseRecordingManager:
                 self._last_sample_index = sample_index
         except Exception:
             # Fail silently per tick; overall recording continues
+            pass
+
+    def _on_run_completed(self):
+        # Engine signaled run completion; ensure recording stops and status updates
+        if self.is_recording:
+            self.stop()
+        try:
+            if self.export_status is not None:
+                self.export_status.setText("Recording complete - Ready to export")
+        except Exception:
             pass
 
     def _collect_muv_sample(self):
@@ -393,11 +421,37 @@ class PreciseRecordingManager:
             # Default generic writer (used for muV)
             # Column headers: label,sample_0,sample_1,sample_2,...
             f.write("label," + ",".join(str(i) for i in range(num_cols)) + "\n")
-            
+
+            is_muv = data_info.get('structure') == 'channels+time'
+            buffer_flags = data_info.get('buffer_flags') if is_muv else None
+            trial_row_index = None
+            global_row_index = None
+            if is_muv and 'columns' in data_info:
+                try:
+                    trial_row_index = data_info['columns'].index('trial_s')
+                    global_row_index = data_info['columns'].index('global_s')
+                except Exception:
+                    trial_row_index = None
+
             # Data rows (matrix is expected to be row-oriented by 'columns')
             for r, label in enumerate(columns):
                 if r < matrix.shape[0]:
-                    row_vals = ",".join(f"{v:.10f}" for v in matrix[r])
+                    row = matrix[r]
+                    # For muV trial_s row, prefix values with 'B - ' when buffer
+                    if is_muv and label == 'trial_s' and buffer_flags is not None:
+                        vals = []
+                        for c, v in enumerate(row):
+                            try:
+                                is_buf = bool(buffer_flags[c])
+                            except Exception:
+                                is_buf = False
+                            if is_buf:
+                                vals.append(f"B - {v:.10f}")
+                            else:
+                                vals.append(f"{v:.10f}")
+                        row_vals = ",".join(vals)
+                    else:
+                        row_vals = ",".join(f"{v:.10f}" for v in row)
                     f.write(f"{label},{row_vals}\n")
 
 

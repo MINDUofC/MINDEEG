@@ -18,8 +18,9 @@ class TimelineWidget(QWidget):
     # ─── INIT ────────────────────────────────────────────────────────────────
     def __init__(self, recordButton, stopButton,
                  beforeOnset, afterOnset,
-                 buffer, numTrials, status_bar):
+                 buffer, numTrials, status_bar, timing_engine=None):
         super().__init__()
+        self.timing_engine = timing_engine
         # Make the whole widget transparent
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet("background: transparent; border: none;")
@@ -34,6 +35,8 @@ class TimelineWidget(QWidget):
                beforeOnset, afterOnset,
                buffer, numTrials, status_bar):
         layout = QVBoxLayout()
+        # Save status bar for later engine-driven updates
+        self.status_bar = status_bar
 
         # Total elapsed time label (updates every tick)
         self.global_time_label = QLabel("Total Time: 0s (Buffer)", self)
@@ -50,10 +53,11 @@ class TimelineWidget(QWidget):
         layout.addWidget(self.trial_time_label)
 
         # Precise timers for logging and animations
-        self.global_timer = QElapsedTimer()   # wall‑clock for whole run + buffers
+        # Use centralized timers if provided
+        self.global_timer = self.timing_engine.global_timer if self.timing_engine else QElapsedTimer()
         self.global_time_data = []            # store (timestamp, label)
 
-        self.trial_timer = QElapsedTimer()    # resets at each trial start
+        self.trial_timer = self.timing_engine.trial_timer if self.timing_engine else QElapsedTimer()
         self.trial_time_data = []             # store (timestamp, trial#)
 
         # Movement‑onset indicator (text only)
@@ -94,10 +98,19 @@ class TimelineWidget(QWidget):
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        # Precise update timer for progress & labels
-        self.timer = QTimer(self)
-        self.timer.setTimerType(Qt.PreciseTimer)
-        self.timer.timeout.connect(lambda: self.update_progress(status_bar))
+        # Precise update: subscribe to engine tick if available; fallback to local timer
+        if self.timing_engine:
+            try:
+                self.timing_engine.tick_8ms.connect(lambda now_ms, sched_ms: self.update_progress(self.status_bar))
+                self.timing_engine.state_changed.connect(self.on_engine_state_changed)
+                self.timing_engine.phase_changed.connect(self.on_engine_phase_changed)
+                self.timing_engine.run_completed.connect(self.on_engine_run_completed)
+            except Exception:
+                pass
+        else:
+            self.timer = QTimer(self)
+            self.timer.setTimerType(Qt.PreciseTimer)
+            self.timer.timeout.connect(lambda: self.update_progress(status_bar))
 
         # Init trial indices & pixel progress
         self.trial_number = 0
@@ -200,6 +213,60 @@ class TimelineWidget(QWidget):
         self.progress_frac = 0.0
         self.buffer_frac = 0.0
 
+    # ─── ENGINE EVENT HANDLERS (reactive mode) ───────────────────────────────
+    def on_engine_state_changed(self, run_active: bool, recording_enabled: bool):
+        if not run_active:
+            # Run ended: finalize UI similar to legacy completion path
+            try:
+                if self.status_bar is not None:
+                    beeg.set_status(self.status_bar, message="All Trials Completed!", error=False)
+            except Exception:
+                pass
+            self.label.setText("Trials Completed")
+            self.in_trial = False
+            self.start_button.setEnabled(True)
+            QTimer.singleShot(1500, self.reset_progress)
+
+    def on_engine_phase_changed(self, phase: str, trial_index: int):
+        # Update label to show phase and trial number; bars are updated in update_progress
+        try:
+            self.trial_number = max(0, int(trial_index))
+        except Exception:
+            self.trial_number = 0
+        if phase == "trial":
+            self.label.setText("Movement Onset at 0s")
+            self.in_trial = True
+            # Hide buffer countdown and briefly show full buffer then clear
+            self.buffer_label_display.setVisible(False)
+            try:
+                self.keep_buffer_full()
+            except Exception:
+                pass
+        elif phase == "buffer":
+            self.label.setText(f"Buffering... {self.buffer_time.value()}s")
+            self.in_trial = True
+            # Mark buffer start relative to current run elapsed
+            try:
+                run_now_ms = self.timing_engine.get_run_elapsed_ms()
+            except Exception:
+                run_now_ms = self.global_timer.elapsed()
+            self.buffer_start_time = run_now_ms
+            # Show countdown label immediately
+            self.buffer_label_display.setVisible(True)
+            try:
+                self.buffer_label_display.setText(f"Next Trial In: {int(self.buffer_time.value())}s")
+            except Exception:
+                pass
+        else:
+            self.in_trial = False
+
+    def on_engine_run_completed(self):
+        # Ensure UI clears soon after completion
+        self.label.setText("Trials Completed")
+        self.in_trial = False
+        self.start_button.setEnabled(True)
+        QTimer.singleShot(1500, self.reset_progress)
+
     # ─── DRAW SECOND‐BY‐SECOND MARKERS ─────────────────────────────────────────
     def update_markers(self):
         # Remove old markers
@@ -276,19 +343,44 @@ class TimelineWidget(QWidget):
         # Start trial‐relative clock
         self.trial_timer.start()
         self.progress = 0.0
-        self.timer.start(10)  # 10ms ticks for precise updates
+        if self.timing_engine is None:
+            self.timer.start(10)
 
     # ─── UPDATE PROGRESS & LABELS EACH TICK ───────────────────────────────────
     def update_progress(self, status_bar):
         """Compute real elapsed, update bars & labels, detect transitions."""
-        if not self.in_trial:
-            logging.error("update_progress called with no trial active.")
-            return
+        if self.timing_engine:
+            if not self.timing_engine.run_active:
+                return
+        else:
+            if not self.in_trial:
+                logging.error("update_progress called with no trial active.")
+                return
 
-        # Real seconds since trial start
-        elapsed_trial = self.trial_timer.elapsed() / 1000.0
-        frac = min(elapsed_trial / self.total_duration, 1.0)
-        self.progress = frac * self.timeline_width
+        # Derive total duration
+        total_duration = (
+            (self.timing_engine.before_s + self.timing_engine.after_s)
+            if self.timing_engine else
+            getattr(self, 'total_duration', self.time_before.value() + self.time_after.value())
+        )
+        if total_duration <= 0:
+            total_duration = 1.0
+
+        # Engine-driven phase handling (trial/buffer)
+        if self.timing_engine:
+            phase = self.timing_engine.phase
+        else:
+            phase = "trial"
+
+        if phase == "trial":
+            # Real seconds since trial start
+            elapsed_trial = self.trial_timer.elapsed() / 1000.0
+            frac = min(elapsed_trial / total_duration, 1.0)
+            self.progress = frac * self.timeline_width
+        else:
+            # Buffer phase: keep trial bar full-width
+            frac = 1.0
+            self.progress = self.timeline_width
 
         # Update trial label (relative to onset)
         time_before = self.time_before.value()
@@ -300,20 +392,24 @@ class TimelineWidget(QWidget):
             f"Trial {self.trial_number+1} Time: {current_time:.2f}s"
         )
 
-        # Update global label
-        elapsed_global = self.global_timer.elapsed() / 1000.0
+        # Update global label (elapsed relative to the active run only)
+        if self.timing_engine:
+            elapsed_global = self.timing_engine.get_run_elapsed_ms() / 1000.0
+        else:
+            elapsed_global = self.global_timer.elapsed() / 1000.0
         self.global_time_label.setText(
             f"Total Time: {elapsed_global:.2f}s (Trial {self.trial_number+1})"
         )
 
-        # End‑of‑trial?
-        if elapsed_trial >= self.total_duration:
+        # End‑of‑trial? When using centralized timing engine, engine controls phase; skip.
+        if (self.timing_engine is None) and (elapsed_trial >= total_duration):
             self.trial_number += 1
             logging.debug(f"Trial {self.trial_number} completed.")
 
             # All done?
             if self.trial_number >= self.total_trials:
-                self.timer.stop()
+                if self.timing_engine is None:
+                    self.timer.stop()
                 self.label.setText("Trials Completed")
                 beeg.set_status(status_bar,
                                 message="All Trials Completed!",
@@ -326,18 +422,60 @@ class TimelineWidget(QWidget):
 
             # Otherwise, buffer period
             self.label.setText(f"Buffering... {self.buffer}s")
-            self.timer.stop()
-            self.animate_buffer()
-        else:
-            # Animate blue fill bar
+            if self.timing_engine is None:
+                self.timer.stop()
+                self.animate_buffer()
+        # Animate bars
+        if phase == "trial":
+            # Blue trial bar
             self.fill_rect.setRect(
                 self.timeline_x,
                 self.timeline_y,
                 self.progress,
                 self.timeline_height
             )
+            # Clear buffer fill during trial
+            self.buffer_fill.setRect(
+                self.buffer_x,
+                self.buffer_y + self.buffer_height,
+                self.buffer_width,
+                0
+            )
+            self.buffer_label_display.setVisible(False)
+        else:
+            # Keep trial bar full-width during buffer
+            self.fill_rect.setRect(
+                self.timeline_x,
+                self.timeline_y,
+                self.timeline_width,
+                self.timeline_height
+            )
+            # Animate buffer based on run elapsed vs buffer_start_time
+            try:
+                run_now_ms = self.timing_engine.get_run_elapsed_ms()
+            except Exception:
+                run_now_ms = self.global_timer.elapsed()
+            buffer_time = max(1, int(self.buffer_time.value()))
+            elapsed_buf_s = max(0.0, (run_now_ms - getattr(self, 'buffer_start_time', run_now_ms)) / 1000.0)
+            buf_frac = min(elapsed_buf_s / buffer_time, 1.0)
+            filled_height = buf_frac * self.buffer_height
+            self.buffer_fill.setRect(
+                self.buffer_x,
+                self.buffer_y + self.buffer_height - filled_height,
+                self.buffer_width,
+                filled_height
+            )
+            # Countdown label
+            remaining = max(0, buffer_time - int(elapsed_buf_s))
+            self.buffer_label_display.setVisible(True)
+            self.buffer_label_display.setText(f"Next Trial In: {remaining}s")
 
-        frac = min(elapsed_trial / self.total_duration, 1.0)
+        # Save fractions for resize re-compute
+        if phase == "trial":
+            frac = min((self.trial_timer.elapsed() / 1000.0) / total_duration, 1.0)
+        else:
+            # keep last trial frac (full width), buffer frac tracked separately
+            frac = 1.0
 
         # ─── remember this fraction for resizing later ─────────────────
         self.progress_frac = frac
@@ -354,12 +492,20 @@ class TimelineWidget(QWidget):
     # ─── IMMEDIATE STOP ────────────────────────────────────────────────────────
     def sudden_stop(self, status_bar):
         """Abort current run, clear timers & visuals."""
-        if not self.in_trial:
-            beeg.set_status(status_bar,
-                            message="Nothing to stop!",
-                            error=True)
-            logging.error("Stop requested but no trial active.")
-            return
+        if self.timing_engine:
+            if not self.timing_engine.run_active:
+                beeg.set_status(status_bar,
+                                message="Nothing to stop!",
+                                error=True)
+                logging.error("Stop requested but engine not active.")
+                return
+        else:
+            if not self.in_trial:
+                beeg.set_status(status_bar,
+                                message="Nothing to stop!",
+                                error=True)
+                logging.error("Stop requested but no trial active.")
+                return
 
         beeg.set_status(status_bar,
                         message="Stopped!",
@@ -367,7 +513,8 @@ class TimelineWidget(QWidget):
         logging.info("Run manually stopped.")
 
         # Stop all timers
-        self.timer.stop()
+        if self.timing_engine is None:
+            self.timer.stop()
         if self.buffer_timer is not None and self.buffer_timer.isActive():
             self.buffer_timer.stop()
 
@@ -420,7 +567,9 @@ class TimelineWidget(QWidget):
             return
 
         buffer_time = self.buffer_time.value()
-        self.buffer_start_time = self.global_timer.elapsed()
+        # Start of buffer measured relative to current run
+        run_now_ms = self.timing_engine.get_run_elapsed_ms() if self.timing_engine else self.global_timer.elapsed()
+        self.buffer_start_time = run_now_ms
 
         # High‑precision buffer timer
         self.buffer_timer = QTimer(self)
@@ -432,11 +581,14 @@ class TimelineWidget(QWidget):
 
         # Log buffer start
         self.global_time_data.append(
-            (self.global_timer.elapsed(), "Buffer"))
+            ((self.timing_engine.get_run_elapsed_ms() if self.timing_engine else self.global_timer.elapsed()), "Buffer"))
         logging.debug(f"Buffer started for {buffer_time}s.")
 
         # Update labels
-        elapsed_global = self.global_timer.elapsed() / 1000.0
+        elapsed_global = (
+            (self.timing_engine.get_run_elapsed_ms() / 1000.0)
+            if self.timing_engine else (self.global_timer.elapsed() / 1000.0)
+        )
         self.global_time_label.setText(
             f"Total Time: {elapsed_global:.2f}s (Buffer)"
         )
@@ -470,7 +622,7 @@ class TimelineWidget(QWidget):
     def update_buffer_fill(self, buffer_time):
         """Stepwise grow the buffer bar based on real elapsed time."""
         elapsed = (
-            (self.global_timer.elapsed() - self.buffer_start_time) / 1000
+            ((self.timing_engine.get_run_elapsed_ms() if self.timing_engine else self.global_timer.elapsed()) - self.buffer_start_time) / 1000
         )
         if elapsed >= buffer_time:
             self.buffer_timer.stop()
@@ -485,7 +637,9 @@ class TimelineWidget(QWidget):
             filled_height
         )
 
-        elapsed = (self.global_timer.elapsed() - self.buffer_start_time) / 1000
+        elapsed = (
+            ((self.timing_engine.get_run_elapsed_ms() if self.timing_engine else self.global_timer.elapsed()) - self.buffer_start_time) / 1000
+        )
 
         # clamp & store fraction
         frac = min(elapsed / buffer_time, 1.0)
@@ -510,7 +664,7 @@ class TimelineWidget(QWidget):
         self.trial_timer.start()
         trial_label = f"Trial {self.trial_number+1}"
         self.global_time_data.append(
-            (self.global_timer.elapsed(), trial_label)
+            ((self.timing_engine.get_run_elapsed_ms() if self.timing_engine else self.global_timer.elapsed()), trial_label)
         )
         self.trial_time_label.setText(
             f"Trial {self.trial_number+1} Time: 0s"
@@ -521,7 +675,8 @@ class TimelineWidget(QWidget):
             0, self.timeline_height
         )
         self.label.setText("Movement Onset at 0s")
-        self.timer.start(10)
+        if self.timing_engine is None:
+            self.timer.start(10)
         logging.debug(f"Started Trial {self.trial_number+1}.")
 
     # ─── FLASH FULL BUFFER, THEN CLEAR ─────────────────────────────────────────
