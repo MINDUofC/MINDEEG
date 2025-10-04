@@ -43,6 +43,7 @@ class BlinkDetector(threading.Thread):
             ch7, ch8 = self.eeg_channels
             sig7 = data[ch7][-self.num_points:]
             sig8 = data[ch8][-self.num_points:]
+            print(f"Channel 7 data length: {len(sig7)}, Channel 8 data length: {len(sig8)}")
 
             if len(sig7) < self.num_points or len(sig8) < self.num_points:
                 return  # not enough data yet
@@ -63,7 +64,7 @@ class BlinkDetector(threading.Thread):
             # Average channels for blink detection
             avg_signal = (np.array(sig7) + np.array(sig8)) / 2.0
             above_thresh = np.any(np.abs(avg_signal) > self.threshold_uv)
-
+            print(f"Avg signal max abs: {np.max(np.abs(avg_signal))}, Above threshold: {above_thresh}")
             # Rising-edge only debounce logic
             if not self._in_blink and above_thresh:
                 self.blink_count += 1
