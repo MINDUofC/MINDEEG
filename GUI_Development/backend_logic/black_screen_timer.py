@@ -175,15 +175,15 @@ class BlackScreenTimerWindow(QDialog):
         config_layout.addWidget(order_lbl)
         config_layout.addWidget(self.order_combo)
 
-        # record/stop controls
-        controls = QFrame(bl)
-        controls_layout = QVBoxLayout(controls)
+        # record/stop controls (ALWAYS visible, outside collapsible panel)
+        controls_always = QFrame(bl)
+        controls_layout = QVBoxLayout(controls_always)
         controls_layout.setContentsMargins(12, 12, 12, 12)
-        controls.setStyleSheet("color: white; background: rgba(255,255,255,0.07); border-radius: 6px;")
+        controls_always.setStyleSheet("color: white; background: rgba(255,255,255,0.07); border-radius: 6px;")
 
-        self.btn_record = QPushButton("Record", controls)
+        self.btn_record = QPushButton("Record", controls_always)
         # Inherit dialog-level QPushButton hover/press styles
-        self.btn_stop = QPushButton("Stop", controls)
+        self.btn_stop = QPushButton("Stop", controls_always)
         # Per-button stylesheet: lighten on hover and shrink slightly when pressed
         button_style = (
             "QPushButton {"
@@ -225,7 +225,9 @@ class BlackScreenTimerWindow(QDialog):
         panel_container_layout.setSpacing(12)
         panel_container_layout.addWidget(legend)
         panel_container_layout.addWidget(config)
-        panel_container_layout.addWidget(controls)
+        # Only legend and config are collapsible
+        panel_container_layout.addWidget(legend)
+        panel_container_layout.addWidget(config)
 
         # Toggle button to show/hide the panel
         self.panel_visible = True
@@ -252,8 +254,11 @@ class BlackScreenTimerWindow(QDialog):
         left_column_layout.setSpacing(6)
         left_column_layout.addWidget(self.panel_toggle_btn)
         left_column_layout.addWidget(panel_container)
-
+        # Add always-visible controls next to the collapsible column
         bl_layout.addWidget(left_column)
+        bl_layout.addSpacing(12)
+        bl_layout.addWidget(controls_always)
+        # end layout for bottom-left
 
         root.addWidget(center, 1)
         root.addWidget(bl, 0, alignment=Qt.AlignLeft | Qt.AlignBottom)
