@@ -98,6 +98,62 @@ QDialog::window {
 }
 </string>
        </property>
+       <widget class="QPushButton" name="BlackScreenTimer">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>10</y>
+          <width>41</width>
+          <height>40</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>40</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: white; /* Default White Background */
+    border: 2px solid black; /* Black Outline */
+    border-radius: 10px; /* Rounded Corners */
+    padding: 5px; /* Inner Padding */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif;
+    font-size: 14px;
+    color: black;
+    transition: all 0.2s ease-in-out; /* Smooth transition */
+}
+
+/* Hover Effect */
+QPushButton:hover {
+    background-color: #f0f0f0; /* Light Grey on Hover */
+    border: 2px solid #0047B2; /* Change Border to Bold Blue */
+    color: #0047B2; /* Change Text Color */
+}
+
+/* Pressed Effect (Shrinks Button) */
+QPushButton:pressed {
+    background-color: #e0e0e0; /* Darker Grey when Pressed */
+	font-size: 12px;
+}</string>
+        </property>
+        <property name="text">
+         <string>⬛</string>
+        </property>
+       </widget>
       </widget>
      </item>
     </layout>
@@ -1442,9 +1498,9 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
         <widget class="QLabel" name="label_32">
          <property name="geometry">
           <rect>
-           <x>140</x>
+           <x>141</x>
            <y>30</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1457,7 +1513,7 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
 </string>
          </property>
          <property name="text">
-          <string> Hz</string>
+          <string>  Hz</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BP1Start">
@@ -1597,9 +1653,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_30">
          <property name="geometry">
           <rect>
-           <x>140</x>
+           <x>141</x>
            <y>10</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1612,7 +1668,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz</string>
+          <string>  Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_34">
@@ -1639,9 +1695,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_31">
          <property name="geometry">
           <rect>
-           <x>60</x>
+           <x>70</x>
            <y>30</y>
-           <width>51</width>
+           <width>41</width>
            <height>21</height>
           </rect>
          </property>
@@ -1654,15 +1710,15 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz   to</string>
+          <string>  Hz   to</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_29">
          <property name="geometry">
           <rect>
-           <x>60</x>
+           <x>70</x>
            <y>10</y>
-           <width>51</width>
+           <width>41</width>
            <height>21</height>
           </rect>
          </property>
@@ -1675,7 +1731,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz   to</string>
+          <string>  Hz   to</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_33">
@@ -1859,9 +1915,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_59">
          <property name="geometry">
           <rect>
-           <x>140</x>
+           <x>141</x>
            <y>30</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1874,7 +1930,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz</string>
+          <string>  Hz</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BStop1End">
@@ -1968,9 +2024,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_61">
          <property name="geometry">
           <rect>
-           <x>60</x>
+           <x>70</x>
            <y>10</y>
-           <width>51</width>
+           <width>41</width>
            <height>21</height>
           </rect>
          </property>
@@ -1983,15 +2039,15 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz   to</string>
+          <string>  Hz   to</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_63">
          <property name="geometry">
           <rect>
-           <x>140</x>
+           <x>141</x>
            <y>10</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -2004,7 +2060,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz</string>
+          <string>  Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_62">
@@ -2098,9 +2154,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_60">
          <property name="geometry">
           <rect>
-           <x>60</x>
+           <x>70</x>
            <y>30</y>
-           <width>51</width>
+           <width>41</width>
            <height>21</height>
           </rect>
          </property>
@@ -2113,7 +2169,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string> Hz   to</string>
+          <string>  Hz   to</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BStop2End">
@@ -2590,43 +2646,6 @@ QPushButton:pressed {
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="4" column="2">
-    <widget class="QLabel" name="StatusBar">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>30</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>40</height>
-      </size>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel {
-    background-color: white; /* White background */
-    border: 2px solid black; /* Black outline */
-    border-radius: 10px; /* Rounded corners */
-    padding: 5px; /* Padding inside the label */
-    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
-    font-size: 14px; /* Adjust size as needed */
-    color: black; /* Text color */
-}
-</string>
-     </property>
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Status:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
    </item>
    <item row="1" column="4" rowspan="4" alignment="Qt::AlignRight">
     <widget class="QFrame" name="verticalFrame_2">
@@ -4401,6 +4420,43 @@ QTabBar::tab:pressed {
        </widget>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item row="4" column="3">
+    <widget class="QLabel" name="StatusBar">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+    background-color: white; /* White background */
+    border: 2px solid black; /* Black outline */
+    border-radius: 10px; /* Rounded corners */
+    padding: 5px; /* Padding inside the label */
+    font-family: &quot;Montserrat ExtraBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    font-size: 14px; /* Adjust size as needed */
+    color: black; /* Text color */
+}
+</string>
+     </property>
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Status:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
     </widget>
    </item>
   </layout>

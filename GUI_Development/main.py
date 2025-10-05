@@ -35,6 +35,7 @@ from backend_logic.recording_manager import PreciseRecordingManager
 from backend_logic.timing_engine import TimingEngine
 from frontend.chatbotFE import ChatbotFE
 from frontend.menu_handler import MenuHandler
+from backend_logic.black_screen_timer import BlackScreenTimerWindow
 
 
 
@@ -288,6 +289,11 @@ class MainApp(QDialog):
         # ─── Build and add the timeline widget ──────────────────────────
         # Centralized timing engine (125 Hz)
         self.timing_engine = TimingEngine()
+        try:
+            # Reflect completion on the main StatusBar
+            self.timing_engine.run_completed.connect(lambda: self.safe_set_status_text("All Trials Completed!"))
+        except Exception:
+            pass
 
         tl_layout = QVBoxLayout(self.TimelineVisualizer)
         self.timeline_widget = TimelineWidget(
@@ -297,6 +303,37 @@ class MainApp(QDialog):
             self.StatusBar, self.timing_engine
         )
         tl_layout.addWidget(self.timeline_widget)
+
+        # BlackScreenTimer hook + mutual exclusion safety (single instance)
+        self.BlackScreenTimer = self.findChild(QPushButton, "BlackScreenTimer")
+        self.black_screen_window = None
+        if self.BlackScreenTimer is not None:
+            def open_black_screen():
+                # If already open, bring to front
+                if self.black_screen_window and self.black_screen_window.isVisible():
+                    self.black_screen_window.activateWindow()
+                    self.black_screen_window.raise_()
+                    return
+                # If a run is active, cancel/reset before opening the dialog
+                try:
+                    if getattr(self.timing_engine, "run_active", False):
+                        self.stop_all_and_reset()
+                except Exception:
+                    pass
+                # Create new dialog
+                self.black_screen_window = BlackScreenTimerWindow(
+                    self.timing_engine,
+                    before_spinbox=self.BeforeOnset,
+                    timeline_widget=self.timeline_widget,
+                    parent=self
+                )
+                self.black_screen_window.show()
+            self.BlackScreenTimer.clicked.connect(open_black_screen)
+            try:
+                # Ensure this button sits above sibling widgets
+                self.BlackScreenTimer.raise_()
+            except Exception:
+                pass
 
         # Ensure boolean-first: disconnect TimelineWidget's direct start hookup
         try:
@@ -612,6 +649,14 @@ class MainApp(QDialog):
 
             # Start engine (emits immediate tick)
             self.timing_engine.start(recording_enabled=recording_enabled)
+            try:
+                # Update main screen StatusBar
+                if recording_enabled:
+                    self.safe_set_status_text("Recording started")
+                else:
+                    self.safe_set_status_text("Board OFF: Timer only (not recording)")
+            except Exception:
+                pass
 
             # Start recorder only when enabled; otherwise remain reactive but idle
             if recording_enabled and self.recording_manager:
@@ -629,13 +674,67 @@ class MainApp(QDialog):
     def handle_stop_button(self):
         # Stop engine (UI and recorder react). Forfeit any in-progress data.
         try:
+            run_active = bool(getattr(self, 'timing_engine', None) and self.timing_engine.run_active)
+            rec_active = bool(self.recording_manager and self.recording_manager.is_recording)
+            if not run_active and not rec_active:
+                self.safe_set_status_text("Nothing to stop!")
+                return
+
             if hasattr(self, 'timing_engine') and self.timing_engine:
                 self.timing_engine.stop()
             if self.recording_manager and self.recording_manager.is_recording:
                 self.recording_manager.forfeit()
-                self.ExportStatus.setText("Recording forfeited - No data saved")
-            else:
-                self.ExportStatus.setText("Stopped")
+            # Clear visual/labels immediately
+            try:
+                if hasattr(self, 'timeline_widget') and self.timeline_widget:
+                    self.timeline_widget.sudden_stop(self.StatusBar)
+            except Exception:
+                pass
+            # Update both statuses safely
+            self.safe_set_status_text("Recording stopped")
+            try:
+                if self.ExportStatus is not None:
+                    self.ExportStatus.setText("Recording stopped")
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    def stop_all_and_reset(self):
+        """Hard stop engine/recording and reset timeline visuals immediately."""
+        was_run_active = bool(getattr(self, 'timing_engine', None) and self.timing_engine.run_active)
+        was_recording = bool(self.recording_manager and self.recording_manager.is_recording)
+        try:
+            if hasattr(self, 'timing_engine') and self.timing_engine:
+                self.timing_engine.stop()
+        except Exception:
+            pass
+        try:
+            if self.recording_manager and self.recording_manager.is_recording:
+                self.recording_manager.forfeit()
+        except Exception:
+            pass
+        try:
+            if hasattr(self, 'timeline_widget') and self.timeline_widget:
+                # Quiet clear so this behaves exactly like a normal stop for visuals/labels
+                if hasattr(self.timeline_widget, 'clear_visuals_quiet'):
+                    self.timeline_widget.clear_visuals_quiet()
+                else:
+                    self.timeline_widget.sudden_stop(self.StatusBar)
+        except Exception:
+            pass
+        try:
+            if was_run_active or was_recording:
+                self.safe_set_status_text("Recording stopped")
+                if self.ExportStatus is not None:
+                    self.ExportStatus.setText("Recording stopped")
+        except Exception:
+            pass
+
+    def safe_set_status_text(self, text: str):
+        try:
+            if hasattr(self, 'StatusBar') and self.StatusBar is not None:
+                self.StatusBar.setText(text)
         except Exception:
             pass
 
@@ -731,6 +830,13 @@ class MainApp(QDialog):
         bed.restore_window(self, self.chatbot)
         # Re-apply interaction flags in case labels were re-created or updated
         self.enable_global_label_interactions()
+        # Keep BlackScreenTimer button above other widgets after show/restore
+        try:
+            btn = getattr(self, 'BlackScreenTimer', None)
+            if btn is not None:
+                btn.raise_()
+        except Exception:
+            pass
 
     def paintEvent(self, event):
         """Custom painting (rounded corners, shadows) via backend helper."""

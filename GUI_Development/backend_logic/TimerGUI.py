@@ -530,6 +530,7 @@ class TimelineWidget(QWidget):
         self.buffer_label_display.setText("")
         self.buffer_label_display.hide()
 
+        # Clear visual state immediately so nothing remains partially filled
         self.progress = 0.0
         self.trial_number = 0
         self.fill_rect.setRect(
@@ -541,9 +542,45 @@ class TimelineWidget(QWidget):
             self.buffer_y + self.buffer_height,
             self.buffer_width, 0
         )
+        # Reset internal fractions to avoid redraw keeping old progress
+        try:
+            self.buffer_frac = 0.0
+            self.progress_frac = 0.0
+        except Exception:
+            pass
 
         self.in_trial = False
         self.start_button.setEnabled(True)
+
+    def clear_visuals_quiet(self):
+        """Reset labels and bars to defaults without emitting status messages."""
+        try:
+            # Labels to default
+            self.global_time_label.setText("Total Time: 0s (Buffer)")
+            self.trial_time_label.setText("Trial 1 Time: 0s")
+            self.label.setText("Movement Onset at 0s")
+            self.buffer_label_display.setText("")
+            self.buffer_label_display.hide()
+            # Bars cleared
+            self.progress = 0.0
+            self.trial_number = 0
+            self.fill_rect.setRect(
+                self.timeline_x, self.timeline_y,
+                0, self.timeline_height
+            )
+            self.buffer_fill.setRect(
+                self.buffer_x,
+                self.buffer_y + self.buffer_height,
+                self.buffer_width, 0
+            )
+            # Reset internal fracs
+            self.buffer_frac = 0.0
+            self.progress_frac = 0.0
+            # Ensure UI controls sensible
+            self.in_trial = False
+            self.start_button.setEnabled(True)
+        except Exception:
+            pass
 
     # ─── RESET AFTER COMPLETION ────────────────────────────────────────────────
     def reset_progress(self):
