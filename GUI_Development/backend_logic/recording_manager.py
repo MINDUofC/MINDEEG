@@ -196,12 +196,15 @@ class PreciseRecordingManager:
             return
         # If trials finished, stop and mark complete
         if not getattr(self.engine, 'run_active', False):
+            was_recording = bool(self.is_recording)
             self.stop()
-            try:
-                if self.export_status is not None:
-                    self.export_status.setText("Recording complete - Ready to export")
-            except Exception:
-                pass
+            # Only mark ready if we had been recording and at least one data type selected
+            if was_recording and any(self.selected_types.values()):
+                try:
+                    if self.export_status is not None:
+                        self.export_status.setText("Recording complete - Ready to export")
+                except Exception:
+                    pass
             return
         try:
             # Timestamps
@@ -262,13 +265,16 @@ class PreciseRecordingManager:
 
     def _on_run_completed(self):
         # Engine signaled run completion; ensure recording stops and status updates
-        if self.is_recording:
+        was_recording = bool(self.is_recording)
+        if was_recording:
             self.stop()
-        try:
-            if self.export_status is not None:
-                self.export_status.setText("Recording complete - Ready to export")
-        except Exception:
-            pass
+        # Only show completion ready status if we were actually recording
+        if was_recording:
+            try:
+                if self.export_status is not None:
+                    self.export_status.setText("Recording complete - Ready to export")
+            except Exception:
+                pass
 
     def _collect_muv_sample(self):
         """Collect muV data sample - using the working logic"""
@@ -418,40 +424,45 @@ class PreciseRecordingManager:
                     f.write(",".join(f"{v:.10f}" for v in row) + "\n")
                 return
 
-            # Default generic writer (used for muV)
-            # Column headers: label,sample_0,sample_1,sample_2,...
-            f.write("label," + ",".join(str(i) for i in range(num_cols)) + "\n")
-
+            # Default generic writer, with special handling for muV to transpose for a long format
             is_muv = data_info.get('structure') == 'channels+time'
             buffer_flags = data_info.get('buffer_flags') if is_muv else None
-            trial_row_index = None
-            global_row_index = None
-            if is_muv and 'columns' in data_info:
+            if is_muv:
+                # matrix is 10 x N in current structure ([ch1..ch8, global_s, trial_s] rows)
+                # Transpose to N x 10 so each row is a sample timestamp
+                transposed = matrix.T  # shape: (N_samples, 10)
+                # Header uses the provided columns order
+                f.write(",".join(columns) + "\n")
+                trial_col_index = None
                 try:
-                    trial_row_index = data_info['columns'].index('trial_s')
-                    global_row_index = data_info['columns'].index('global_s')
+                    trial_col_index = columns.index('trial_s')
                 except Exception:
-                    trial_row_index = None
-
-            # Data rows (matrix is expected to be row-oriented by 'columns')
-            for r, label in enumerate(columns):
-                if r < matrix.shape[0]:
-                    row = matrix[r]
-                    # For muV trial_s row, prefix values with 'B - ' when buffer
-                    if is_muv and label == 'trial_s' and buffer_flags is not None:
-                        vals = []
-                        for c, v in enumerate(row):
+                    trial_col_index = None
+                # Write each sample row, prefix trial_s with 'B - ' when buffer flag is True
+                for i in range(transposed.shape[0]):
+                    row_vals = []
+                    for j, v in enumerate(transposed[i]):
+                        if (trial_col_index is not None) and (j == trial_col_index) and buffer_flags is not None:
                             try:
-                                is_buf = bool(buffer_flags[c])
+                                is_buf = bool(buffer_flags[i])
                             except Exception:
                                 is_buf = False
                             if is_buf:
-                                vals.append(f"B - {v:.10f}")
+                                row_vals.append(f"B - {float(v):.10f}")
                             else:
-                                vals.append(f"{v:.10f}")
-                        row_vals = ",".join(vals)
-                    else:
+                                row_vals.append(f"{float(v):.10f}")
+                        else:
+                            row_vals.append(f"{float(v):.10f}")
+                    f.write(",".join(row_vals) + "\n")
+                return
+            else:
+                # Generic non-muV writer: Column headers: label,sample_0,sample_1,sample_2,...
+                f.write("label," + ",".join(str(i) for i in range(num_cols)) + "\n")
+                # Data rows (matrix expected row-oriented)
+                for r, label in enumerate(columns):
+                    if r < matrix.shape[0]:
+                        row = matrix[r]
                         row_vals = ",".join(f"{v:.10f}" for v in row)
-                    f.write(f"{label},{row_vals}\n")
+                        f.write(f"{label},{row_vals}\n")
 
 

@@ -585,6 +585,7 @@ class TimelineWidget(QWidget):
     # ─── RESET AFTER COMPLETION ────────────────────────────────────────────────
     def reset_progress(self):
         """Clears both bars after run (called 1.5s post‑complete)."""
+        # Clear bars
         self.fill_rect.setRect(
             self.timeline_x, self.timeline_y,
             0, self.timeline_height
@@ -594,7 +595,23 @@ class TimelineWidget(QWidget):
             self.buffer_y + self.buffer_height,
             self.buffer_width, 0
         )
-        logging.debug("Progress bars reset.")
+        # Reset labels to defaults after completion
+        try:
+            self.global_time_label.setText("Total Time: 0s (Buffer)")
+            self.trial_time_label.setText("Trial 1 Time: 0s")
+            self.label.setText("Movement Onset at 0s")
+            self.buffer_label_display.setText("")
+            self.buffer_label_display.hide()
+        except Exception:
+            pass
+        # Reset internal state fractions
+        try:
+            self.progress = 0.0
+            self.progress_frac = 0.0
+            self.buffer_frac = 0.0
+        except Exception:
+            pass
+        logging.debug("Progress bars and labels reset after completion.")
 
     # ─── BUFFER ANIMATION ─────────────────────────────────────────────────────
     def animate_buffer(self):

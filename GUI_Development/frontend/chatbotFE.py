@@ -257,6 +257,11 @@ class ChatbotFE(QWidget):
 
     def _start_backend_worker_LLM_installation(self):
         try:
+            # Disable toggle during installation to avoid QThread disruption
+            try:
+                self.toggle_button.setEnabled(False)
+            except Exception:
+                pass
             self._backend_thread = QThread()
             self._backend_worker = ChatbotFE._BackendInitWorker()
             self._backend_worker.moveToThread(self._backend_thread)
@@ -273,6 +278,11 @@ class ChatbotFE(QWidget):
 
     def _start_backend_worker(self):
         try:
+            # Disable toggle during initialization to avoid QThread disruption
+            try:
+                self.toggle_button.setEnabled(False)
+            except Exception:
+                pass
             self._backend_thread = QThread()
             self._backend_worker = ChatbotFE._BackendInitWorker()
             self._backend_worker.moveToThread(self._backend_thread)
@@ -296,6 +306,8 @@ class ChatbotFE(QWidget):
         try:
             self.input_box.setEnabled(True)
             self.input_box.setPlaceholderText("Enter your message here...")
+            # Re-enable toggle after successful initialization
+            self.toggle_button.setEnabled(True)
         except Exception:
             pass
 
@@ -303,6 +315,7 @@ class ChatbotFE(QWidget):
     def _on_backend_ready_LLM_installation(self, be):
         self.chatbot_be = be
         try:
+            # Re-enable toggle after successful installation
             self.toggle_button.setEnabled(True)
             self.new_conversation_button.setEnabled(True)
             self.input_box.setEnabled(True)
@@ -317,6 +330,8 @@ class ChatbotFE(QWidget):
         try:
             self.input_box.setEnabled(False)
             self.input_box.setPlaceholderText("Initialization failed.")
+            # Re-enable toggle even on failure so user can retry
+            self.toggle_button.setEnabled(True)
         except Exception:
             pass
 
@@ -324,6 +339,7 @@ class ChatbotFE(QWidget):
     @pyqtSlot(str)
     def _on_backend_failed_LLM_installation(self, err):
         try:
+            # Re-enable toggle even on failure so user can retry
             self.toggle_button.setEnabled(True)
             self.new_conversation_button.setEnabled(True)
             self.input_box.setEnabled(False)
