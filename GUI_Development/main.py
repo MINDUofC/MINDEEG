@@ -93,6 +93,33 @@ class MainApp(QDialog):
         self.PSDPlot    = self.findChild(QWidget,  "PSDPlot")
         self.NoPlot     = self.findChild(QWidget,  "NoPlot")
 
+        # Add friendly guidance message to the NoPlot tab
+        try:
+
+            no_plot_layout = self.NoPlot.layout() if self.NoPlot is not None else None
+            if self.NoPlot is not None and no_plot_layout is None:
+                no_plot_layout = QVBoxLayout(self.NoPlot)
+            if no_plot_layout is not None:
+                msg = (
+                    "Click another tab to see a visualization while running!\n\n"
+                    "Note, some computers may not be able to handle live plots and the timer simultaneously, "
+                    "if so, stay here to record data!\n"
+                    "Click the dropdown to learn how to use this interface.\n\n"
+                    "Enjoy! \n\n"
+                    "- The MIND Team"
+                )
+                info_label = QLabel(msg, self.NoPlot)
+                info_label.setWordWrap(True)
+                info_label.setAlignment(Qt.AlignCenter)
+                info_label.setStyleSheet(
+                    "font-family: 'Montserrat SemiBold'; font-size: 12pt; color: #0A1F44; padding: 16px;"
+                )
+                no_plot_layout.addStretch(1)
+                no_plot_layout.addWidget(info_label)
+                no_plot_layout.addStretch(1)
+        except Exception:
+            pass
+
         # Preprocessing controls
         self.BandPassOnOff       = self.findChild(QCheckBox, "BandPassOnOff")
         self.BandStopOnOff       = self.findChild(QCheckBox, "BandStopOnOff")

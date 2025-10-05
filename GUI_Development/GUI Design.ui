@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1230</width>
+    <width>1219</width>
     <height>946</height>
    </rect>
   </property>
@@ -418,7 +418,7 @@ QComboBox#MenuOptions QAbstractItemView::item:selected {
          </size>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;MIND EEG Visualizer &amp;amp; Data Recorder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;MINDStream EEG Visualizer &amp;amp; Data Recorder&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>
@@ -1498,9 +1498,9 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
         <widget class="QLabel" name="label_32">
          <property name="geometry">
           <rect>
-           <x>141</x>
+           <x>150</x>
            <y>30</y>
-           <width>20</width>
+           <width>21</width>
            <height>21</height>
           </rect>
          </property>
@@ -1513,7 +1513,7 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
 </string>
          </property>
          <property name="text">
-          <string>  Hz</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BP1Start">
@@ -1653,9 +1653,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_30">
          <property name="geometry">
           <rect>
-           <x>141</x>
+           <x>150</x>
            <y>10</y>
-           <width>20</width>
+           <width>21</width>
            <height>21</height>
           </rect>
          </property>
@@ -1668,7 +1668,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_34">
@@ -1710,7 +1710,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz   to</string>
+          <string>Hz —</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_29">
@@ -1718,7 +1718,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
           <rect>
            <x>70</x>
            <y>10</y>
-           <width>41</width>
+           <width>51</width>
            <height>21</height>
           </rect>
          </property>
@@ -1731,7 +1731,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz   to</string>
+          <string>Hz —</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_33">
@@ -1915,9 +1915,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_59">
          <property name="geometry">
           <rect>
-           <x>141</x>
+           <x>151</x>
            <y>30</y>
-           <width>20</width>
+           <width>21</width>
            <height>21</height>
           </rect>
          </property>
@@ -1930,7 +1930,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BStop1End">
@@ -2039,15 +2039,15 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz   to</string>
+          <string>Hz —</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_63">
          <property name="geometry">
           <rect>
-           <x>141</x>
+           <x>151</x>
            <y>10</y>
-           <width>20</width>
+           <width>21</width>
            <height>21</height>
           </rect>
          </property>
@@ -2060,7 +2060,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_62">
@@ -2169,7 +2169,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>  Hz   to</string>
+          <string>Hz —</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BStop2End">
@@ -3862,7 +3862,7 @@ QCheckBox::indicator:disabled:checked {
           <rect>
            <x>30</x>
            <y>10</y>
-           <width>171</width>
+           <width>191</width>
            <height>31</height>
           </rect>
          </property>
@@ -4385,19 +4385,6 @@ QTabBar::tab:pressed {
          <attribute name="title">
           <string>No Plot</string>
          </attribute>
-         <widget class="QLabel" name="label_16">
-          <property name="geometry">
-           <rect>
-            <x>20</x>
-            <y>20</y>
-            <width>871</width>
-            <height>211</height>
-           </rect>
-          </property>
-          <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click another tab to see a visualization while running! &lt;br/&gt;&lt;br/&gt;Note, some computers may not be able to handle live plots and the timer simultaneously, if so, stay here to record data!&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Click the dropdown to learn how to use this interface.&lt;br/&gt;&lt;br/&gt;Enjoy! &lt;/span&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:9pt;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;- The MIND Team&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-          </property>
-         </widget>
         </widget>
         <widget class="QWidget" name="muVPlot">
          <property name="styleSheet">
