@@ -4,7 +4,7 @@ from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations, No
 from scipy.interpolate import CubicSpline
 from scipy.signal import windows
 from PyQt5.QtCore import QTimer
-import backend_logic.data_processing as dp
+import backend_logic.data_handling.data_processing as dp
 from scipy.ndimage import uniform_filter1d
 from scipy.signal import welch, windows
 

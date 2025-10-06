@@ -5,7 +5,7 @@ from scipy.signal import welch, windows
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
-from backend_logic.data_collector import CentralizedDataCollector
+from backend_logic.data_handling.data_collector import CentralizedDataCollector
 
 
 class PSDGraph(QWidget):

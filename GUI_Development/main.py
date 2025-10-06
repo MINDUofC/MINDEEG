@@ -11,8 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QDialog, QPushButton, QComboBox, QWidget,
-    QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout,
-    QTextEdit, QPlainTextEdit
+    QSpinBox, QLineEdit, QCheckBox, QDial, QTabWidget, QVBoxLayout
 )
 from PyQt5.QtCore import Qt, QSize
 import time
@@ -20,22 +19,22 @@ from PyQt5.QtGui import QIcon, QKeyEvent
 from PyQt5 import uic
 from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
-import resources_rc
-import frontend.frontend_design as bed  # Backend window/control helpers
-import backend_logic.backend_eeg as beeg
+import resources_rc  # Import resources to make images available
+import frontend.frontend_design as fe
+import GUI_Development.backend_logic.board_setup.backend_eeg as beeg
 from brainflow.board_shim import BoardShim
-from backend_logic.live_plot_muV import MuVGraphVispyStacked as MuVGraph
-from backend_logic.live_plot_FFT import FFTGraph
-from backend_logic.live_plot_PSD import PSDGraph
-from backend_logic.TimerGUI import TimelineWidget
-from backend_logic.ica_manager import ICAManager
-from backend_logic.data_collector import CentralizedDataCollector
-from backend_logic.export_manager import ExportDestinationManager
-from backend_logic.recording_manager import PreciseRecordingManager
-from backend_logic.timing_engine import TimingEngine
+from GUI_Development.backend_logic.visualizer.live_plot_muV import MuVGraphVispyStacked as MuVGraph
+from GUI_Development.backend_logic.visualizer.live_plot_FFT import FFTGraph
+from GUI_Development.backend_logic.visualizer.live_plot_PSD import PSDGraph
+from GUI_Development.backend_logic.timing_and_recording.TimerGUI import TimelineWidget
+from GUI_Development.backend_logic.data_handling.ica_manager import ICAManager
+from GUI_Development.backend_logic.data_handling.data_collector import CentralizedDataCollector
+from GUI_Development.backend_logic.timing_and_recording.export_manager import ExportDestinationManager
+from GUI_Development.backend_logic.timing_and_recording.recording_manager import PreciseRecordingManager
+from GUI_Development.backend_logic.timing_and_recording.timing_engine import TimingEngine
 from frontend.chatbotFE import ChatbotFE
 from frontend.menu_handler import MenuHandler
-from backend_logic.black_screen_timer import BlackScreenTimerWindow
+from GUI_Development.backend_logic.timing_and_recording.black_screen_timer import BlackScreenTimerWindow
 
 
 
@@ -271,17 +270,17 @@ class MainApp(QDialog):
         # ─── Connect UI interactions ────────────────────────────────────
 
         # Window controls
-        self.minimize_button.clicked.connect(lambda: bed.minimize_window(self))
-        self.close_button.clicked.connect(lambda: bed.close_window(self))
-        self.fullscreen_button.clicked.connect(lambda: bed.toggle_fullscreen(self, self.chatbot))
+        self.minimize_button.clicked.connect(lambda: fe.minimize_window(self))
+        self.close_button.clicked.connect(lambda: fe.close_window(self))
+        self.fullscreen_button.clicked.connect(lambda: fe.toggle_fullscreen(self, self.chatbot))
         # Dragging
-        self.taskbar.mousePressEvent = lambda e: bed.start_drag(self, e)
-        self.taskbar.mouseMoveEvent  = lambda e: bed.move_window (self, e, self.chatbot)
+        self.taskbar.mousePressEvent = lambda e: fe.start_drag(self, e)
+        self.taskbar.mouseMoveEvent  = lambda e: fe.move_window (self, e, self.chatbot)
         # Show/hide band settings when counts change
-        self.NumBandPass.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
-        self.NumBandStop.valueChanged.connect(lambda: bed.toggle_settings_visibility(self))
+        self.NumBandPass.valueChanged.connect(lambda: fe.toggle_settings_visibility(self))
+        self.NumBandStop.valueChanged.connect(lambda: fe.toggle_settings_visibility(self))
 
-        self.BPTypeFIR_IIR.currentTextChanged.connect(lambda: bed.toggle_settings_visibility(self))
+        self.BPTypeFIR_IIR.currentTextChanged.connect(lambda: fe.toggle_settings_visibility(self))
         
 
         # Refresh serial ports dropdown on click
@@ -305,11 +304,11 @@ class MainApp(QDialog):
         self.enable_global_label_interactions()
 
         # ─── Enforce integer-only where appropriate ─────────────────────
-        bed.set_integer_only(self.BoardID, 0, 57)
-        bed.set_integer_only(self.NumOfTrials)
+        fe.set_integer_only(self.BoardID, 0, 57)
+        fe.set_integer_only(self.NumOfTrials)
         for fld in (self.BP1Start, self.BP1End, self.BP2Start, self.BP2End,
                     self.BStop1Start, self.BStop1End, self.BStop2Start, self.BStop2End):
-            bed.set_integer_only(fld, 0, 100)
+            fe.set_integer_only(fld, 0, 100)
         self.BeforeOnset.setMinimum(1)
         self.AfterOnset.setMinimum(1)
 
@@ -854,7 +853,7 @@ class MainApp(QDialog):
     def showEvent(self, event):
         """Restore window state (fullscreen/normal) when the dialog is shown."""
         super().showEvent(event)
-        bed.restore_window(self, self.chatbot)
+        fe.restore_window(self, self.chatbot)
         # Re-apply interaction flags in case labels were re-created or updated
         self.enable_global_label_interactions()
         # Keep BlackScreenTimer button above other widgets after show/restore
@@ -867,7 +866,7 @@ class MainApp(QDialog):
 
     def paintEvent(self, event):
         """Custom painting (rounded corners, shadows) via backend helper."""
-        bed.paintEvent(self, event)
+        fe.paintEvent(self, event)
 
     def on_average_toggled(self, checked: bool):
         """

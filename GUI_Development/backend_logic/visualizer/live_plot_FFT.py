@@ -5,7 +5,7 @@ from scipy.signal import windows
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton
 from brainflow.board_shim import BoardShim
-from backend_logic.data_collector import CentralizedDataCollector
+from backend_logic.data_handling.data_collector import CentralizedDataCollector
 
 class FFTGraph(QWidget):
     def __init__(self, board_shim, BoardOnCheckBox, preprocessing_controls, ica_manager=None, data_collector=None, parent=None):
