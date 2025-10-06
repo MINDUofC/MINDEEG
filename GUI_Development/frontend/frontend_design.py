@@ -44,8 +44,30 @@ def toggle_fullscreen(self, chatbot: ChatbotFE):
 
 
 def start_drag(self, event):
-    """Stores the cursor position when clicking the taskbar."""
+    """Stores the cursor position when clicking the taskbar, but only on non-interactive areas."""
     if event.button() == Qt.LeftButton and not self.isFullScreen():
+        # Check if the click is on an interactive element
+        clicked_widget = self.taskbar.childAt(event.pos())
+        
+        # If clicked on an interactive element, don't start dragging
+        if clicked_widget is not None:
+            # Check if it's one of the interactive elements
+            interactive_elements = [
+                self.MenuOptions,
+                self.minimize_button,
+                self.close_button,
+                self.fullscreen_button,
+                self.MindLogo,
+                self.InstaLogo,
+                self.LinkedInLogo
+            ]
+            
+            # Check if the clicked widget is any of the interactive elements or their children
+            for element in interactive_elements:
+                if element and (clicked_widget == element or clicked_widget.parent() == element):
+                    return  # Don't start dragging if clicking on interactive element
+        
+        # Only start dragging if clicking on empty space
         self.old_pos = event.globalPos()
 
 

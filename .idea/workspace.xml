@@ -5,21 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fe6dffb6-5746-4406-9620-c49d6a84af79" name="Changes" comment="fix an issue with plots not updating on every even board turn on,">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/TimerGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_and_recording/TimerGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/backend_eeg.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/board_setup/backend_eeg.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/black_screen_timer.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_and_recording/black_screen_timer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/data_collector.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/data_handling/data_collector.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/data_processing.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/data_handling/data_processing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/export_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_and_recording/export_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/ica_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/data_handling/ica_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/live_plot_FFT.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/visualizer/live_plot_FFT.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/live_plot_PSD.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/visualizer/live_plot_PSD.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/live_plot_muV.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/visualizer/live_plot_muV.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/recording_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_and_recording/recording_manager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/backend_logic/timing_and_recording/timing_engine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GUI_Development/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/GUI_Development/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -228,6 +214,7 @@
       <workItem from="1757882001630" duration="1000" />
       <workItem from="1759712080874" duration="243000" />
       <workItem from="1759713423696" duration="208000" />
+      <workItem from="1759713863270" duration="2496000" />
     </task>
     <task id="LOCAL-00045" summary="more changes">
       <option name="closed" value="true" />
@@ -674,7 +661,7 @@
     <SUITE FILE_PATH="coverage/MINDEEG$live_plot_muV.coverage" NAME="live_plot_muV Coverage Results" MODIFIED="1744263376366" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GUI_Development/backend_logic" />
     <SUITE FILE_PATH="coverage/MINDEEG$scalp_topo_1.coverage" NAME="scalp_topo 1 Coverage Results" MODIFIED="1740298282061" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MINDEEG$left_right_taha.coverage" NAME="left_right_taha Coverage Results" MODIFIED="1737885094092" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/taha" />
-    <SUITE FILE_PATH="coverage/MINDEEG$main.coverage" NAME="main Coverage Results" MODIFIED="1759713552764" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GUI_Development" />
+    <SUITE FILE_PATH="coverage/MINDEEG$main.coverage" NAME="main Coverage Results" MODIFIED="1759719458649" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GUI_Development" />
     <SUITE FILE_PATH="coverage/MINDEEG$live_plot_taha.coverage" NAME="live_plot_taha Coverage Results" MODIFIED="1743033379481" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Individual Member Files/taha" />
     <SUITE FILE_PATH="coverage/MINDEEG$y.coverage" NAME="y Coverage Results" MODIFIED="1744262560651" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/MINDEEG$s.coverage" NAME="s Coverage Results" MODIFIED="1742082725191" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GUI_Development/backend_logic" />
