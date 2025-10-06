@@ -273,9 +273,10 @@ class MainApp(QDialog):
         self.minimize_button.clicked.connect(lambda: fe.minimize_window(self))
         self.close_button.clicked.connect(lambda: fe.close_window(self))
         self.fullscreen_button.clicked.connect(lambda: fe.toggle_fullscreen(self, self.chatbot))
-        # Dragging
-        self.taskbar.mousePressEvent = lambda e: fe.start_drag(self, e)
-        self.taskbar.mouseMoveEvent  = lambda e: fe.move_window (self, e, self.chatbot)
+        # Dragging - use proper event handling instead of direct assignment
+        self.taskbar.mousePressEvent = self.handle_taskbar_mouse_press
+        self.taskbar.mouseMoveEvent = self.handle_taskbar_mouse_move
+        self.taskbar.mouseReleaseEvent = self.handle_taskbar_mouse_release
         # Show/hide band settings when counts change
         self.NumBandPass.valueChanged.connect(lambda: fe.toggle_settings_visibility(self))
         self.NumBandStop.valueChanged.connect(lambda: fe.toggle_settings_visibility(self))
@@ -981,6 +982,21 @@ class MainApp(QDialog):
 
     def on_export_destination_released(self):
         self.ExportDestination.setIconSize(QSize(20,20))
+
+    def handle_taskbar_mouse_press(self, event):
+        """Handle mouse press events on the taskbar for window dragging."""
+        fe.start_drag(self, event)
+        # Don't call super() here to prevent event propagation conflicts
+        
+    def handle_taskbar_mouse_move(self, event):
+        """Handle mouse move events on the taskbar for window dragging."""
+        fe.move_window(self, event, self.chatbot)
+        # Don't call super() here to prevent event propagation conflicts
+        
+    def handle_taskbar_mouse_release(self, event):
+        """Handle mouse release events on the taskbar to stop dragging."""
+        fe.stop_drag(self, event)
+        # Don't call super() here to prevent event propagation conflicts
 
     def enable_global_label_interactions(self):
         """Make all QLabel widgets allow link clicking and text selection app-wide."""

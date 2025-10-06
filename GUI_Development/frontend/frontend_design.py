@@ -45,30 +45,43 @@ def toggle_fullscreen(self, chatbot: ChatbotFE):
 
 def start_drag(self, event):
     """Stores the cursor position when clicking the taskbar, but only on non-interactive areas."""
-    if event.button() == Qt.LeftButton and not self.isFullScreen():
-        # Check if the click is on an interactive element
-        clicked_widget = self.taskbar.childAt(event.pos())
+    if event.button() != Qt.LeftButton or self.isFullScreen():
+        return
         
-        # If clicked on an interactive element, don't start dragging
-        if clicked_widget is not None:
-            # Check if it's one of the interactive elements
-            interactive_elements = [
-                self.MenuOptions,
-                self.minimize_button,
-                self.close_button,
-                self.fullscreen_button,
-                self.MindLogo,
-                self.InstaLogo,
-                self.LinkedInLogo
-            ]
-            
-            # Check if the clicked widget is any of the interactive elements or their children
-            for element in interactive_elements:
-                if element and (clicked_widget == element or clicked_widget.parent() == element):
-                    return  # Don't start dragging if clicking on interactive element
+    clicked_widget = self.childAt(event.pos())
+    
+    # If clicked on an interactive element, don't start dragging
+    if clicked_widget is not None:
+        # Check if it's one of the interactive elements
+        interactive_elements = [
+            self.MenuOptions,
+            self.minimize_button,
+            self.close_button,
+            self.fullscreen_button,
+            self.MindLogo,
+            self.InstaLogo,
+            self.LinkedInLogo
+        ]
         
-        # Only start dragging if clicking on empty space
-        self.old_pos = event.globalPos()
+        # Check if the clicked widget is any of the interactive elements or their children
+        for element in interactive_elements:
+            if element and (clicked_widget == element or is_child_of(clicked_widget, element)):
+                # Accept the event to prevent further propagation
+                event.accept()
+                return  # Don't start dragging if clicking on interactive element
+    
+    # Only start dragging if clicking on empty space or non-interactive area
+    self.old_pos = event.globalPos()
+    event.accept()  
+
+def is_child_of(child_widget, parent_widget):
+    """Check if child_widget is a child (or grandchild) of parent_widget."""
+    current = child_widget
+    while current is not None:
+        if current == parent_widget:
+            return True
+        current = current.parent()
+    return False
 
 
 def move_window(self, event, chatbox: ChatbotFE):
@@ -78,6 +91,15 @@ def move_window(self, event, chatbox: ChatbotFE):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.old_pos = event.globalPos()
         chatbox.reposition()
+        event.accept() 
+    else:
+        event.accept() 
+
+def stop_drag(self, event):
+    """Stops window dragging when mouse is released."""
+    if event.button() == Qt.LeftButton:
+        self.old_pos = None
+    event.accept()  
 
 
 
