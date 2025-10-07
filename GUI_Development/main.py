@@ -782,11 +782,37 @@ class MainApp(QDialog):
             if file_type.upper() != "CSV":
                 self.ExportStatus.setText("Export failed: Unsupported file type")
                 return
-            ok = self.recording_manager.export_cached(dest, "csv")
-            if ok:
-                self.ExportStatus.setText("Export successful")
-            else:
-                self.ExportStatus.setText("Export failed")
+            
+            # Get current UI selections
+            selected_types = {
+                'muV': self.RawData.isChecked() if self.RawData is not None else False,
+                'FFT': self.FFTData.isChecked() if self.FFTData is not None else False,
+                'PSD': self.PSDData.isChecked() if self.PSDData is not None else False,
+            }
+            
+            # Check if no types are selected
+            if not any(selected_types.values()):
+                self.ExportStatus.setText("Export failed: No data types selected")
+                return
+            
+            # Get available data types
+            available_types = self.recording_manager.get_available_data_types()
+            
+            # Check if any selected types don't have recorded data
+            unavailable_selected = []
+            for data_type, is_selected in selected_types.items():
+                if is_selected and not available_types.get(data_type, False):
+                    unavailable_selected.append(data_type)
+            
+            if unavailable_selected:
+                types_str = ", ".join(unavailable_selected)
+                self.ExportStatus.setText(f"Export failed: {types_str} not recorded")
+                return
+            
+            # Export with current selections
+            success, message, exported_types = self.recording_manager.export_cached(dest, "csv", selected_types)
+            self.ExportStatus.setText(message)
+            
         except Exception:
             try:
                 self.ExportStatus.setText("Export failed: Unexpected error")

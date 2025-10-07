@@ -298,6 +298,7 @@ class MenuHandler:
   <li><b>Data Types:</b> Select Raw µV, FFT, PSD. Choose file format (CSV only).</li>
   <li><b>Export Destination:</b> Set folder; persisted in <code>export_destination.txt</code>; validated on startup.</li>
   <li><b>Export Button:</b> Saves cached data to separate CSV files per type with datetime naming.</li>
+  <li><b>⚠️ Important:</b> Starting a new recording clears all cached data. Export immediately after each session or record all desired types together.</li>
 </ul>
 
 <h3>5. Timeline Visualizer vs. Black Screen Timer</h3>
@@ -320,6 +321,7 @@ class MenuHandler:
   <li>Always verify µV signal quality (good electrode contact, minimal drift) before starting experiments.</li>
   <li>Use <b>No Plot</b> tab during recording if your system cannot render live graphs smoothly.</li>
   <li>Minimize subject movement and ensure stable power supply.</li>
+  <li><b>Data Management:</b> Export data immediately after each recording session. Starting a new recording clears all cached data from previous sessions.</li>
 </ul>
         """
         
@@ -515,6 +517,7 @@ class MenuHandler:
   <li><b>FileType:</b> CSV only (at present).</li>
   <li><b>Export Destination:</b> Folder path; persisted in <code>backend_logic/export_destination.txt</code>; validated on app startup.</li>
   <li><b>Export Button:</b> Saves cached data to <code>record{Type}_{datetime}.csv</code> (one file per selected type).</li>
+  <li><b>Data Cache Behavior:</b> <b>Important:</b> Starting a new recording session clears all previously cached data. If you record muV first, then start a new recording for FFT, the muV data is lost. Export data immediately after each recording session, or record all desired data types in a single session.</li>
 </ul>
 
 <h3>Status Messages</h3>

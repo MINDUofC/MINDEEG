@@ -155,6 +155,17 @@ class PreciseRecordingManager:
                    len(self._fft_rows) > 0 or 
                    len(self._psd_rows) > 0)
 
+    def get_available_data_types(self) -> dict:
+        """Returns which data types actually have recorded data available."""
+        with self._data_lock:
+            return {
+                'muV': len(self._muv_rows) > 0,
+                'FFT': len(self._fft_rows) > 0, 
+                'PSD': len(self._psd_rows) > 0,
+            }
+
+
+
     def get_cached_data_by_type(self) -> dict:
         """Return cached data separated by type with proper structures"""
         with self._data_lock:
@@ -350,11 +361,32 @@ class PreciseRecordingManager:
                 values[i] = float(np.sum(pwr))
         return values
 
-    def export_cached(self, directory_path: str, file_type: str) -> bool:
-        """Export cached data to separate files by type with datetime naming."""
+    def export_cached(self, directory_path: str, file_type: str, selected_types: dict = None) -> tuple:
+        """
+        Export cached data to separate files by type with datetime naming.
+        
+        Args:
+            directory_path: Directory to export files to
+            file_type: File format (csv, npy, npz)
+            selected_types: Optional dict of {'muV': bool, 'FFT': bool, 'PSD': bool} to filter exports
+            
+        Returns:
+            tuple: (success: bool, message: str, exported_types: list)
+        """
         cached_data = self.get_cached_data_by_type()
         if not cached_data:
-            return False
+            return False, "No cached data available", []
+        
+        # If selected_types provided, filter to only include selected ones
+        if selected_types is not None:
+            filtered_data = {}
+            for data_type, data_info in cached_data.items():
+                if selected_types.get(data_type, False):
+                    filtered_data[data_type] = data_info
+            cached_data = filtered_data
+            
+            if not cached_data:
+                return False, "No selected data types have recorded data", []
         
         try:
             os.makedirs(directory_path, exist_ok=True)
@@ -363,6 +395,7 @@ class PreciseRecordingManager:
                 ext = ext[1:]
             
             exported_files = []
+            exported_types = []
             
             # Export each data type to separate file
             for data_type, data_info in cached_data.items():
@@ -374,10 +407,12 @@ class PreciseRecordingManager:
                     path = os.path.join(directory_path, f"{filename}.csv")
                     self._write_csv_file(path, matrix, columns, data_info)
                     exported_files.append(path)
+                    exported_types.append(data_type)
                 elif ext == "npy":
                     path = os.path.join(directory_path, f"{filename}.npy")
                     np.save(path, matrix)
                     exported_files.append(path)
+                    exported_types.append(data_type)
                 elif ext == "npz":
                     path = os.path.join(directory_path, f"{filename}.npz")
                     save_dict = {'data': matrix, 'columns': columns}
@@ -385,11 +420,18 @@ class PreciseRecordingManager:
                         save_dict['freqs'] = data_info['freqs']
                     np.savez(path, **save_dict)
                     exported_files.append(path)
+                    exported_types.append(data_type)
             
-            return len(exported_files) > 0
+            # Create success message
+            if exported_types:
+                types_str = ", ".join(exported_types)
+                message = f"Export successful: {types_str}"
+                return True, message, exported_types
+            else:
+                return False, "No data exported", []
             
         except Exception:
-            return False
+            return False, "Export failed: Unexpected error", []
     
     def _write_csv_file(self, path: str, matrix: np.ndarray, columns: list, data_info: dict):
         """Write CSV file with appropriate format for each data type"""
