@@ -6,7 +6,7 @@ from frontend.chatbotFE import ChatbotFE
 
 def open_link(event):
     """Opens the MIND website when the logo is clicked."""
-    QDesktopServices.openUrl(QUrl("https://mind-uofc.ca/"))
+    QDesktopServices.openUrl(QUrl("https://minduofc.ca/"))
 
 
 def minimize_window(self):

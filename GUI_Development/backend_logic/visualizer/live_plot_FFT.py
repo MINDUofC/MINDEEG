@@ -21,7 +21,8 @@ class FFTGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 30
+        # Update speed - 16ms for 60fps rendering (smoother visuals)
+        self.update_speed_ms = 16
 
         self.init_ui()
         self.init_timer()
@@ -72,7 +73,7 @@ class FFTGraph(QWidget):
         if self.eeg_channels is None or self.sampling_rate is None or self.num_points is None:
             self.eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_shim.get_board_id())
-            self.num_points = int(6 * self.sampling_rate)
+            self.num_points = int(4 * self.sampling_rate)  # 4-second window (33% less processing)
             print(f"FFT Init: {len(self.eeg_channels)} channels, {self.sampling_rate} Hz")
 
         # Use centralized data collector

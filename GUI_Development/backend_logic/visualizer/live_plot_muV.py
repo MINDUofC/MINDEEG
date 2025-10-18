@@ -19,8 +19,8 @@ class MuVGraphVispyStacked(QWidget):
         self.ica_manager = ica_manager
         self.data_collector = data_collector
 
-        # Live update config
-        self.update_speed_ms = 30
+        # Live update config - 16ms for 60fps rendering (smoother visuals)
+        self.update_speed_ms = 16
         self.max_points = 1000
 
         # Visual + layout config
@@ -37,6 +37,10 @@ class MuVGraphVispyStacked(QWidget):
         self.lines = []
         self.labels = []
         self.separators = []
+        
+        # Performance caching for rendering
+        self._cached_position_arrays = {}  # Cache x/y position arrays per channel
+        self._last_active_channel_count = 0
 
         self.last_time = time.time()
         self.init_ui()
@@ -129,7 +133,7 @@ class MuVGraphVispyStacked(QWidget):
         if self.eeg_channels is None or self.sampling_rate is None or self.num_points is None:
             self.eeg_channels = BoardShim.get_eeg_channels(self.board_shim.get_board_id())
             self.sampling_rate = BoardShim.get_sampling_rate(self.board_shim.get_board_id())
-            self.num_points = int(6 * self.sampling_rate)  # 6-second window
+            self.num_points = int(4 * self.sampling_rate)  # 4-second window (33% less processing)
             print(f"Board Initialized: {len(self.eeg_channels)} EEG channels, {self.sampling_rate} Hz")
 
         # Use centralized data collector
@@ -139,14 +143,27 @@ class MuVGraphVispyStacked(QWidget):
             return
 
         track_height = self.offset_spacing * 0.8
-        num_active = len(self.eeg_channels)
+        # Only update channels that have data - performance optimization
+        num_active = min(len(self.eeg_channels), len(filtered_data))
+        
+        # Track if channel count changed to clear position cache
+        if num_active != self._last_active_channel_count:
+            self._cached_position_arrays.clear()
+            self._last_active_channel_count = num_active
 
         for idx, line in enumerate(self.lines):
+            # Only process and render active channels
             if idx < num_active:
                 # ─── Active channel plotting ────────────────────────────
                 channel = self.eeg_channels[idx]
                 y = filtered_data[channel]
-                x = np.linspace(0, len(y) / self.sampling_rate, len(y))
+                
+                # Cache x array computation - only depends on data length and sampling rate
+                data_len = len(y)
+                cache_key = f"x_{data_len}"
+                if cache_key not in self._cached_position_arrays:
+                    self._cached_position_arrays[cache_key] = np.linspace(0, data_len / self.sampling_rate, data_len)
+                x = self._cached_position_arrays[cache_key]
 
                 # Trim to max_points
                 if len(x) > self.max_points:
@@ -199,16 +216,35 @@ class MuVGraphVispyStacked(QWidget):
                 else:
                     offset_y = y_scaled + (idx + 0.20) * self.offset_spacing
 
-                # X scaling
-                if x.max() != 0:
-                    x_scaled = (x / x.max()) * (1 - self.label_margin_ratio)
+                # X scaling - cache when possible
+                x_max = x.max()
+                if x_max != 0:
+                    x_cache_key = f"xscale_{data_len}"
+                    if x_cache_key not in self._cached_position_arrays:
+                        # Cache the scaled x positions (same for all channels with same data length)
+                        x_scaled = (x / x_max) * (1 - self.label_margin_ratio) + self.label_margin_ratio
+                        self._cached_position_arrays[x_cache_key] = x_scaled
+                    else:
+                        x_scaled = self._cached_position_arrays[x_cache_key]
                 else:
-                    x_scaled = x
-                x_scaled += self.label_margin_ratio
+                    x_scaled = x + self.label_margin_ratio
 
-                # Draw and show
+                # Draw and show - use pre-allocated column_stack
                 line.set_data(np.column_stack((x_scaled, offset_y)))
                 line.visible = True
+                # Ensure labels and separators are visible for active channels
+                if idx < len(self.labels):
+                    self.labels[idx].visible = True
+                if idx < len(self.separators):
+                    self.separators[idx].visible = True
+            else:
+                # Hide inactive channels for better performance - no rendering overhead
+                line.visible = False
+                # Also hide labels and separators for inactive channels
+                if idx < len(self.labels):
+                    self.labels[idx].visible = False
+                if idx < len(self.separators):
+                    self.separators[idx].visible = False
 
 
 

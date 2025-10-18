@@ -9,10 +9,19 @@ from rapidfuzz import process, fuzz
 
 class ChatbotBE:
 
-    def __init__(self):
+    def __init__(self, load_model_immediately=False):
+        """
+        Initialize ChatbotBE.
+        
+        Args:
+            load_model_immediately: If True, loads the 4.66GB model right now (for downloads/first-time setup).
+                                   If False, defers loading until first LLM query (lazy loading for performance).
+        """
         super().__init__()
         self.model_name = "Meta-Llama-3-8B-Instruct.Q4_0.gguf"
-        self.model = gpt4all.GPT4All(self.model_name)
+        # Lazy load the 4.66GB model only when actually needed for LLM generation
+        self.model = None
+        self._model_loaded = False
         self.chat_history = []
         # Separate controls for context size and generation length (tuned for average PCs)
         self.max_history_chars = 1200
@@ -46,7 +55,25 @@ class ChatbotBE:
         # FAQ fuzzy match configuration (stricter to avoid false positives)
         self.faq_threshold = 85
         self.faq_scorer = fuzz.token_set_ratio
+        
+        # Load model immediately if requested (for first-time downloads with UI feedback)
+        if load_model_immediately:
+            self._ensure_model_loaded()
 
+    def _ensure_model_loaded(self):
+        """
+        Lazy-load the 4.66GB GPT4All model only when actually needed.
+        This method is safe to call multiple times - it only loads once.
+        """
+        if not self._model_loaded:
+            try:
+                self.model = gpt4all.GPT4All(self.model_name)
+                self._model_loaded = True
+            except Exception as e:
+                print(f"Failed to load GPT4All model: {e}")
+                self.model = None
+                self._model_loaded = False
+                raise
 
     def handle_LLM_cycle(self, user_input: str) -> str:
         # TODO: Flow: User Input -> Add current chat history to user input -> Parse FAQs first for easy answers -> Handle LLM output if no FAQs found -> Update chat history -> Return LLM output
@@ -57,6 +84,8 @@ class ChatbotBE:
             self.update_chat_history(user_input, faq_answer)
             return faq_answer
 
+        # Only load the 4.66GB model if FAQ didn't answer the question
+        self._ensure_model_loaded()
 
         # Add current chat history to user input
         with self.model.chat_session():

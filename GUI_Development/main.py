@@ -21,20 +21,29 @@ from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QDesktopServices
 import resources_rc  # Import resources to make images available
 import frontend.frontend_design as fe
-import GUI_Development.backend_logic.board_setup.backend_eeg as beeg
-from brainflow.board_shim import BoardShim
-from GUI_Development.backend_logic.visualizer.live_plot_muV import MuVGraphVispyStacked as MuVGraph
-from GUI_Development.backend_logic.visualizer.live_plot_FFT import FFTGraph
-from GUI_Development.backend_logic.visualizer.live_plot_PSD import PSDGraph
-from GUI_Development.backend_logic.timing_and_recording.TimerGUI import TimelineWidget
-from GUI_Development.backend_logic.data_handling.ica_manager import ICAManager
-from GUI_Development.backend_logic.data_handling.data_collector import CentralizedDataCollector
-from GUI_Development.backend_logic.timing_and_recording.export_manager import ExportDestinationManager
-from GUI_Development.backend_logic.timing_and_recording.recording_manager import PreciseRecordingManager
-from GUI_Development.backend_logic.timing_and_recording.timing_engine import TimingEngine
+# Lazy load visualization graphs (vispy, pyqtgraph) to save ~5-10 seconds at startup
+# Graph classes will be imported when user clicks on respective tabs
+# from backend_logic.visualizer.live_plot_muV import MuVGraphVispyStacked as MuVGraph
+# from backend_logic.visualizer.live_plot_FFT import FFTGraph
+# from backend_logic.visualizer.live_plot_PSD import PSDGraph
+
+# Lazy load board modules (brainflow) to save startup time
+# Will be imported when user turns on board
+# import backend_logic.board_setup.backend_eeg as beeg
+# from brainflow.board_shim import BoardShim
+# from backend_logic.data_handling.data_collector import CentralizedDataCollector
+
+# Keep these - used in multiple places or needed early
+from backend_logic.timing_and_recording.TimerGUI import TimelineWidget
+from backend_logic.data_handling.ica_manager import ICAManager
+from backend_logic.timing_and_recording.recording_manager import PreciseRecordingManager
+from backend_logic.timing_and_recording.timing_engine import TimingEngine
 from frontend.chatbotFE import ChatbotFE
 from frontend.menu_handler import MenuHandler
-from GUI_Development.backend_logic.timing_and_recording.black_screen_timer import BlackScreenTimerWindow
+# Lazy load export manager - only needed when browsing/exporting
+# from backend_logic.timing_and_recording.export_manager import ExportDestinationManager
+# Lazy load black screen timer - only needed when button clicked
+# from backend_logic.timing_and_recording.black_screen_timer import BlackScreenTimerWindow
 
 
 
@@ -53,7 +62,7 @@ class MainApp(QDialog):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setWindowTitle("MINDStream EEG Extraction Interface")
-        self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.png"))
+        self.setWindowIcon(QIcon(":/images/MIND LOGO Transparent.ico"))
         # Debounce state for Record button
         self._last_record_click_ts = 0.0
 
@@ -261,9 +270,9 @@ class MainApp(QDialog):
 
         if self.MindLogo:
             self.MindLogo.setCursor(Qt.PointingHandCursor)
-            self.MindLogo.mousePressEvent = lambda eventParam: QDesktopServices.openUrl(
-                QUrl("https://minduofc.ca/")
-            )
+            def open_mind_website(event):
+                QDesktopServices.openUrl(QUrl("https://minduofc.ca/"))
+            self.MindLogo.mousePressEvent = open_mind_website
 
         # Note: We no longer install a global event filter for Enter/Return.
 
@@ -295,9 +304,6 @@ class MainApp(QDialog):
         # Connecting FileDestination Button so it shrinks when pressed
         self.ExportDestination.pressed.connect(self.on_export_destination_clicked)
         self.ExportDestination.released.connect(self.on_export_destination_released)
-        
-        # Initialize menu handler
-        self.menu_handler = MenuHandler(self, self.MenuOptions)
 
 
 
@@ -348,6 +354,8 @@ class MainApp(QDialog):
                 except Exception:
                     pass
                 # Create new dialog
+                # Lazy import - only load black screen timer when user clicks button
+                from backend_logic.timing_and_recording.black_screen_timer import BlackScreenTimerWindow
                 self.black_screen_window = BlackScreenTimerWindow(
                     self.timing_engine,
                     before_spinbox=self.BeforeOnset,
@@ -376,8 +384,8 @@ class MainApp(QDialog):
         self.data_collector = None
         self.first_time_collecting = True
 
-        # Export destination + recording managers
-        self.export_dest_manager = ExportDestinationManager()
+        # Export destination + recording managers - lazy loaded
+        self.export_dest_manager = None
         self.recording_manager = None
 
         # Hook export controls
@@ -392,8 +400,8 @@ class MainApp(QDialog):
         if self.stopButton is not None:
             self.stopButton.clicked.connect(self.handle_stop_button)
 
-        # Load export destination on startup and reflect in UI
-        self.load_export_destination_on_startup()
+        # Defer export destination loading until after UI is shown
+        # Will be loaded when export manager is first accessed
 
         # (Reverted FileType runtime population/sizing fixes)
 
@@ -405,9 +413,37 @@ class MainApp(QDialog):
         # ─── Enforce mutual exclusivity between Average and Median ──────
         self.AverageOnOff.clicked.connect(self.on_average_toggled)
         self.MedianOnOff.clicked.connect(self.on_median_toggled)
+        
+        # Initialize menu handler
+        self.menu_handler = MenuHandler(self, self.MenuOptions)
+
+    def _ensure_export_manager_loaded(self):
+        """Lazy-load export destination manager on first use."""
+        if self.export_dest_manager is None:
+            from backend_logic.timing_and_recording.export_manager import ExportDestinationManager
+            self.export_dest_manager = ExportDestinationManager()
+            # Load saved export destination
+            saved_path, is_valid = self.export_dest_manager.load_destination_on_startup()
+            if is_valid:
+                try:
+                    self.ExportDestination.setText("")
+                    self.ExportDestination.setToolTip(saved_path)
+                    self.ExportStatus.setText("Export destination loaded")
+                except Exception:
+                    pass
+            else:
+                try:
+                    self.ExportDestination.setText("")
+                    self.ExportDestination.setToolTip("No export destination selected")
+                    self.ExportStatus.setText("Select export destination before exporting")
+                except Exception:
+                    pass
 
     def setup_muV_live_plot(self):
         """Lazy-create and embed the µV live plot into its tab."""
+        # Lazy import vispy and the graph class to save startup time
+        from backend_logic.visualizer.live_plot_muV import MuVGraphVispyStacked as MuVGraph
+        
         layout = QVBoxLayout(self.muVPlot)
         self.muVGraph = MuVGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.muVGraph)
@@ -418,6 +454,9 @@ class MainApp(QDialog):
 
     def setup_FFT_live_plot(self):
         """Lazy-create and embed the FFT live plot into its tab."""
+        # Lazy import pyqtgraph and the graph class to save startup time
+        from backend_logic.visualizer.live_plot_FFT import FFTGraph
+        
         layout = QVBoxLayout(self.FFTPlot)
         self.FFTGraph = FFTGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.FFTGraph)
@@ -428,6 +467,9 @@ class MainApp(QDialog):
 
     def setup_PSDGraph(self):
         """Lazy-create and embed the PSD live plot into its tab."""
+        # Lazy import pyqtgraph and the graph class to save startup time
+        from backend_logic.visualizer.live_plot_PSD import PSDGraph
+        
         layout = QVBoxLayout(self.PSDPlot)
         self.PSDGraph = PSDGraph(self.board_shim, self.BoardOnOff, self.preprocessing_controls, self.ica_manager, self.data_collector)
         layout.addWidget(self.PSDGraph)
@@ -479,6 +521,12 @@ class MainApp(QDialog):
         graph and start the current tab's timer. When turning off, stop all.
         """
         if self.BoardOnOff.isChecked():
+            # Lazy import board modules to save startup time (~2-3 seconds)
+            # Only loads brainflow when user actually turns on board
+            import backend_logic.board_setup.backend_eeg as beeg
+            from brainflow.board_shim import BoardShim
+            from backend_logic.data_handling.data_collector import CentralizedDataCollector
+            
             self.board_shim = beeg.turn_on_board(
                 self.BoardID, self.Port, self.ChannelDial,
                 self.CommonReferenceOnOff, self.StatusBar, False
@@ -544,6 +592,8 @@ class MainApp(QDialog):
 
         else:
             # Power off the board and stop all timers
+            # Import needed here too for turn_off
+            import backend_logic.board_setup.backend_eeg as beeg
             beeg.turn_off_board(
                 self.board_shim, self.BoardID, self.Port,
                 self.ChannelDial, self.CommonReferenceOnOff, self.StatusBar, False
@@ -573,27 +623,12 @@ class MainApp(QDialog):
                     # Keep the data_collector reference - it will handle the board_shim being None
                     graph.timer.stop()
 
-    def load_export_destination_on_startup(self):
-        saved_path, is_valid = self.export_dest_manager.load_destination_on_startup()
-        if is_valid:
-            try:
-                base = os.path.basename(saved_path.rstrip(os.sep)) or saved_path
-                self.ExportDestination.setText("")
-                self.ExportDestination.setToolTip(saved_path)
-                self.ExportStatus.setText("Export destination loaded")
-            except Exception:
-                pass
-        else:
-            try:
-                self.ExportDestination.setText("")
-                self.ExportDestination.setToolTip("No export destination selected")
-                self.ExportStatus.setText("Select export destination before exporting")
-            except Exception:
-                pass
-
-    # (Removed FileType configure/ensure methods)
+    # (Removed FileType configure/ensure methods and load_export_destination_on_startup - now in _ensure_export_manager_loaded)
 
     def browse_export_destination(self):
+        # Ensure export manager is loaded before use
+        self._ensure_export_manager_loaded()
+        
         try:
             from PyQt5.QtWidgets import QFileDialog
             path = QFileDialog.getExistingDirectory(self, "Select Export Destination Directory")
@@ -766,6 +801,9 @@ class MainApp(QDialog):
             pass
 
     def export_button_clicked(self):
+        # Ensure export manager is loaded before use
+        self._ensure_export_manager_loaded()
+        
         try:
             if not self.recording_manager or not self.recording_manager.has_cached_data():
                 self.ExportStatus.setText("Export failed: Record data beforehand")
@@ -874,6 +912,8 @@ class MainApp(QDialog):
     def eventFilter(self, obj, event):
         """Refresh serial ports list when the Port combobox is clicked."""
         if obj is self.Port and event.type() == event.MouseButtonPress:
+            # Lazy import - only needed when user clicks port dropdown
+            import backend_logic.board_setup.backend_eeg as beeg
             beeg.refresh_ports_on_click(self.Port)
         return super().eventFilter(obj, event)
 
@@ -1040,6 +1080,14 @@ class MainApp(QDialog):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    
+    # Close PyInstaller splash screen if running from built exe
+    try:
+        import pyi_splash
+        pyi_splash.close()
+    except ImportError:
+        pass  # Not running from PyInstaller build
+    
     window = MainApp()
     window.show()
-    sys.exit(app.exec_()) is not None
+    sys.exit(app.exec_())

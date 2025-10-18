@@ -23,12 +23,13 @@ class CentralizedDataCollector:
             self.sampling_rate = BoardShim.get_sampling_rate(board_shim.get_board_id())
         
         # Init 3 different num_points for different plots
+        # Reduced to 4 seconds for better performance (33% less processing per frame)
         if self.sampling_rate:
-            self.nump_muV = int(6 * self.sampling_rate)
-            self.nump_FFT = int(6 * self.sampling_rate)
+            self.nump_muV = int(4 * self.sampling_rate)
+            self.nump_FFT = int(4 * self.sampling_rate)
         else:
-            self.nump_muV = 750  # Default for 125Hz * 6 seconds
-            self.nump_FFT = 750
+            self.nump_muV = 500  # Default for 125Hz * 4 seconds
+            self.nump_FFT = 500
         
             # ─────────────────────────────────────────────────────
             # 📐 PSD Theory & Resolution Explanation:
@@ -50,6 +51,14 @@ class CentralizedDataCollector:
         self.data = None
         self.data_FFT = None
         self.data_PSD = None
+        
+        # Cache windows for performance - compute once, reuse every frame
+        self._hamming_window_FFT = None
+        self._hamming_window_PSD = None
+        
+        # Pre-allocate arrays for performance
+        self._freq_array_FFT = None
+        self._freq_array_PSD = None
 
     
 
@@ -69,15 +78,19 @@ class CentralizedDataCollector:
         if self.board_on:
             data_for_FFT = dp.get_filtered_data_with_ica(self.board_shim, self.nump_FFT, self.eeg_channels, self.preprocessing, self.ica_manager)
             
-            # Init temp amplitude array
-            amplitudes = []
+            # Pre-allocate amplitude list for performance
+            num_channels = len(self.eeg_channels)
+            amplitudes = [None] * num_channels
 
-            # Calculate freqs
-            freqs = np.fft.rfftfreq(self.nump_FFT, d=1.0 / self.sampling_rate)
+            # Cache frequency array - compute once, reuse every frame
+            if self._freq_array_FFT is None:
+                self._freq_array_FFT = np.fft.rfftfreq(self.nump_FFT, d=1.0 / self.sampling_rate)
+            freqs = self._freq_array_FFT
             
-
-            # Create the window only once
-            window = windows.hamming(self.nump_FFT)
+            # Cache Hamming window - compute once, reuse every frame
+            if self._hamming_window_FFT is None:
+                self._hamming_window_FFT = windows.hamming(self.nump_FFT)
+            window = self._hamming_window_FFT
 
             for idx, ch in enumerate(self.eeg_channels):
                 # Apply the window to the latest slice of EEG data
@@ -91,7 +104,8 @@ class CentralizedDataCollector:
                 # Perform FFT on windowed signal
                 fft_vals = np.fft.rfft(windowed_signal)
                 amplitude = np.abs(fft_vals)
-                amplitudes.append(amplitude)
+                # Use index assignment instead of append for pre-allocated list
+                amplitudes[idx] = amplitude
 
 
             # Return as tuple: (freqs, list_of_amplitudes)
@@ -116,16 +130,21 @@ class CentralizedDataCollector:
                 self.ica_manager
             )
 
-            # Init temp power array
-            powers = []
+            # Pre-allocate power list for performance
+            num_channels = len(self.eeg_channels)
+            powers = [None] * num_channels
 
-            # Calculate freqs
-            freqs = np.fft.rfftfreq(self.nump_PSD, d=1.0 / self.sampling_rate)
+            # Cache frequency array - compute once, reuse every frame
+            if self._freq_array_PSD is None:
+                self._freq_array_PSD = np.fft.rfftfreq(self.nump_PSD, d=1.0 / self.sampling_rate)
+            freqs = self._freq_array_PSD
 
-            # Welch window and overlap
+            # Cache Hamming window - compute once, reuse every frame
             nperseg = self.nump_PSD  # Full window size for Welch = 84 samples
             noverlap = int(0.5 * nperseg)  # 50% overlap for smoother averaging
-            window = windows.hamming(nperseg)  # Tapered window to reduce spectral leakage
+            if self._hamming_window_PSD is None:
+                self._hamming_window_PSD = windows.hamming(nperseg)
+            window = self._hamming_window_PSD
 
             for idx, ch in enumerate(self.eeg_channels):
                 signal = data_for_PSD[ch]
@@ -133,7 +152,7 @@ class CentralizedDataCollector:
                     return None
 
                 signal = signal[-self.nump_PSD:] * window
-                freqs, power = welch(
+                freqs_welch, power = welch(
                     signal,
                     fs=self.sampling_rate,  # Ensure this is 125 Hz or as configured
                     window=window,
@@ -144,7 +163,8 @@ class CentralizedDataCollector:
 
                 log_power = np.log1p(power)  # Safe log
                 log_power = uniform_filter1d(log_power, size=4)  # Smooth
-                powers.append(log_power)
+                # Use index assignment instead of append for pre-allocated list
+                powers[idx] = log_power
 
             # Return as tuple: (freqs, list_of_powers)
             self.data_PSD = (freqs, powers)
@@ -164,9 +184,14 @@ class CentralizedDataCollector:
             self.sampling_rate = BoardShim.get_sampling_rate(board_shim.get_board_id())
             # Update EEG channels in case board changed
             self.eeg_channels = BoardShim.get_eeg_channels(board_shim.get_board_id())
-            # Recalculate num_points based on new sampling rate
-            self.nump_muV = int(6 * self.sampling_rate)
-            self.nump_FFT = int(6 * self.sampling_rate)
+            # Recalculate num_points based on new sampling rate (4 seconds for performance)
+            self.nump_muV = int(4 * self.sampling_rate)
+            self.nump_FFT = int(4 * self.sampling_rate)
+            # Clear cached arrays since num_points changed
+            self._hamming_window_FFT = None
+            self._hamming_window_PSD = None
+            self._freq_array_FFT = None
+            self._freq_array_PSD = None
             self.board_on = True
         else:
             self.sampling_rate = None

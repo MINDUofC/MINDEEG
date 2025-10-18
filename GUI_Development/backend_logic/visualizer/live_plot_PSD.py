@@ -22,7 +22,8 @@ class PSDGraph(QWidget):
         self.sampling_rate = None
         self.num_points = None
 
-        self.update_speed_ms = 30  # Fast update every ~224ms
+        # Update speed - 16ms for 60fps rendering (smoother visuals)
+        self.update_speed_ms = 16
 
         self.init_ui()
         self.init_timer()

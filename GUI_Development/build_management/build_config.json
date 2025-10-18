@@ -1,0 +1,393 @@
+{
+  "_comment": "Build configuration - hidden_imports use IMPORT names (not pip names)",
+  "app_name": "MINDStream",
+  "main_script": "../main.py",
+  "icon": "../resources/MIND LOGO Transparent.ico",
+  "splash_image": "../resources/MINDStream SplashScreen.png",
+  "hidden_imports": [
+    "PyQt5",
+    "PyQt5.QtCore",
+    "PyQt5.QtGui",
+    "PyQt5.QtWidgets",
+    "PyQt5.uic",
+    "brainflow",
+    "brainflow.board_shim",
+    "brainflow.data_filter",
+    "gpt4all",
+    "gpt4all._pyllmodel",
+    "numpy",
+    "scipy",
+    "scipy.signal",
+    "scipy.ndimage",
+    "scipy.interpolate",
+    "scipy.special",
+    "scipy.special._ufuncs",
+    "scipy.special._ufuncs_cxx",
+    "scipy.linalg",
+    "scipy.linalg.cython_blas",
+    "scipy.linalg.cython_lapack",
+    "scipy._lib",
+    "scipy._lib.messagestream",
+    "scipy._lib.array_api_compat",
+    "scipy._lib.array_api_compat.common",
+    "scipy._lib.array_api_compat.numpy",
+    "scipy._lib.array_api_compat.numpy.fft",
+    "scipy._lib.array_api_compat.numpy.linalg",
+    "scipy._lib.array_api_compat.cupy",
+    "scipy._lib.array_api_compat.dask",
+    "scipy._lib.array_api_compat.torch",
+    "pyqtgraph",
+    "vispy",
+    "vispy.scene",
+    "vispy.color",
+    "vispy.app",
+    "vispy.gloo",
+    "rapidfuzz",
+    "rapidfuzz.fuzz",
+    "rapidfuzz.process",
+    "rapidfuzz.distance",
+    "rapidfuzz.utils",
+    "joblib",
+    "sklearn",
+    "PIL",
+    "PIL.Image",
+    "OpenGL",
+    "OpenGL.GL",
+    "OpenGL.GLU",
+    "freetype",
+    "_cffi_backend",
+    "cffi"
+  ],
+  "data_files": [
+    {
+      "source": "../GUI Design.ui",
+      "destination": "."
+    },
+    {
+      "source": "../resources",
+      "destination": "resources"
+    },
+    {
+      "source": "../backend_logic/chatbot/faq.json",
+      "destination": "backend_logic/chatbot"
+    },
+    {
+      "source": "../backend_logic/chatbot/SystemPrompt.txt",
+      "destination": "backend_logic/chatbot"
+    },
+    {
+      "source": "../backend_logic/timing_and_recording/export_destination.txt",
+      "destination": "backend_logic/timing_and_recording"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\vispy\\glsl/*",
+      "destination": "vispy/glsl"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\vispy\\visuals\\glsl/*",
+      "destination": "vispy/visuals\\glsl"
+    }
+  ],
+  "binary_files": [
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\fmt.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\llamamodel-mainline-cuda-avxonly.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\llamamodel-mainline-cuda.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\llamamodel-mainline-kompute-avxonly.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\llamamodel-mainline-kompute.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\llmodel.dll",
+      "destination": "gpt4all"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BoardController.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BoardController32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BrainBitLib.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BrainBitLib32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BrainFlowBluetooth.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\BrainFlowBluetooth32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\DataHandler.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\DataHandler32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\eego-SDK.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\eego-SDK32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\GanglionLib.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\GanglionLib32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\gforce32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\gforce64.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\gForceSDKWrapper.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\gForceSDKWrapper32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\MLModule.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\MuseLib.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\MuseLib32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\neurosdk-x64.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\neurosdk-x86.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\onnxruntime_x64.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\onnxruntime_x86.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\sensor.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\sensor32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\simpleble-c.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\simpleble-c32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\SynchroniLib.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\SynchroniLib32.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\Unicorn.dll",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBoardController.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBrainBitLib.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBrainFlowBluetooth.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libDataHandler.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libeego-SDK.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libGanglionLib.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libMLModule.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libMuseLib.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libonnxruntime_x64.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libsensor_x64.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libsimpleble-c.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libSynchroniLib_x64.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libunicorn.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libunicorn_raspberry.so",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBoardController.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBrainBitLib.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libBrainFlowBluetooth.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libDataHandler.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libGanglionLib.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libMLModule.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libMuseLib.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libneurosdk-shared.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libonnxruntime_x64.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libsimpleble-c.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\brainflow\\lib\\libSynchroniLib.dylib",
+      "destination": "brainflow"
+    },
+    {
+      "source": "C:\\Users\\taham\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\gpt4all\\llmodel_DO_NOT_MODIFY\\build\\libllmodel.dll",
+      "destination": "gpt4all"
+    }
+  ],
+  "dll_directories": [],
+  "exclude_modules": [
+    "matplotlib",
+    "tkinter",
+    "_tkinter",
+    "pandas",
+    "pytest",
+    "IPython",
+    "jupyter",
+    "notebook"
+  ],
+  "upx_exclude": [
+    "vcruntime140.dll",
+    "msvcp140.dll",
+    "python*.dll",
+    "Qt5Core.dll",
+    "Qt5Gui.dll",
+    "Qt5Widgets.dll"
+  ],
+  "package_specific_settings": {
+    "gpt4all": {
+      "include_model": false,
+      "model_path": "",
+      "include_dlls": true,
+      "dll_patterns": [
+        "*.dll",
+        "*.so"
+      ]
+    },
+    "brainflow": {
+      "include_libs": true,
+      "lib_patterns": [
+        "*.dll",
+        "*.so",
+        "*.dylib"
+      ]
+    },
+    "vispy": {
+      "include_shader_files": true,
+      "shader_path": ""
+    }
+  },
+  "pyinstaller_options": {
+    "onefile": false,
+    "console": false,
+    "clean": true,
+    "windowed": true,
+    "strip": false,
+    "upx": false,
+    "runtime_tmpdir": null,
+    "debug": false
+  }
+}

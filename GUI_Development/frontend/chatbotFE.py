@@ -247,10 +247,14 @@ class ChatbotFE(QWidget):
         finished = pyqtSignal(object)
         error = pyqtSignal(str)
 
+        def __init__(self, load_model_immediately=False):
+            super().__init__()
+            self.load_model_immediately = load_model_immediately
+
         @pyqtSlot()
         def run(self):
             try:
-                be = ChatbotBE()
+                be = ChatbotBE(load_model_immediately=self.load_model_immediately)
                 self.finished.emit(be)
             except Exception as e:
                 self.error.emit(str(e))
@@ -263,7 +267,8 @@ class ChatbotFE(QWidget):
             except Exception:
                 pass
             self._backend_thread = QThread()
-            self._backend_worker = ChatbotFE._BackendInitWorker()
+            # Load model immediately for download with UI feedback
+            self._backend_worker = ChatbotFE._BackendInitWorker(load_model_immediately=True)
             self._backend_worker.moveToThread(self._backend_thread)
             self._backend_thread.started.connect(self._backend_worker.run)
             self._backend_worker.finished.connect(self._on_backend_ready_LLM_installation)

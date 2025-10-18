@@ -1,12 +1,31 @@
-﻿################################################################################
+################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
 /.vs
 /.idea/.gitignore
 /GUI_Development/__pycache__
-/GUI_Development/backend_design/__pycache__
 /GUI_Development/backend_logic/__pycache__
+/GUI_Development/backend_logic/chatbot/__pycache__
+/GUI_Development/backend_logic/board_setup/__pycache__
+/GUI_Development/backend_logic/data_handling/__pycache__
+/GUI_Development/backend_logic/visualizer/__pycache__
+/GUI_Development/backend_logic/timing_and_recording/__pycache__
+/GUI_Development/build_management/hooks/__pycache__
+/GUI_Development/frontend/__pycache__
+/GUI_Development/frontend/__pycache__/chatbotFE.cpython-313.pyc
+/GUI_Development/frontend/__pycache__/frontend_design.cpython-313.pyc
+/GUI_Development/frontend/__pycache__/menu_handler.cpython-313.pyc
+/GUI_Development/frontend/__pycache__/resources_rc.cpython-313.pyc
+/GUI_Development/frontend/__pycache__/resources_rc.cpython-313.pyc
 /.gitignore
 GUI_Development/backend_logic/chatbot/test.py
 GUI_Development/backend_logic/timing_and_recording/export_destination.txt
+/GUI_Development/build_management/dist
+/GUI_Development/build_management/build
+/GUI_Development/build_management/*.spec
+
+# Python bytecode and cache directories
+__pycache__/
+*.py[cod]
+

@@ -229,6 +229,21 @@ class MenuHandler:
 
 <p><b>Open Source:</b> This GUI is fully open source and available to all. You can tweak the code, contribute improvements, and customize it for your specific needs.</p>
 
+<h3>System Requirements</h3>
+
+<p><b>Operating System:</b> Windows 10/11 (64-bit)</p>
+
+<p><b>Hardware Requirements:</b><br>
+• CPU: Modern multi-core processor<br>
+• RAM: 8GB minimum, 16GB recommended<br>
+• Graphics: Updated graphics drivers for OpenGL support (for live plots)<br>
+• Storage: ~500MB free space for temporary files<br>
+• USB: Available USB/USB-C port for EEG board connection</p>
+
+<p><b>Optional Components:</b><br>
+• <b>AI Chatbot:</b> Requires gpt4all model file (4.66GB) - Place in same folder as executable or in %LOCALAPPDATA%/nomic.ai/GPT4All/<br>
+• <b>GPU Acceleration:</b> NVIDIA GPU with CUDA 11.x for faster chatbot responses (optional - CPU mode works fine)</p>
+
 <p><b>Sponsors & Contributors:</b><br>
 • <b>MIND</b> (Mechatronics Integration of Neural Dynamics)<br>
 • <b>NeuroPawn</b><br>
@@ -237,7 +252,7 @@ class MenuHandler:
 <p>We thank all contributors for their support in making this project possible.</p>
         """
         
-        dialog = self.create_custom_dialog("About MINDStream EEG", about_text, 650, 450)
+        dialog = self.create_custom_dialog("About MINDStream EEG", about_text, 650, 550)
         dialog.exec_()
     
     def show_how_to_use_dialog(self):

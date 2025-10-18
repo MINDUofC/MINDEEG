@@ -804,7 +804,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -875,7 +875,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -1112,7 +1112,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -1183,7 +1183,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -1254,7 +1254,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -1368,7 +1368,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -1498,9 +1498,9 @@ QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
         <widget class="QLabel" name="label_32">
          <property name="geometry">
           <rect>
-           <x>150</x>
+           <x>142</x>
            <y>30</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1653,9 +1653,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_30">
          <property name="geometry">
           <rect>
-           <x>150</x>
+           <x>142</x>
            <y>10</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1695,9 +1695,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_31">
          <property name="geometry">
           <rect>
-           <x>70</x>
+           <x>62</x>
            <y>30</y>
-           <width>41</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1710,15 +1710,15 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>Hz —</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_29">
          <property name="geometry">
           <rect>
-           <x>70</x>
+           <x>62</x>
            <y>10</y>
-           <width>51</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -1731,7 +1731,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>Hz —</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_33">
@@ -1889,6 +1889,48 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
           <string>0</string>
          </property>
         </widget>
+        <widget class="QLabel" name="label_65">
+         <property name="geometry">
+          <rect>
+           <x>85</x>
+           <y>10</y>
+           <width>20</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+         </property>
+         <property name="text">
+          <string>to</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_66">
+         <property name="geometry">
+          <rect>
+           <x>85</x>
+           <y>30</y>
+           <width>20</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+         </property>
+         <property name="text">
+          <string>to</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="BandStopSettings" native="true">
         <property name="geometry">
@@ -1915,9 +1957,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_59">
          <property name="geometry">
           <rect>
-           <x>151</x>
+           <x>142</x>
            <y>30</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -2024,9 +2066,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_61">
          <property name="geometry">
           <rect>
-           <x>70</x>
+           <x>63</x>
            <y>10</y>
-           <width>41</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -2039,15 +2081,15 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>Hz —</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_63">
          <property name="geometry">
           <rect>
-           <x>151</x>
+           <x>142</x>
            <y>10</y>
-           <width>21</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -2154,9 +2196,9 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
         <widget class="QLabel" name="label_60">
          <property name="geometry">
           <rect>
-           <x>70</x>
+           <x>63</x>
            <y>30</y>
-           <width>41</width>
+           <width>20</width>
            <height>21</height>
           </rect>
          </property>
@@ -2169,7 +2211,7 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
 </string>
          </property>
          <property name="text">
-          <string>Hz —</string>
+          <string>Hz</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="BStop2End">
@@ -2304,6 +2346,48 @@ QLineEdit::up-button:hover, QLineEdit::down-button:hover {
          </property>
          <property name="text">
           <string>0</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_69">
+         <property name="geometry">
+          <rect>
+           <x>85</x>
+           <y>10</y>
+           <width>20</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+         </property>
+         <property name="text">
+          <string>to</string>
+         </property>
+        </widget>
+        <widget class="QLabel" name="label_70">
+         <property name="geometry">
+          <rect>
+           <x>85</x>
+           <y>30</y>
+           <width>20</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-family: &quot;Montserrat SemiBold&quot;, sans-serif; /* Use Montserrat ExtraBold */
+    color: black; /* Text color */
+    font-size: 11px
+}
+</string>
+         </property>
+         <property name="text">
+          <string>to</string>
          </property>
         </widget>
        </widget>
@@ -2739,7 +2823,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -2810,7 +2894,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -2882,7 +2966,7 @@ padding-right: 2px;
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png); 
 }
 
 
@@ -3284,7 +3368,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -3312,10 +3396,10 @@ QCheckBox::indicator:disabled:checked {
         <widget class="QLabel" name="label_17">
          <property name="geometry">
           <rect>
-           <x>130</x>
-           <y>170</y>
-           <width>20</width>
-           <height>21</height>
+           <x>129</x>
+           <y>171</y>
+           <width>21</width>
+           <height>20</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -3354,10 +3438,10 @@ QCheckBox::indicator:disabled:checked {
         <widget class="QLabel" name="label_18">
          <property name="geometry">
           <rect>
-           <x>110</x>
-           <y>140</y>
+           <x>115</x>
+           <y>145</y>
            <width>21</width>
-           <height>31</height>
+           <height>16</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -3369,15 +3453,15 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>  1</string>
+          <string>1</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_19">
          <property name="geometry">
           <rect>
-           <x>100</x>
-           <y>99</y>
-           <width>31</width>
+           <x>112</x>
+           <y>100</y>
+           <width>20</width>
            <height>31</height>
           </rect>
          </property>
@@ -3390,13 +3474,13 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>    2</string>
+          <string>2</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_20">
          <property name="geometry">
           <rect>
-           <x>130</x>
+           <x>132</x>
            <y>70</y>
            <width>20</width>
            <height>31</height>
@@ -3417,7 +3501,7 @@ QCheckBox::indicator:disabled:checked {
         <widget class="QLabel" name="label_21">
          <property name="geometry">
           <rect>
-           <x>190</x>
+           <x>200</x>
            <y>170</y>
            <width>31</width>
            <height>21</height>
@@ -3432,16 +3516,16 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>  8</string>
+          <string>8</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_22">
          <property name="geometry">
           <rect>
-           <x>160</x>
-           <y>60</y>
+           <x>165</x>
+           <y>62</y>
            <width>21</width>
-           <height>21</height>
+           <height>20</height>
           </rect>
          </property>
          <property name="styleSheet">
@@ -3453,15 +3537,15 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>  4</string>
+          <string>4</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_23">
          <property name="geometry">
           <rect>
-           <x>190</x>
+           <x>200</x>
            <y>70</y>
-           <width>31</width>
+           <width>21</width>
            <height>31</height>
           </rect>
          </property>
@@ -3474,15 +3558,15 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>     5</string>
+          <string>5</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_24">
          <property name="geometry">
           <rect>
-           <x>210</x>
+           <x>222</x>
            <y>100</y>
-           <width>31</width>
+           <width>20</width>
            <height>31</height>
           </rect>
          </property>
@@ -3495,7 +3579,7 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string>    6</string>
+          <string>6</string>
          </property>
         </widget>
         <widget class="QLabel" name="label_25">
@@ -3503,7 +3587,7 @@ QCheckBox::indicator:disabled:checked {
           <rect>
            <x>220</x>
            <y>140</y>
-           <width>21</width>
+           <width>16</width>
            <height>31</height>
           </rect>
          </property>
@@ -3516,7 +3600,7 @@ QCheckBox::indicator:disabled:checked {
 </string>
          </property>
          <property name="text">
-          <string> 7</string>
+          <string>7</string>
          </property>
         </widget>
         <widget class="QComboBox" name="Port">
@@ -3757,7 +3841,7 @@ QCheckBox::indicator:hover {
 QCheckBox::indicator:checked {
     background: #0047B2;
     border: 1px solid #0047B2;
-    image: url(&quot;resources/checkmark.png&quot;); /* Relative path */
+    image: url(:/images/checkmark.png);
 }
 
 
@@ -4370,7 +4454,7 @@ QTabBar::tab:pressed {
          <enum>QTabWidget::Rounded</enum>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>3</number>
         </property>
         <property name="documentMode">
          <bool>false</bool>
