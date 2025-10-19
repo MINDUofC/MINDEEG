@@ -2116,4 +2116,4 @@ For bugs, feature requests, or contributions, please contact the MIND Design Tea
 
 ---
 
-**Happy Coding! 🧠⚡**
+**Happy Coding!! 🧠⚡**
