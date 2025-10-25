@@ -1,0 +1,27 @@
+{
+  "channels": [
+    "FC4",
+    "C4",
+    "CP4",
+    "C2",
+    "C1",
+    "CP3",
+    "C3",
+    "FC3"
+  ],
+  "bands": [
+    "8-12",
+    "12-16",
+    "16-20",
+    "20-26",
+    "26-30"
+  ],
+  "csp_components": 4,
+  "mrcp_tail_sec": 0.6,
+  "k_folds": 5,
+  "stack_input_order": [
+    "baseA_proba[0:4]=[Left,Right,Rest,Both]",
+    "baseB_proba[0:4]=[Left,Right,Rest,Both]",
+    "baseC_active_proba"
+  ]
+}
