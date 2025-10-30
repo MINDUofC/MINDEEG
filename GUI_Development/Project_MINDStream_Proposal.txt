@@ -1,0 +1,361 @@
+Project MINDStream: Comprehensive Pre‑Kickoff Proposal (Planning Document)
+
+0. Document Purpose and Voice
+This document is a forward‑looking plan written before implementation begins. It specifies our intended features, architecture, MVP scope, equipment, risks, and a compressed 5‑month roadmap for a software‑first delivery. MINDStream is built in‑house by MIND and will be open‑sourced, enabling anyone to use and extend it.
+
+1. Project Overview
+MINDStream is MIND’s in‑house, open‑source desktop application for real‑time biosignal acquisition and analysis. It will enable researchers, students, and builders to filter, visualize, smooth, record, run timed trials, and export EEG and EMG data from BrainFlow‑compatible devices via an accessible, modern GUI.
+
+- Primary Goal: Deliver a robust, low‑latency toolkit to acquire and process EEG/EMG in real time with filtering (notch, bandpass/bandstop, detrend), ICA artifact removal, smoothing, precise experiment timing, trial control, visualization (µV, FFT, PSD), and multi‑format export.
+- Open Source & In‑House: Designed and built by MIND, released under a permissive license to accelerate community adoption and contributions.
+- Strategic Role: Serve as a helper project for our long‑term neuro‑controlled exoskeletal arm program by standardizing clean, precisely timed biosignal pipelines suitable for both online control loops and offline model training.
+
+2. Intended Beneficiaries
+- University of Calgary students and researchers: hands‑on experience in biosignals, BCI, and experimental design.
+- BCI/biomechatronics developers: ready‑to‑use pipeline to integrate EEG/EMG into applications and control systems.
+- MIND partners and sponsors: transparent progress on core neurotechnology infrastructure.
+- Assistive tech ecosystem: a stepping stone toward reliable neuro‑control signals for devices like the exo arm.
+
+3. Scope and Non‑Goals
+3.1 In‑Scope (Initial)
+- Real‑time acquisition from BrainFlow‑compatible devices (initially Neuropawn; extensible to others).
+- Preprocessing: notch (50/60 Hz), detrend, bandpass, bandstop; smoothing for stable displays.
+- ICA artifact handling: calibration, component disabling, re‑mix, live visualization impact.
+- Visualizations: stacked µV, FFT spectrum, PSD (Welch).
+- Timing & trials: 8 ms ticks (125 Hz) precise timing, trial phases, markers, black‑screen timing view.
+- Recording & export: CSV, NPY, MAT; per‑trial buffers; persistent, validated export destination.
+- Usability & performance: lazy loading of heavy modules; non‑blocking UI; local FAQ and optional local LLM chatbot.
+
+3.2 Non‑Goals (Initial)
+- Clinical/diagnostic certification.
+- Cloud services, accounts, or web telemetry.
+- On‑device ML training beyond ICA; advanced ML control models are out of initial scope (but data exports will support them).
+
+4. Detailed Functionality
+4.1 Acquisition & Hardware Interface
+- BrainFlow BoardShim lifecycle: session prepare/start/stop; error handling for prepare failures and timeouts.
+- COM port discovery and selection; Board ID entry/validation; debounce of connect button to avoid duplicate sessions.
+- Channel configuration: 1–8 channels; common reference (RLD) toggle; per‑channel enable masks for future boards.
+- Sampling rate detection (e.g., 125/250 Hz); adaptive processing parameters and frequency axes in visuals.
+- Synthetic board support for development/testing with deterministic sine + noise generators.
+
+4.2 Preprocessing Pipeline (Configurable)
+- Environmental noise removal: 50/60 Hz notch. Parameterization:
+  - Type: IIR notch (2nd–4th order) or FIR comb; default IIR biquad at target mains frequency.
+  - Q‑factor: default Q≈30; user range 10–50.
+- Detrend: DC and linear trend removal using SciPy detrend(type='linear'); optional median baseline correction.
+- Bandpass:
+  - Default EEG preset: 8–30 Hz (order 4 Butterworth IIR, zero‑phase via filtfilt when used on analysis windows; real‑time path uses symmetric FIR with overlap/zero‑phase where applicable).
+  - EMG preset: 20–450 Hz (FIR window method; taps chosen to match sampling rate and transition bands).
+  - Parameters: low_cut (0.1–100 Hz for EEG), high_cut (2–500 Hz), order (IIR 2–8), numtaps (FIR 51–401).
+- Bandstop:
+  - User‑defined center and width; for harmonics, support multiple stops.
+- Zero‑phase methods where applicable to avoid phase distortion and preserve array length/shape for downstream components.
+- Smoothing for visuals (mean/median/uniform window) with tunable window sizes (3–101 samples); clearly labeled as visualization‑only if configured that way.
+- Presets: EEG/EMG/Custom; presets lock appropriate parameter ranges and defaults.
+
+4.3 ICA Artifact Removal
+- Calibration protocol: capture 30–60 s baseline with eyes‑open/closed and a few deliberate blinks.
+- Model: FastICA (n_components = n_channels, max_iter≥1000, random_state fixed for reproducibility).
+- Component inspection metrics:
+  - Kurtosis, skewness; band power ratios (0–4, 4–8, 8–12, 12–30, 30–100 Hz).
+  - Blink heuristic: high low‑frequency power + temporal synchrony across frontal channels.
+- UI: component list with toggles; preview of reconstructed signals; apply/rollback.
+- Persistence: save ICA mixing/unmixing matrices per session for reproducibility; note channel ordering.
+
+4.4 Visualization
+- µV Time‑Domain: stacked channels with configurable spacing, per‑channel color palette, autoscale toggle, fixed y‑scale option.
+- FFT Spectrum: windowed FFT (Hann) with configurable length; linear/log amplitude; band shading with tooltips.
+- PSD (Welch): nperseg and overlap controls; smoothing of PSD curves; per‑band mean power display.
+- Performance: update rate 30–60 FPS; throttle to maintain responsiveness; downsample for display (not for recording).
+- Export image: save current graph as PNG with timestamp and overlayed settings (post‑MVP if time allows).
+
+4.5 Timing, Trials, and Markers
+- Timing Engine: tick every 8 ms (125 Hz) with Qt PreciseTimer; emits (now_ms, scheduled_ms) and phase state.
+- Phase Controller: pre‑cue, trial, buffer durations; cycle count; auto‑advance; audible/visual cues optional.
+- Markers: automatic at phase transitions; user hotkeys M to insert labeled marker; CSV includes marker column.
+- Drift Management: align timestamps to scheduled ticks; detect drift > 1 tick and log; optional soft resync by adjusting next tick target.
+
+4.6 Recording & Export
+- Recording: circular buffer per trial; flush on stop or per‑trial completion; include timestamps, scheduled time, and markers.
+- Export formats: CSV, NPY, MAT; optional JSON sidecar with metadata.
+- Export path persistence: stored in external text file; validated on startup; fallback to Documents/MINDStream_Data if invalid; prompt user to re‑select path.
+- Filenames: ISO datetime prefix + user suffix; collision avoidance with numeric suffix.
+
+4.7 Chatbot & Help
+- FAQ: RapidFuzz matching with 70% threshold; highlight matched question.
+- LLM: GPT4All model lazy‑loaded; show small non‑blocking “Downloading model…” label while installing/loading; allow disabling LLM in settings.
+- Help: in‑app pages for setup, troubleshooting, and glossary; About dialog credits and developer link (https://www.linkedin.com/in/taha--malik/).
+
+4.8 Extensibility
+- Visualization plug‑in interface: register(view_id, factory) and lifecycle hooks (init, update, dispose).
+- Processing hooks: pipeline stage registry with ordered steps (pre_notch → detrend → bandpass → bandstop → smooth → ica → custom).
+- Board abstraction: per‑board config function for special serial commands.
+
+4.9 Configuration & Persistence
+- Config file: JSON (user‑scoped) storing UI state, presets, last COM port, last export path, visualization options.
+- Location: %APPDATA%/MINDStream/config.json (Windows) or user home config dir.
+- Schema versioning; automatic migration for breaking changes.
+- Reset to defaults: menu action to delete/restore config.
+
+4.10 Logging & Diagnostics
+- Rotating logs (info/debug) to %APPDATA%/MINDStream/logs.
+- Event log of markers, phase transitions, and errors; include software version and board metadata.
+- Safe Mode startup switch (disable visuals and LLM, minimal pipeline) for troubleshooting.
+
+4.11 Accessibility & Shortcuts
+- Keyboard:
+  - Ctrl+P: Power toggle; Ctrl+R: Record; Space: Start/Stop trials; M: Marker; F11: Black‑Screen Mode; Ctrl+S: Save graph (post‑MVP).
+- Visual accessibility: high‑contrast theme option; configurable font size; color‑blind friendly palettes.
+- Focus order and tab navigation consistent; tooltips on all controls.
+
+4.12 Internationalization (i18n)
+- UI strings externalized; Qt .ts/.qm workflow.
+- Initial languages: English; plan for community‑added translations post‑release.
+
+5. Minimum Viable Product (MVP)
+5.1 MVP Scope
+- Hardware: Neuropawn via BrainFlow, COM selection, basic channel config (1–8), common ref toggle.
+- Processing: notch, detrend, bandpass (single window), optional smoothing; apply zero‑phase filtering where applicable.
+- Visualization: µV stacked plot; NoPlot tab.
+- Timing & Trials: 8 ms tick engine; single trial template (pre‑cue/trial/buffer); phase markers.
+- Recording & Export: CSV export with timestamps and channel data; export path persistence and validation.
+- Help: menu with “How to Use”, “FAQ”, “About” (About includes developer info with LinkedIn link: https://www.linkedin.com/in/taha--malik/).
+
+5.2 MVP Acceptance Criteria
+- Acquisition: connect/disconnect reliably; handle device unplug gracefully; 10‑minute continuous capture without buffer overflows.
+- Processing latency: end‑to‑end pipeline (acquire→process→draw) ≤ 50 ms at 125 Hz with 1–8 channels on recommended hardware.
+- Timing accuracy: tick alignment error < 2 ms over 10‑minute session; no cumulative drift.
+- Recording integrity: CSV contains aligned timestamps and channels; file re‑loadable and matches live stream within tolerance.
+- UI responsiveness: no freezes during acquisition/recording; LLM model loading does not block UI.
+
+5.3 Stretch Goals (Post‑MVP but within 5 months if ahead)
+- FFT and PSD visualizers.
+- ICA calibration with component disable/enable.
+- NPY and MAT exports; JSON metadata sidecar.
+- Black‑Screen Mode and Timeline widget.
+
+5.4 Non‑Goals (MVP)
+- Multi‑board advanced features.
+- Cloud services, remote storage, or user accounts.
+
+6. Required Equipment and Environments
+6.1 Hardware (Acquisition)
+- Neuropawn EEG System Starter Kit (BrainFlow Board ID 57): amplifier/DAQ, cables, power/USB, and board documentation.
+- EEG electrodes/cap: compatible wet or dry electrodes; conductive gel/paste for wet setups; adjustable cap sizes (S/M/L).
+- EMG electrodes: disposable Ag/AgCl surface electrodes; alcohol wipes/skin prep; tape for strain relief.
+- Reference/ground electrodes as required by the system; ear clip or mastoid options.
+- Shielded cables where possible to reduce EMI; optional ferrite chokes.
+
+6.2 Host Machine (Recommended)
+- Windows 10/11, 8 GB RAM, quad‑core CPU, dedicated or modern integrated GPU (OpenGL 2.1+), USB 3.0 port.
+- Disk space: ≥ 2 GB for dependencies and optional LLM cache (~4.66 GB model download occurs once; stored in user cache).
+
+6.3 Software & Libraries
+- Python 3.10+; PyQt5, NumPy, SciPy, scikit‑learn, BrainFlow, VisPy/PyQtGraph, GPT4All, RapidFuzz, PyInstaller.
+- Drivers: board‑specific USB/serial drivers as required by Neuropawn; serial permission on target OS.
+
+6.4 Lab Setup Considerations
+- Low‑EMI environment; proper grounding; stable seating; minimal motion.
+- Consumables: electrode gel/paste, cleaning supplies, measuring tape, head circumference chart, cable ties.
+- Safety: clear cable routing to avoid tripping; accessible emergency stop for powered equipment.
+
+7. User Experience (UX) Flows
+7.1 Onboarding
+- Launch → frameless window → status bar guidance → menu offers “How to Use”.
+- If export path invalid, prompt user to choose; persist choice. If denied, use default and warn.
+
+7.2 Connect & Configure
+- User selects Board ID (defaults to 57), COM port from dropdown, channels, common ref.
+- Power button toggles session; status shows ON/OFF and error messages with actionable hints.
+
+7.3 Preprocessing Setup
+- Toggle notch, detrend, bandpass/bandstop; set numeric ranges; select smoothing window.
+- Preset selection: EEG/EMG/Custom; saving/loading custom presets by name.
+
+7.4 Visualization
+- Tabs: NoPlot, µV (MVP), FFT, PSD (post‑MVP if time allows).
+- Autoscale and per‑channel coloring; downsampling if necessary for performance; snapshot to PNG.
+
+7.5 Trials & Timing
+- Start trial run with configured pre‑cue/trial/buffer; timeline shows phase; markers auto‑inserted.
+- Optional Black‑Screen Mode for timing‑critical sessions; exit via Esc.
+
+7.6 Record & Export
+- Choose export destination (persisted); set filename; start/stop recording.
+- On stop: write file and optional metadata JSON; verify integrity; notify success with link to folder.
+
+7.7 Help & Chatbot
+- FAQ answers instantly; LLM loads lazily if needed with small “Downloading model…” label; UI remains interactive. Allow opt‑out.
+
+8. Data Model and Export Schema
+8.1 CSV
+- Header rows: software version, board info, sampling rate, enabled filters, ICA flags, trial configuration.
+- Columns: time_ms, scheduled_ms, ch1, ch2, …, chN, event_marker.
+- Time base: monotonic ms; scheduled_ms aligned to 8 ms ticks.
+
+8.2 CSV Example (header + first rows)
+- Example:
+  time_ms,scheduled_ms,ch1,ch2,ch3,ch4,event
+  0,0,3.21,−1.02,0.45,2.10,pre_cue_start
+  8,8,3.18,−1.01,0.43,2.08,
+  16,16,3.12,−0.99,0.44,2.05,
+
+8.3 NPY (post‑MVP)
+- Arrays: data (n_channels, n_samples), time_ms (n_samples), scheduled_ms (n_samples), markers (n_samples).
+
+8.4 MAT (post‑MVP)
+- Struct: data, time_ms, scheduled_ms, markers, metadata (dict of strings/numbers).
+
+8.5 JSON Sidecar (post‑MVP)
+- Metadata fields: sampling_rate, filters (objects with type/params), ica (enabled, components_disabled), board (id, name, port), trial (durations, counts), app_version, export_time.
+- Example:
+  {
+    "app_version": "1.0.0",
+    "sampling_rate": 125,
+    "filters": {"notch": 60, "bandpass": [8, 30]},
+    "ica": {"enabled": false, "components_disabled": []},
+    "board": {"id": 57, "port": "COM4"},
+    "trial": {"pre": 2000, "trial": 5000, "buffer": 2000},
+    "export_time": "2025-01-15T21:12:03Z"
+  }
+
+9. Performance Budgets
+- End‑to‑end latency: ≤ 50 ms at 125 Hz for 1–8 channels in µV view.
+- Visualization frame rate: 30–60 FPS; back off gracefully under load.
+- Memory: steady‑state < 1.5 GB during acquisition with visuals; no unbounded growth.
+- Long‑run drift: < 2 ms over 10 minutes; no cumulative drift across trials.
+
+9.1 Timing Math & Drift Detection
+- Mapping: sample index k at sampling rate f_s has nominal time t(k) = t0 + k / f_s.
+- Scheduler: 8 ms = 1/125 s; scheduled_ms(n) = n * 8.
+- On each tick n, compare now_ms vs scheduled_ms(n); drift_n = now_ms − scheduled_ms(n).
+- Jitter stats: compute mean, std, max drift_n over session; threshold alerts at > 1 tick.
+- Resync strategy (soft): if |drift_n| > 1 tick, adjust next scheduled target by −sign(drift_n) * ε (ε ≪ 8 ms) to converge.
+
+10. Quality, Validation, and Test Plan
+10.1 Functional Tests
+- Connect/disconnect flow (happy and error paths).
+- Preprocessing toggles apply correctly; band edges honored; zero‑phase applied when configured.
+- Recording: start/stop with correct file outputs; re‑open files and verify shapes and metadata.
+
+10.2 Timing Validation
+- Synthetic metronome markers vs scheduled ticks; compute drift and jitter statistics over ≥ 10 minutes.
+- Trial marker accuracy (phase transition timestamps within ±1 tick).
+
+10.3 Performance Tests
+- Channel sweeps (1→8), sampling rate sweeps (125/250 Hz), visualization stress (FFT/PSD enabled).
+- Long‑run memory profiling (≥ 30 minutes) for leaks.
+
+10.4 Compatibility Matrix
+- Hardware: Neuropawn real board; BrainFlow synthetic board.
+- Windows 10 vs 11; GPUs with varied OpenGL support.
+
+10.5 Build Verification
+- PyInstaller build on fresh machine; verify DLLs and shaders; exercise acquisition→export path.
+
+10.6 Expanded Test Cases
+- USB disconnect mid‑recording → graceful stop, partial export OK.
+- Invalid export path on startup → prompt, fallback to default.
+- High CPU/GPU load → frame throttle, avoid UI freeze.
+- ICA misconfiguration → warn and revert to baseline.
+- Large trial counts (≥ 100) → no memory runaway; markers correct.
+
+11. Architecture and Implementation Notes
+- MVC‑inspired separation: frontend UI, backend logic, data handling; BoardShim in data layer.
+- Threads: UI main loop; BrainFlow internal acquisition; VisPy rendering; background worker for LLM.
+- Lazy loading: defer BrainFlow/VisPy/GPT4All imports until needed to keep startup ~2s.
+- Resource packaging: Qt resources compiled; hooks for BrainFlow, SciPy, VisPy, GPT4All, RapidFuzz.
+
+11.1 Plugin API Sketch
+- Processing hook signature: process(data: ndarray, meta: dict) -> ndarray.
+- Visualizer interface: init(parent, data_provider), update(frame_data), dispose().
+- Registration: plugins.json with entry points or Python module discovery in plugins/.
+
+12. Security, Privacy, and Safety
+- Offline by default; no cloud uploads; local storage only.
+- Not a medical device; research/education use.
+- Data files include minimal PII; encourage anonymized filenames and metadata.
+
+12.1 Threat Model & Supply Chain
+- Model: local LLM runs offline; block unintended network calls.
+- Build integrity: pinned dependency versions; reproducible build script; optional code signing for releases.
+- Sandboxing: no eval of untrusted plugin code unless explicitly enabled by user.
+
+13. Risks, Assumptions, and Mitigations
+- DLL packaging complexity: explicit hooks and binary lists; test on clean machines.
+- GPU/driver variability: PyQtGraph fallback path; detect OpenGL capability and degrade gracefully.
+- Timing drift: Qt PreciseTimer; align timestamps to scheduled ticks; continuous validation and alarms if thresholds exceeded.
+- LLM model size/time: lazy loading; small non‑blocking “Downloading model…” label; allow disabling LLM.
+- Serial/driver issues: robust error handling; clear user guidance; retry logic; synthetic board fallback.
+- Assumptions: Windows 10/11 environment; BrainFlow supported board; user permissions to access COM port and write files.
+
+14. Governance and Open‑Source
+- License: permissive (e.g., MIT) to maximize adoption.
+- Contributions: PRs, issues, templates, code style and testing checklists.
+- About dialog: credits MIND Design Team; developer attribution includes Taha Malik with linked profile (https://www.linkedin.com/in/taha--malik/).
+
+14.1 Release Management & Versioning
+- Semantic Versioning (MAJOR.MINOR.PATCH).
+- Release artifacts: zipped folder build with README and sample data; checksum.
+- Changelog: keep a CHANGELOG.md; highlight breaking changes and migration steps.
+- Release channels: stable and pre‑release (RC) builds.
+
+15. Compressed 5‑Month Roadmap (Software‑First)
+Month 1: Foundations & MVP Core
+- Project scaffolding; UI shell (frameless window, menus); resource pipeline.
+- Board integration (Neuropawn via BrainFlow), COM discovery, connect/disconnect.
+- Preprocessing: notch, detrend, single bandpass; smoothing; presets (EEG/EMG/Custom).
+- µV visualization; NoPlot tab; export path persistence/validation.
+- Recording to CSV with timestamps and markers; timing engine at 8 ms ticks.
+- Acceptance tests for MVP criteria.
+
+Month 2: Trials, Stability & Export Enhancements
+- Trial controller (pre‑cue/trial/buffer); timeline markers; Black‑Screen Mode.
+- Export metadata JSON; NPY format; richer CSV headers.
+- Performance tuning: latency budget checks, FPS caps, downsampling.
+- Build pipeline with PyInstaller; custom hooks/DLLs; first portable build.
+
+Month 3: Advanced Visuals & ICA
+- FFT and PSD visualizers; band overlays; UI toggles.
+- ICA calibration capture and component toggle; before/after visualization.
+- Error states and recoverability (USB unplug, missed frames); autosave safeguards.
+- Long‑run timing drift and memory profiling—remediation.
+
+Month 4: UX Polish, Chatbot, and Extensibility
+- In‑app “How to Use”, FAQ; About dialog with credits and link.
+- Chatbot: FAQ matching first; LLM fallback with non‑blocking download/load label.
+- Extensibility hooks for new filters and visualizers; board abstraction cleanup.
+- QA matrix execution across environments; documentation pass (user + dev guides).
+
+Month 5: Hardening, EMG Presets, and Release
+- EMG presets; additional BrainFlow boards where trivial.
+- Build hardening; dependency trimming; final performance pass.
+- Release packaging, sample datasets, quick‑start templates.
+- Publish open‑source repository, contribution guidelines, and roadmap v2.
+
+15.1 Granular Milestones (Selected)
+- W2: CSV export schema finalized; path validation + fallback implemented.
+- W3: Timing drift monitor and stats UI; test harness for drift.
+- W5: FFT/PSD prototypes; performance profiling; downsampling strategy locked.
+- W7: ICA calibration UI with metrics; rollback mechanism.
+- W8: Black‑Screen Mode; marker hotkeys; timeline polish.
+- W10: Build pipeline stable on clean machine; DLL checklist complete.
+- W12: Documentation complete; user acceptance tests; release candidate build.
+
+16. Success Metrics (Go/No‑Go)
+- MVP acceptance criteria met and validated on Neuropawn and synthetic board.
+- 10‑minute acquisition with drift < 2 ms; no UI freezes; CSV/NPY/MAT exports re‑load cleanly.
+- Visuals stable at 30–60 FPS for 1–8 channels; acceptable CPU/GPU utilization on recommended spec.
+- Usability feedback from 3+ lab users: no blocker issues.
+
+17. Alignment with Exo Arm Program
+MINDStream is the standardized, validated data pipeline for the exo arm initiative—enabling fast iteration on control models with clean, precisely timed EEG/EMG data. Its trial timing, artifact mitigation, and export fidelity directly shorten the loop from experiment to controller update.
+
+18. Deliverables
+- Source code repository; executable builds.
+- Developer guide (architecture, build, hooks) and user guide (setup, features, troubleshooting).
+- Sample datasets and configuration presets.
+- Validation reports: timing drift, performance, memory, export integrity.
+
+— End of pre‑kickoff proposal —
