@@ -1,5 +1,5 @@
-﻿# DATA_COLLECT – randomized 1s trials every 4s; collect REST at the end
-# Live, stateful SciPy Butterworth filters (no detrend, no CAR)
+﻿# -*- coding: utf-8 -*-﻿
+# data_collect – randomized trials; collect REST at the end
 
 import os, time, random
 import numpy as np
@@ -12,16 +12,16 @@ board_id        = 57
 serial_port     = "COM3"
 PROMPT_COUNTS   = False
 TRIAL_LENGTH_SECS = 1.0
-TRIALS_PER_CLASS_DEFAULT = {'left': 5, 'right': 5, 'both': 5}
+TRIALS_PER_CLASS_DEFAULT = {'left': 5, 'right': 5, 'both': 5}       # higher number of trials increases precision and accuracy of the model (usable detector requires minimum of 5 ea)
 
-# NEW: how many samples to process per live filter step
-STEP_SAMPLES = 1   # <— change this freely (e.g., 1, 2, 3, 5, 10)
+# process per live filter step
+STEP_SAMPLES = 1  
 
 # Output
-output_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data"
+output_dir = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\calibration_data" # -_-_-_-_-_-_-_-_CHANGE-_-_-_-_-_-_-_-_-
 os.makedirs(output_dir, exist_ok=True)
 
-# Channel naming (for reference only)
+# Channel Order (board order must match)
 chan_names  = ["FC4","C4","CP4","C2","C1","CP3","C3","FC3"]
 
 # ====== LABELS ======
@@ -29,12 +29,9 @@ labels = ['left', 'right', 'both']
 label_to_class = {'left': 0, 'right': 1, 'rest': 2, 'both': 3}
 
 # ====== Helpers ======
-
+# board sampling frequency is not exact 
+# initial buffer timestamps used to get average
 def estimate_fs_from_timestamps(ts: np.ndarray, fs_declared: float) -> float:
-    """
-    Estimate sampling rate from timestamp differences (median of positive diffs).
-    Falls back to declared rate if not enough samples.
-    """
     if ts.size >= 2:
         dts = np.diff(ts)
         dts = dts[dts > 0]
@@ -51,17 +48,26 @@ def _ask_int(prompt: str, default: int) -> int:
         return default
 
 def fix_len(x, target):
-    n = x.shape[1]
-    if n == target: return x
-    if n > target:  return x[:, -target:]
+    # x shape expected: (n_ch, n)
+    n = x.shape[1] if x.ndim == 2 else 0
+    if n == target:
+        return x
+    if n > target:
+        return x[:, -target:]
+    if n == 0:
+        return np.zeros((x.shape[0], target), dtype=x.dtype)
     pad = target - n
     return np.pad(x, ((0,0),(pad,0)), mode="edge")
 
-def append_chunk(buf: np.ndarray, chunk: np.ndarray) -> np.ndarray:
-    """Append samples along time axis (axis=1). buf/chunk shape: (n_ch, k)."""
-    if buf is None: return chunk.copy()
-    if buf.size == 0: return chunk.copy()
-    return np.concatenate([buf, chunk], axis=1)
+def append_chunk(buf, chunk):
+    if buf is None or buf.size == 0:
+        out = chunk.copy()
+    else:
+        out = np.concatenate([buf, chunk], axis=1)
+    # cap length to last MAX_KEEP samples
+    if out.shape[1] > MAX_KEEP:
+        out = out[:, -MAX_KEEP:]
+    return out
 
 # ====== Setup Board ======
 BoardShim.enable_dev_board_logger()
@@ -74,7 +80,7 @@ board.prepare_session()
 board.start_stream()
 time.sleep(3.0)
 
-# (Optional) per-board configuration you had
+# Per-channel configuration you had (chon gains can be adjusted)
 commands = [
     "chon_1_12", "rldadd_1", "chon_2_12", "rldadd_2",
     "chon_3_12", "rldadd_3", "chon_4_12", "rldadd_4",
@@ -101,7 +107,7 @@ sr_ts = estimate_fs_from_timestamps(ts, sr_decl)
 sr_avg = float(sr_ts)  # alias as requested
 window_sec = TRIAL_LENGTH_SECS
 samples_per_trial = int(round(window_sec * sr_avg))
-
+MAX_KEEP = int(round(sr_ts * 5.0))
 print("EEG channel indices:", eeg_channels)
 print("Assumed names:", chan_names)
 print(f"Declared SR = {sr_decl} Hz | Estimated SR ≈ {sr_avg:.2f} Hz | samples_per_trial = {samples_per_trial}")
@@ -207,9 +213,13 @@ for k, v in trials_per_class_map.items():
 
 # ====== Acquisition logic ======
 def capture_trial_at_current_index(label: str, end_idx: int):
-    """Slice last 1s ending at end_idx from live filtered buffers and raw buffer."""
-    s0 = max(0, end_idx - samples_per_trial)
-    s1 = end_idx
+    """
+    Slice the last 1 s from the *current* live buffers.
+    If you're using a capped/ring buffer, you can't use absolute end_idx.
+    """
+    buf_len = raw_buf.shape[1]                       # <— use live buffer length
+    s1 = buf_len
+    s0 = max(0, buf_len - samples_per_trial)
     trial = {
         "label": label,
         "class_type": label_to_class[label],
@@ -217,6 +227,7 @@ def capture_trial_at_current_index(label: str, end_idx: int):
     }
     per_band = {name: filt_bufs[name][:, s0:s1].copy() for name in BANDS.keys()}
     return trial, per_band
+
 
 # Warm-up a little so we have enough history before first trial
 pump_until(at_least_samples_more=int(2.0 * sr_avg), max_wait_s=3.0)
@@ -228,6 +239,7 @@ trials_band = []     # list of dicts with per-band arrays
 print(f"\nPlanned active trials by class: {trials_per_class_map}")
 print(f"Total active trials: {sum(remaining.values())}")
 print("Randomized schedule with ~3-second cadence per trial.")
+time.sleep(2)
 
 try:
     while sum(remaining.values()) > 0:
@@ -260,26 +272,18 @@ try:
         print("✔️  Saved:", lbl.upper())
         print(prog)
 
-    # ====== REST at the end (continuous, then split into 1-s windows) ======
+    # ====== REST at the end (continuous, then take 1-s windows sequentially) ======
     rest_trials = sum(trials_per_class_map.values())
     need_secs   = rest_trials * window_sec
-    print(f"\n😴 Now collecting REST continuously for {rest_trials}×{window_sec:.1f}s = {need_secs:.1f}s…")
+    print(f"\n😴 Now collecting REST as {rest_trials} consecutive 1.0 s windows…")
 
-    # record start index for rest
-    start_idx_rest = total_samples
-    run_for_seconds(need_secs)
-    end_idx_rest = total_samples
-
-    # Slice non-overlapping 1s windows ending at equally spaced indices
     for j in range(rest_trials):
-        end_idx_j = start_idx_rest + (j+1) * samples_per_trial
-        if end_idx_j > end_idx_rest:
-            # If stream was slightly short, pump a bit more
-            pump_until(at_least_samples_more=(end_idx_j - total_samples), max_wait_s=2.0)
-        trial, per_band = capture_trial_at_current_index("rest", end_idx_j)
+        # Stream for exactly 1 second, then slice the last 1 s window
+        run_for_seconds(window_sec)
+        trial, per_band = capture_trial_at_current_index("rest", end_idx=None)  # end_idx unused inside
         trials_meta.append(trial)
         trials_band.append(per_band)
-        if (j+1) % 10 == 0 or j == rest_trials-1:
+        if (j+1) % 1 == 0 or j == rest_trials-1:
             print(f"   REST windows: {j+1}/{rest_trials}")
 
 finally:
@@ -307,7 +311,7 @@ for t_meta, t_band in zip(trials_meta, trials_band):
     raw_data["class_types"].append(class_type)
     raw_data["raw_data"].append(raw)
 
-# Stack to arrays (same shapes/keys as before)
+# Stack to arrays
 filtered_data["labels"]      = np.array(filtered_data["labels"])
 filtered_data["class_types"] = np.array(filtered_data["class_types"])
 for k in ["0.05-5", "8-30", "8-12", "12-16", "16-20", "20-26", "26-30"]:
@@ -316,15 +320,15 @@ for k in ["0.05-5", "8-30", "8-12", "12-16", "16-20", "20-26", "26-30"]:
 raw_data["labels"]      = np.array(raw_data["labels"])
 raw_data["class_types"] = np.array(raw_data["class_types"])
 raw_data["raw_data"]    = np.stack(raw_data["raw_data"], axis=0)  # (n_trials, 8, N)
-# Save (filenames unchanged)
-filename1 = os.path.join(output_dir, "four_class_clench_trials_from_pause.npz")
+# Save
+filename1 = os.path.join(output_dir, "four_class_clench_trials_from_pause.npz") 
 np.savez(
     filename1,
     **filtered_data,
     sr_decl=np.int32(sr_decl),
     sr_ts=np.float32(sr_avg),
     window_sec=float(window_sec),
-    samples_per_trail=np.int32(samples_per_trial)
+    samples_per_trial=np.int32(samples_per_trial)
 )
 print(f"✅ Saved filtered EEG data to: {filename1}")
 

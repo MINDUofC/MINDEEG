@@ -33,6 +33,11 @@ def design_bandpass_sos(fs: float,
     """Return Butterworth band-pass filter as SOS for stable streaming."""
     return butter(order, (lo, hi), btype='bandpass', fs=fs, output='sos')
 
+def design_highpass_sos(fs: float,
+                        cutoff: float = 0.5,
+                        order: int = 4):
+    """Return Butterworth high-pass filter as SOS for stable streaming."""
+    return butter(order, cutoff, btype='highpass', fs=fs, output='sos')
 
 def estimate_fs_from_timestamps(ts: np.ndarray, fs_declared: float) -> float:
     """
@@ -88,7 +93,7 @@ class LiveEEGViewer(QtWidgets.QWidget):
         self.y_hist = [np.array([], dtype=float) for _ in range(self.n_ch)]
 
         # Stateful filter (per-channel zi)
-        self.sos = design_bandpass_sos(self.fs_est)
+        self.sos = design_highpass_sos(self.fs_est)
         base_zi = sosfilt_zi(self.sos)
         self.zi = [base_zi.copy() * 0.0 for _ in range(self.n_ch)]  # zero-init
 
@@ -410,21 +415,21 @@ def main():
         time.sleep(3.0)
         cfg_cmds = [
             "chon_1_12", 
-            "rldadd_1", 
-            "chon_2_12", 
-            "rldadd_2",
-            "chon_3_12", 
-            "rldadd_3", 
-            "chon_4_12", 
-            "rldadd_4",
-            "chon_5_12", 
-            "rldadd_5", 
-            "chon_6_12", 
-            "rldadd_6",
-            "chon_7_12", 
-            "rldadd_7", 
-            "chon_8_12", 
-            "rldadd_8"
+            #"rldadd_1", 
+            "chon_2_0", 
+            #"rldadd_2",
+            "chon_3_0", 
+            #"rldadd_3", 
+            "chon_4_0", 
+            #"rldadd_4",
+            "chon_5_0", 
+            #"rldadd_5", 
+            "chon_6_0", 
+            #"rldadd_6",
+            "chon_7_0", 
+            #"rldadd_7", 
+            "chon_8_0", 
+            #"rldadd_8"
         ]
         configure_board(board, cfg_cmds)
         

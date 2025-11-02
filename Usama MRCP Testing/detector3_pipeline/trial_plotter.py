@@ -1,6 +1,6 @@
 ﻿# plot_21_band_class_channels.py
 # - Loads four_class_clench_trials_from_pause.npz
-# - For each band x class (Right, Left, Both), opens a separate window.
+# - For each band x class (Right, Left, Both, Rest), opens a separate window.
 # - Dashed lines: each trial per channel (color-coded by channel).
 # - Solid line: mean across trials for that channel (same color).
 # - Legend shows 8 channel names (color → channel).
@@ -16,17 +16,17 @@ NPZ_PATH = r"C:\Users\rashe\source\repos\MINDUofC\MINDEEG\Usama MRCP Testing\cal
 # Bands to plot (must match keys in the NPZ)
 BANDS = ["0.05-5", "8-30", "8-12", "12-16", "16-20", "20-26", "26-30"]
 
-# Classes to plot (active classes only)
-CLASSES = ["right", "left", "both"]
+# Classes to plot (active classes + rest)
+CLASSES = ["right", "left", "both", "rest"]
 
 # Channel names (your wiring order)
 CHAN_NAMES = ["FC4","C4","CP4","C2","C1","CP3","C3","FC3"]
 
 # Line appearance
-TRIAL_LS      = "--"   # dashed for individual trials
-TRIAL_ALPHA   = 0.2
-MEAN_LS       = "-"    # solid for per-channel mean
-MEAN_LW       = 2.5
+TRIAL_LS    = "--"   # dashed for individual trials
+TRIAL_ALPHA = 0.2
+MEAN_LS     = "-"    # solid for per-channel mean
+MEAN_LW     = 2.5
 
 def main():
     if not os.path.exists(NPZ_PATH):
@@ -35,8 +35,10 @@ def main():
     data = np.load(NPZ_PATH, allow_pickle=True)
 
     # Basic arrays
-    labels = data["labels"]               # (n_trials,)
-    sr_ts  = float(data["sr_ts"])         # sampling rate for time axis
+    # Make labels case-insensitive and robust to non-str types
+    raw_labels = data["labels"]
+    labels = np.char.lower(raw_labels.astype(str))   # (n_trials,)
+    sr_ts  = float(data["sr_ts"])                    # sampling rate for time axis
 
     # Use first available band to get sample length
     first_band = next((b for b in BANDS if b in data.files), None)
@@ -101,7 +103,7 @@ def main():
             ]
             ax.legend(handles=legend_handles, title="Channels", ncol=4, frameon=True)
 
-    # Show all windows (up to 21)
+    # Show all windows (up to 28)
     plt.show()
 
 
