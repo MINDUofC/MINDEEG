@@ -415,21 +415,21 @@ def main():
         time.sleep(3.0)
         cfg_cmds = [
             "chon_1_12", 
-            #"rldadd_1", 
+            "rldadd_1", 
             "chon_2_0", 
-            #"rldadd_2",
+            "rldadd_2",
             "chon_3_0", 
-            #"rldadd_3", 
+            "rldadd_3", 
             "chon_4_0", 
-            #"rldadd_4",
+            "rldadd_4",
             "chon_5_0", 
-            #"rldadd_5", 
+            "rldadd_5", 
             "chon_6_0", 
-            #"rldadd_6",
+            "rldadd_6",
             "chon_7_0", 
-            #"rldadd_7", 
+            "rldadd_7", 
             "chon_8_0", 
-            #"rldadd_8"
+            "rldadd_8"
         ]
         configure_board(board, cfg_cmds)
         
@@ -459,7 +459,7 @@ def main():
                                decim=args.decim)
         viewer.show()
 
-        # Optional: print board description (helpful during development)
+        # Optional: print board description
         descr = BoardShim.get_board_descr(args.board_id)
         for k, v in descr.items():
             print(f"{k}: {v}")

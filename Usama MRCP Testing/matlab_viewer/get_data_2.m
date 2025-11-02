@@ -25,10 +25,22 @@ pause(3.0);
 % --- FIX ---
 % Handle board configuration in a single try/catch block for robustness.
 cmds = { ...
-    'chon_1_12', 'rldadd_1', 'chon_2_12', 'rldadd_2', ...
-    'chon_3_12', 'rldadd_3', 'chon_4_12', 'rldadd_4', ...
-    'chon_5_12', 'rldadd_5', 'chon_6_12', 'rldadd_6', ...
-    'chon_7_12', 'rldadd_7', 'chon_8_12', 'rldadd_8' ...
+    'chon_1_1'; 
+    % 'rldadd_1'; 
+    % 'chon_2_12';
+    % 'rldadd_2';
+    % 'chon_3_12'; 
+    % 'rldadd_3'; 
+    % 'chon_4_12'; 
+    % 'rldadd_4';
+    % 'chon_5_12'; 
+    % 'rldadd_5'; 
+    % 'chon_6_12'; 
+    % 'rldadd_6';
+    % 'chon_7_12'; 
+    % 'rldadd_7'; 
+    % 'chon_8_12'; 
+    % 'rldadd_8';
 };
 
 for i=1:numel(cmds)
@@ -43,15 +55,42 @@ pause(3.0);
 % Drain any data that arrived during configuration
 count = b.get_board_data_count(preset);
 b.get_board_data(count,preset);
-pause(2.0);
+pause(60);
 disp(b.get_board_descr(57,preset))
 eeg_channels = b.get_eeg_channels(57,preset);
 disp(eeg_channels)
 timestamps_channel= b.get_timestamp_channel(57,preset);
 disp(timestamps_channel)
 % Get data
-data = b.get_current_board_data(500, preset);
+data = b.get_current_board_data(7400, preset);
+% ===== Build per-channel timeseries with zeroed time =====
+% Pull absolute timestamps (seconds) and zero them at the first sample
+ts_abs = data(timestamps_channel, :);
+t0 = ts_abs(1);
+t_rel = ts_abs - t0;                 % time starts at 0
 
+% Create one timeseries per EEG channel
+ts_cells = cell(1, numel(eeg_channels));
+
+for k = 1:numel(eeg_channels)
+    ch_idx  = eeg_channels(k);
+    ch_data = data(ch_idx, :);
+    ts_obj  = timeseries(ch_data(:), t_rel(:), 'Name', sprintf('EEG_%02d', k));
+    ts_cells{k} = ts_obj;
+
+    % Also create a separate variable per channel (EEG_01, EEG_02, ...)
+    varName = sprintf('EEG_%02d', k);
+    eval([varName ' = ts_obj;']);  % creates EEG_01, EEG_02, ...
+end
+
+% (Optional) quick sanity plot of the first channel
+figure('Color','w'); 
+plot(ts_cells{1});
+xlabel('Time (s)'); ylabel('Amplitude (\muV)');
+title('EEG\_01 timeseries (t=0 at first timestamp)');
+
+% (Optional) save for later use
+% save('eeg_timeseries.mat', 'ts_cells', 'EEG_ts', 't_rel', 'eeg_channels');
 
 % --- Nested cleanup function ---
 function cleanupBoard(board_shim)

@@ -177,16 +177,20 @@ def main():
             x = eeg_sig.astype(np.float64, copy=False)
             x = x - np.mean(x)
 
-            # --- FFT (single-sided) ---
+            # --- FFT (single-sided) with Hann taper ---
             N = len(x)
-            # zero-pad to next power of two for dense bins (best allowable display resolution)
-            nfft = 1 << int(np.ceil(np.log2(max(1, N))))
-            X = np.fft.rfft(x, n=nfft)
-            freqs = np.fft.rfftfreq(nfft, d=1.0/fs)
-            mag = np.abs(X) / N
-            if nfft > 1:
-                mag[1:-1] *= 2.0  # single-sided amplitude correction
+            w = np.hanning(N)
+            cg = w.mean()                 # coherent gain for Hann (≈ 0.5)
+            xw = (x - np.mean(x)) * w     # you already remove the mean
 
+            nfft = 1 << int(np.ceil(np.log2(max(1, N))))
+            X = np.fft.rfft(xw, n=nfft)
+            freqs = np.fft.rfftfreq(nfft, d=1.0/fs)
+
+            # amplitude spectrum, compensate coherent gain; then single-sided correction
+            mag = np.abs(X) / (N * cg)
+            if nfft > 1:
+                mag[1:-1] *= 2.0
             # --- PSD ---
             try:
                 from scipy.signal import welch
