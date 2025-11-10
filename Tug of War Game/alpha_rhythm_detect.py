@@ -1,11 +1,9 @@
-import argparse  # For parsing command-line arguments
 import logging   # For logging informational and error messages
-import sys       # For interacting with the Python runtime environment
 import time      # For adding delays when configuring the board
 import threading  # For creating a separate thread for data processing
 from queue import Queue  # For inter-thread communication
 import numpy as np  # For numerical operations
-from brainflow.board_shim import BoardShim, BrainFlowInputParams  # For interfacing with EEG hardware
+from brainflow.board_shim import BoardShim  # For interfacing with EEG hardware
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations  # For preprocessing EEG data
 
 

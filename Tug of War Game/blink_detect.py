@@ -10,15 +10,16 @@ class BlinkDetector(threading.Thread):
         super().__init__()
         self.board_shim = board_shim
         self.board_id = board_shim.get_board_id()
-        # Only channels 7 and 8
-
         self.blink_queue = blink_queue # Queue to communicate blinks to main game thread
 
-        self.eeg_channels = BoardShim.get_eeg_channels(self.board_id)[6:8]
-        logging.info("EEG Channels:", self.eeg_channels)
+        eeg_all = BoardShim.get_eeg_channels(self.board_id)
+        self.eeg_channels = eeg_all[6:8] if len(eeg_all) >= 8 else eeg_all[-2:]
+        logging.info(f"Blink EEG Channels: {self.eeg_channels}")
 
         self.sampling_rate = BoardShim.get_sampling_rate(self.board_id)
         self.num_points = int(2 * self.sampling_rate)
+        if self.num_points % 2 == 1:
+            self.num_points -= 1
 
         self.threshold_uv = threshold_uv
         self.blink_count = 0
@@ -30,36 +31,26 @@ class BlinkDetector(threading.Thread):
         while self.running:
             # Call this repeatedly in a loop or thread
             if self.board_shim is None:
-                time.sleep(0.1)
+                time.sleep(0.05)
                 continue
-
             try:
                 data = self.board_shim.get_current_board_data(self.num_points)
-                ch7, ch8 = self.eeg_channels
-                sig7 = data[ch7][-self.num_points:]
-                sig8 = data[ch8][-self.num_points:]
-                logging.info(f"Channel 7 data length: {len(sig7)}, Channel 8 data length: {len(sig8)}")
-
-                if len(sig7) < self.num_points or len(sig8) < self.num_points:
-                    logging.info("Not enough data yet")
-                    time.sleep(0.1)
-                    continue  # not enough data yet
-            
-                # Filtering pipeline on both channels
-                for signal in (sig7, sig8):
-                    DataFilter.detrend(signal, DetrendOperations.LINEAR.value)
-                    DataFilter.remove_environmental_noise(signal, self.sampling_rate, 2)
-                    DataFilter.perform_bandpass(
-                        signal, self.sampling_rate, 3.0, 45.0, 4,
-                        FilterTypes.BUTTERWORTH_ZERO_PHASE, 0
-                    )
-                    DataFilter.perform_bandstop(
-                        signal, self.sampling_rate, 50.0, 65.0, 4,
-                        FilterTypes.BUTTERWORTH_ZERO_PHASE, 0
-                    )
+                if data.shape[1] < self.num_points:
+                    time.sleep(0.05)
+                    continue
+                signals = []
+                for ch in self.eeg_channels:
+                    sig = np.copy(data[ch][-self.num_points:])
+                    DataFilter.detrend(sig, DetrendOperations.LINEAR.value)
+                    DataFilter.remove_environmental_noise(sig, self.sampling_rate, 2)
+                    DataFilter.perform_bandpass(sig, self.sampling_rate, 3.0, 45.0, 4,
+                                                FilterTypes.BUTTERWORTH_ZERO_PHASE.value, 0)
+                    DataFilter.perform_bandstop(sig, self.sampling_rate, 50.0, 65.0, 4,
+                                                FilterTypes.BUTTERWORTH_ZERO_PHASE.value, 0)
+                    signals.append(sig)
 
                 # Average channels for blink detection
-                avg_signal = (np.array(sig7) + np.array(sig8)) / 2.0
+                avg_signal = np.mean(np.vstack(signals), axis=0)
                 above_thresh = np.any(np.abs(avg_signal) > self.threshold_uv)
                 logging.info(f"Avg signal max abs: {np.max(np.abs(avg_signal))}, Above threshold: {above_thresh}")
             
@@ -76,15 +67,20 @@ class BlinkDetector(threading.Thread):
                 elif self._in_blink and not above_thresh:
                     # Signal returned below threshold ⇒ ready for next blink
                     self._in_blink = False
-                else:
-                    # Clear status if no blink
-                    if not above_thresh:
-                        logging.info("No blink detected.")
             except Exception as e:
                 logging.error(f"Error in blink detection loop: {e}")
                 pass
             time.sleep(0.05)
 
     def stop(self):
-            self.running = False
-
+        self.running = False
+        try:
+            self.board_shim.stop_stream()
+        except Exception:
+            pass
+        try:
+            if self.board_shim.is_prepared():
+                self.board_shim.release_session()
+        except Exception:
+            pass
+       

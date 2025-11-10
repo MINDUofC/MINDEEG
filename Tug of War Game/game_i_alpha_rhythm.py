@@ -1,116 +1,14 @@
-import pygame
 import sys
 import time
+import logging
+import pygame
 import os
 import json
-import argparse
-import logging
-
-from blink_detect import BlinkDetector
 from brainflow.board_shim import BoardShim, BrainFlowInputParams
-from queue import Queue
-import threading
-
-blink_queue_p1 = Queue()
-blink_queue_p2 = Queue()
-
-detector_p1 = None
-detector_p2 = None
-
-BoardShim.enable_dev_board_logger()
-logging.basicConfig(level=logging.INFO)
-
-
-def run_commands(board):
-    
-
-    commands = [f"chon_{i}_12;rldadd_{i}" for i in range(1, 9)]
-
-    for cmd in commands:
-        for sub_cmd in cmd.split(";"):
-            board.config_board(sub_cmd)
-            logging.info(f"Sent command: {sub_cmd}")
-            time.sleep(0.2)
-
-
-
-def setup_blink_detector_p1():
-    global detector_p1
-
-    # Parameters for Player 1
-
-    params_p1 = BrainFlowInputParams()
-    params_p1.serial_port = "###" # Replace with actual port
-    params_p1_board_id = 57  # Replace with actual board ID
-    board_p1 = BoardShim(params_p1_board_id, params_p1)  # Replace 57 with actual board ID
-    
-    try:
-        board_p1.prepare_session()
-        board_p1.start_stream(450000)
-        time.sleep(2)
-
-        # Configure channels for Player 1
-        run_commands(board_p1)
-
-        # Initialize and start the blink detector for Player 1
-        detector_p1 = BlinkDetector(board_p1, blink_queue_p1)
-
-        # Start the detector thread
-        detector_p1.start()
-
-    except Exception as e:  
-        logging.error("Error during execution", exc_info=True)
-    # Note: Do not release session here; it will be released when the game ends
-
- 
-
-
-def setup_blink_detector_p2():
-    global detector_p2
-
-    # Parameters for Player 2
-    params_p2 = BrainFlowInputParams()
-    params_p2.serial_port = "###" # Replace with actual port
-    params_p2_board_id = 57  # Replace with actual board ID
-    board_p2 = BoardShim(params_p2_board_id, params_p2)  # Replace 57 with actual board ID
-
-    try:
-        board_p2.prepare_session()
-        board_p2.start_stream(450000)
-        time.sleep(2)
-
-        # Configure channels for Player 2
-        run_commands(board_p2)
-
-        # Initialize and start the blink detector for Player 2
-        detector_p2 = BlinkDetector(board_p2, blink_queue_p2) 
-
-        # Start the detector thread
-        detector_p2.start() 
-
-    except Exception as e:  
-        logging.error("Error during execution", exc_info=True)    
-    # Note: Do not release session here; it will be released when the game ends
-
-
-def stop_blink_detectors():
-    if detector_p1:
-        detector_p1.stop()
-        detector_p1.join()  # Ensure the thread has finished
-    if detector_p2:
-        detector_p2.stop()
-        detector_p2.join()  # Ensure the thread has finished
-
-    
+from alpha_rhythm_detect import AlphaRhythmDetector
 
 # Initialize Pygame
 pygame.init()
-
-# Setup blink detectors in separate threads
-threading.Thread(target=setup_blink_detector_p1).start()
-print("Detector 1 started")
-# threading.Thread(target=setup_blink_detector_p2).start()
-time.sleep(5)  # Give some time for detectors to initialize
 
 # Screen setup
 WIDTH, HEIGHT = 800, 400
@@ -157,6 +55,12 @@ countdown_start = None
 splash_start_time = time.time()
 between_round_timer = None
 fade_displayed = False
+
+# Alpha Rhythm Detector Setup
+alpha_board = None
+alpha_detector = None
+alpha_calib_started = False
+alpha_calib_duration = 12
 
 # Leaderboard variables
 leaderboard_updated = False
@@ -395,43 +299,18 @@ while True:
                 reset_game()
                 state = COUNTDOWN
             elif state == PLAYING and mode == "blink":
-                try:
-                    if blink_queue_p1.get_nowait():
-                        blink_p1 += 1
-                        rope_x -= blink_rope_speed
-                        print("Blink once")
-                        toggle_p2 = 5 if toggle_p2 == 0 else 0
-                except:
-                    pass
-
-                # try:
-                #     if  blink_queue_p2.get_nowait():
-                #         blink_p2 += 1
-                #         rope_x += blink_rope_speed
-                #         toggle_p1 = 5 if toggle_p1 == 0 else 0
-                # except:
-                #     pass
-
-                if event.key == pygame.K_n:
+                if event.key == pygame.K_b:
+                    blink_p1 += 1
+                    rope_x -= blink_rope_speed
+                    toggle_p2 = 5 if toggle_p2 == 0 else 0
+                elif event.key == pygame.K_n:
                     blink_p2 += 1
                     rope_x += blink_rope_speed
                     toggle_p1 = 5 if toggle_p1 == 0 else 0
-                    
-
-
-                # if event.key == pygame.K_b:
-                #     blink_p1 += 1
-                #     rope_x -= blink_rope_speed
-                #     toggle_p2 = 5 if toggle_p2 == 0 else 0
-                # elif event.key == pygame.K_n:
-                #     blink_p2 += 1
-                #     rope_x += blink_rope_speed
-                #     toggle_p1 = 5 if toggle_p1 == 0 else 0
             elif state == GAME_OVER:
                 if event.key == pygame.K_SPACE:
                     state = MODE_SELECT
                 elif event.key == pygame.K_ESCAPE:
-                    stop_blink_detectors() # Stop the blink detector threads
                     pygame.quit()
                     sys.exit()
 
@@ -457,8 +336,10 @@ while True:
     elif state == PLAYING:
         tug1 = keys[pygame.K_f] if mode == "focus" else False
         tug2 = keys[pygame.K_j] if mode == "focus" else False
-        if tug1: rope_x -= rope_speed
-        if tug2: rope_x += rope_speed
+        if tug1: 
+            rope_x -= rope_speed
+        if tug2: 
+            rope_x += rope_speed
         if rope_x < win_boundary:
             winner = "Player 1"
         elif rope_x > WIDTH - win_boundary:
