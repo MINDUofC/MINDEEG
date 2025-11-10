@@ -327,8 +327,10 @@ while True:
     elif state == PLAYING:
         tug1 = keys[pygame.K_f] if mode == "focus" else False
         tug2 = keys[pygame.K_j] if mode == "focus" else False
-        if tug1: rope_x -= rope_speed
-        if tug2: rope_x += rope_speed
+        if tug1: 
+            rope_x -= rope_speed
+        if tug2: 
+            rope_x += rope_speed
         if rope_x < win_boundary:
             winner = "Player 1"
         elif rope_x > WIDTH - win_boundary:

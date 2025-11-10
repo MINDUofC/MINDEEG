@@ -1,16 +1,8 @@
-import argparse
-import logging
-import sys
 import time
-
 import threading
-
 import numpy as np
-
-from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from brainflow.board_shim import BoardShim
 from brainflow.data_filter import DataFilter, FilterTypes, DetrendOperations
-
-
 
 class BlinkDetector(threading.Thread):
     def __init__(self, board_shim, blink_queue, threshold_uv = 200):
